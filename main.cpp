@@ -9,6 +9,11 @@ int main(int argc, char** argv) {
     }
 
     PlanningTask pt;
-    pt.parse_from_file(argv[1]);
+    if (pt.parse_from_file(argv[1])) {
+        std::cout << "Error while opening the file" << std::endl;
+        return 1;
+    }
+
+    std::cout << "File parsed!" << std::endl;
     return 0;
 }
