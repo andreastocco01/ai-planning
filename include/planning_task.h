@@ -13,17 +13,32 @@ public:
     std::vector<std::string> sym_names;
 };
 
+class Fact {
+public:
+    int var_idx;
+    int var_val;
+};
+
+class MutexGroup {
+public:
+    int n_facts;
+    std::vector<Fact> facts;
+};
+
 class PlanningTask {
 public:
     int parse_from_file(std::string filenamme);
     void print_vars();
+    void print_facts();
 private:
     int metric; // 0 no action costs, 1 action costs
     std::vector<Variable> vars;
+    std::vector<MutexGroup> mutexes;
 
     void assert_version(std::ifstream &file);
     void get_metric(std::ifstream &file);
     void get_variables(std::ifstream &file);
+    void get_facts(std::ifstream &file);
 };
 
 #endif
