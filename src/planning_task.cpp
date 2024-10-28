@@ -64,6 +64,21 @@ void PlanningTask::print_actions() {
     }
 }
 
+void PlanningTask::print_axioms() {
+    for (int i = 0; i < this->n_axioms; i++) {
+        std::cout << this->axioms[i].n_conds << std::endl;
+        for (int j = 0; j < this->axioms[i].n_conds; j++) {
+            std::cout << this->axioms[i].conds[j].var_idx << " "
+            << this->axioms[i].conds[j].var_val << std::endl;
+        }
+        std::cout << this->axioms[i].affected_var << " "
+        << this->axioms[i].from_value << " "
+        << this->axioms[i].to_value << std::endl;
+        std::cout << std::endl;
+    }
+
+}
+
 void PlanningTask::print() {
     std::cout << "Metric: " << this->metric << std::endl;
     std::cout << std::endl;
@@ -71,12 +86,14 @@ void PlanningTask::print() {
     print_vars();
     std::cout << "Facts:" << std::endl;
     print_facts();
-    std::cout << "Initial state" << std::endl;
+    std::cout << "Initial state:" << std::endl;
     print_initial_state();
-    std::cout << "Goal state" << std::endl;
+    std::cout << "Goal state:" << std::endl;
     print_goal();
-    std::cout << "Actions" << std::endl;
+    std::cout << "Actions:" << std::endl;
     print_actions();
+    std::cout << "Axioms:" << std::endl;
+    print_axioms();
 }
 
 void PlanningTask::assert_version(std::ifstream &file) {
@@ -273,7 +290,45 @@ void PlanningTask::get_actions(std::ifstream &file) {
         getline(file, line);
         assert(line == "end_operator");
     }
+}
 
+void PlanningTask::get_axioms(std::ifstream &file) {
+    std::string line;
+    getline(file, line);
+    this->n_axioms = stoi(line);
+
+    for (int i = 0; i < this->n_axioms; i++) {
+        getline(file, line);
+        assert(line == "begin_rule");
+
+        Axiom axiom;
+        getline(file, line);
+        axiom.n_conds = std::stoi(line);
+
+        for (int j = 0; j < axiom.n_conds; j++) {
+            getline(file, line);
+            axiom.conds.push_back(parse_fact(line));
+        }
+
+        getline(file, line);
+
+        std::istringstream iss(line);
+        std::string tok;
+
+        iss >> tok;
+        axiom.affected_var = std::stoi(tok);
+
+        iss >> tok;
+        axiom.from_value = std::stoi(tok);
+
+        iss >> tok;
+        axiom.to_value = std::stoi(tok);
+
+        this->axioms.push_back(axiom);
+
+        getline(file, line);
+        assert(line == "end_rule");
+    }
 }
 
 int PlanningTask::parse_from_file(std::string filename) {
@@ -290,6 +345,7 @@ int PlanningTask::parse_from_file(std::string filename) {
     get_initial_state(file);
     get_goal(file);
     get_actions(file);
+    get_axioms(file);
 
     file.close();
     return 0;

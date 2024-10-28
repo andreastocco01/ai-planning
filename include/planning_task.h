@@ -45,6 +45,15 @@ public:
     int cost;
 };
 
+class Axiom {
+public:
+    int n_conds;
+    std::vector<Fact> conds;
+    int affected_var;
+    int from_value;
+    int to_value;
+};
+
 class PlanningTask {
 public:
     int parse_from_file(std::string filenamme);
@@ -60,6 +69,8 @@ private:
     std::vector<Fact> goal_state;
     int n_actions;
     std::vector<Action> actions;
+    int n_axioms;
+    std::vector<Axiom> axioms;
 
     void assert_version(std::ifstream &file);
     void get_metric(std::ifstream &file);
@@ -69,12 +80,14 @@ private:
     void get_initial_state(std::ifstream &file);
     void get_goal(std::ifstream &file);
     void get_actions(std::ifstream &file);
+    void get_axioms(std::ifstream &file);
 
     void print_vars();
     void print_facts();
     void print_initial_state();
     void print_goal();
     void print_actions();
+    void print_axioms();
 };
 
 #endif
