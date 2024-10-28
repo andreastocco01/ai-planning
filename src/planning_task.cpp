@@ -31,6 +31,13 @@ void PlanningTask::print_initial_state() {
     std::cout << std::endl;
 }
 
+void PlanningTask::print_goal() {
+    for (int i = 0; i < this->n_goals; i++) {
+        std::cout << this->goal_state[i].var_idx << " " << this->goal_state[i].var_val << std::endl;
+    }
+    std::cout << std::endl;
+}
+
 void PlanningTask::print() {
     std::cout << "Metric: " << this->metric << std::endl;
     std::cout << std::endl;
@@ -40,6 +47,8 @@ void PlanningTask::print() {
     print_facts();
     std::cout << "Initial state" << std::endl;
     print_initial_state();
+    std::cout << "Goal state" << std::endl;
+    print_goal();
 }
 
 void PlanningTask::assert_version(std::ifstream &file) {
@@ -97,6 +106,22 @@ void PlanningTask::get_variables(std::ifstream &file) {
     }
 }
 
+Fact PlanningTask::parse_fact(std::string line){
+    Fact fact;
+    std::istringstream iss(line);
+    std::string tok;
+
+    int count = 0;
+    while(iss >> tok) {
+        if (count == 0)
+            fact.var_idx = std::stoi(tok);
+        else
+            fact.var_val = std::stoi(tok);
+        count++;
+    }
+    return fact;
+}
+
 void PlanningTask::get_facts(std::ifstream &file) {
     std::string line;
 
@@ -113,22 +138,8 @@ void PlanningTask::get_facts(std::ifstream &file) {
         mutex.n_facts = std::stoi(line);
 
         for (int i = 0; i < mutex.n_facts; i++) {
-            Fact fact;
             getline(file, line);
-
-            std::istringstream iss(line);
-            std::string tok;
-
-            int count = 0;
-            while(iss >> tok) {
-                if (count == 0)
-                    fact.var_idx = std::stoi(tok);
-                else
-                    fact.var_val = std::stoi(tok);
-                count++;
-            }
-
-            mutex.facts.push_back(fact);
+            mutex.facts.push_back(parse_fact(line));
         }
 
         getline(file, line);
@@ -153,6 +164,24 @@ void PlanningTask::get_initial_state(std::ifstream &file) {
     assert(line == "end_state");
 }
 
+void PlanningTask::get_goal(std::ifstream &file) {
+    std::string line;
+    getline(file, line);
+
+    assert(line == "begin_goal");
+
+    getline(file, line);
+    this->n_goals = std::stoi(line);
+
+    for (int i = 0; i < this->n_goals; i++) {
+        getline(file, line);
+        goal_state.push_back(parse_fact(line));
+    }
+
+    getline(file, line);
+    assert(line == "end_goal");
+}
+
 int PlanningTask::parse_from_file(std::string filename) {
     std::ifstream file (filename);
 
@@ -165,6 +194,7 @@ int PlanningTask::parse_from_file(std::string filename) {
     get_variables(file);
     get_facts(file);
     get_initial_state(file);
+    get_goal(file);
 
     file.close();
     return 0;

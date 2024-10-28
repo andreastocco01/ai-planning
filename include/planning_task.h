@@ -2,6 +2,7 @@
 #define PLANNING_TASK_H
 
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -36,16 +37,21 @@ private:
     int n_mutex;
     std::vector<MutexGroup> mutexes;
     std::vector<int> initial_state;
+    int n_goals;
+    std::vector<Fact> goal_state;
 
     void assert_version(std::ifstream &file);
     void get_metric(std::ifstream &file);
     void get_variables(std::ifstream &file);
+    Fact parse_fact(std::string line);
     void get_facts(std::ifstream &file);
     void get_initial_state(std::ifstream &file);
+    void get_goal(std::ifstream &file);
 
     void print_vars();
     void print_facts();
     void print_initial_state();
+    void print_goal();
 };
 
 #endif
