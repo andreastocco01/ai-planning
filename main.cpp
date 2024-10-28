@@ -14,6 +14,8 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    pt.print();
+
     std::cout << "File parsed!" << std::endl;
     return 0;
 }

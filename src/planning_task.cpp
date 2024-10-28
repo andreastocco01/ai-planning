@@ -24,6 +24,24 @@ void PlanningTask::print_facts() {
     }
 }
 
+void PlanningTask::print_initial_state() {
+    for (int i = 0; i < this->n_vars; i++) {
+        std::cout << this->initial_state[i] << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+void PlanningTask::print() {
+    std::cout << "Metric: " << this->metric << std::endl;
+    std::cout << std::endl;
+    std::cout << "Variables:" << std::endl;
+    print_vars();
+    std::cout << "Facts:" << std::endl;
+    print_facts();
+    std::cout << "Initial state" << std::endl;
+    print_initial_state();
+}
+
 void PlanningTask::assert_version(std::ifstream &file) {
     std::string line;
 
@@ -119,6 +137,22 @@ void PlanningTask::get_facts(std::ifstream &file) {
     }
 }
 
+void PlanningTask::get_initial_state(std::ifstream &file) {
+    std::string line;
+    getline(file, line);
+
+    assert(line == "begin_state");
+
+    for (int i = 0; i < this->n_vars; i++) {
+        getline(file, line);
+        int var = std::stoi(line);
+        this->initial_state.push_back(var);
+    }
+
+    getline(file, line);
+    assert(line == "end_state");
+}
+
 int PlanningTask::parse_from_file(std::string filename) {
     std::ifstream file (filename);
 
@@ -130,6 +164,7 @@ int PlanningTask::parse_from_file(std::string filename) {
     get_metric(file);
     get_variables(file);
     get_facts(file);
+    get_initial_state(file);
 
     file.close();
     return 0;

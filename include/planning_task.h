@@ -28,19 +28,24 @@ public:
 class PlanningTask {
 public:
     int parse_from_file(std::string filenamme);
-    void print_vars();
-    void print_facts();
+    void print();
 private:
     int metric; // 0 no action costs, 1 action costs
     int n_vars;
     std::vector<Variable> vars;
     int n_mutex;
     std::vector<MutexGroup> mutexes;
+    std::vector<int> initial_state;
 
     void assert_version(std::ifstream &file);
     void get_metric(std::ifstream &file);
     void get_variables(std::ifstream &file);
     void get_facts(std::ifstream &file);
+    void get_initial_state(std::ifstream &file);
+
+    void print_vars();
+    void print_facts();
+    void print_initial_state();
 };
 
 #endif
