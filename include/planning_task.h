@@ -32,7 +32,9 @@ public:
     void print_facts();
 private:
     int metric; // 0 no action costs, 1 action costs
+    int n_vars;
     std::vector<Variable> vars;
+    int n_mutex;
     std::vector<MutexGroup> mutexes;
 
     void assert_version(std::ifstream &file);

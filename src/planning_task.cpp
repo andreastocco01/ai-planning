@@ -7,8 +7,8 @@
 #include <sstream>
 
 void PlanningTask::print_vars() {
-    for (int i = 0; i < this->vars.size(); i++) {
-        for (int j = 0; j < this->vars[i].sym_names.size(); j ++) {
+    for (int i = 0; i < this->n_vars; i++) {
+        for (int j = 0; j < this->vars[i].range; j ++) {
             std::cout << this->vars[i].sym_names[j] << std::endl;
         }
         std::cout << std::endl;
@@ -16,7 +16,7 @@ void PlanningTask::print_vars() {
 }
 
 void PlanningTask::print_facts() {
-    for (int i = 0; i < this->mutexes.size(); i++) {
+    for (int i = 0; i < this->n_mutex; i++) {
         for (int j = 0; j < this->mutexes[i].n_facts; j++) {
             std::cout << this->mutexes[i].facts[j].var_idx << " " << this->mutexes[i].facts[j].var_val << std::endl;
         }
@@ -55,9 +55,9 @@ void PlanningTask::get_variables(std::ifstream &file) {
 
     // number of variables
     getline(file, line);
-    int n_vars = std::stoi(line);
+    this->n_vars = std::stoi(line);
 
-    for (int i = 0; i < n_vars; i++) {
+    for (int i = 0; i < this->n_vars; i++) {
         getline(file, line);
         assert(line == "begin_variable");
 
@@ -84,9 +84,9 @@ void PlanningTask::get_facts(std::ifstream &file) {
 
     // number of mutex groups
     getline(file, line);
-    int n_mutex = stoi(line);
+    this->n_mutex = stoi(line);
 
-    for (int i = 0; i < n_mutex; i++) {
+    for (int i = 0; i < this->n_mutex; i++) {
         getline(file, line);
         assert(line == "begin_mutex_group");
 
