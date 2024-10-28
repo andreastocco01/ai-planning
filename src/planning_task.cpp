@@ -38,6 +38,32 @@ void PlanningTask::print_goal() {
     std::cout << std::endl;
 }
 
+void PlanningTask::print_actions() {
+    for (int i = 0; i < this->n_actions; i++) {
+        std::cout << this->actions[i].name << std::endl;
+        std::cout << this->actions[i].n_preconds << std::endl;
+
+        for (int j = 0; j < this->actions[i].n_preconds; j++) {
+            std::cout << this->actions[i].preconds[j].var_idx << " " << this->actions[i].preconds[j].var_val << std::endl;
+        }
+
+        std::cout << this->actions[i].n_effects << std::endl;
+
+        for (int j = 0; j < this->actions[i].n_effects; j++) {
+            std::cout << this->actions[i].effects[j].n_effect_conds << " ";
+            for (int k = 0; k < this->actions[i].effects[j].n_effect_conds; k++) {
+                std::cout << this->actions[i].effects[j].effect_conds[k].var_idx << " "
+                << this->actions[i].effects[j].effect_conds[k].var_val << " ";
+            }
+            std::cout << this->actions[i].effects[j].var_affected << " "
+            << this->actions[i].effects[j].from_value << " "
+            << this->actions[i].effects[j].to_value << std::endl;
+        }
+        std::cout << this->actions[i].cost << std::endl;
+        std::cout << std::endl;
+    }
+}
+
 void PlanningTask::print() {
     std::cout << "Metric: " << this->metric << std::endl;
     std::cout << std::endl;
@@ -49,6 +75,8 @@ void PlanningTask::print() {
     print_initial_state();
     std::cout << "Goal state" << std::endl;
     print_goal();
+    std::cout << "Actions" << std::endl;
+    print_actions();
 }
 
 void PlanningTask::assert_version(std::ifstream &file) {
@@ -111,14 +139,12 @@ Fact PlanningTask::parse_fact(std::string line){
     std::istringstream iss(line);
     std::string tok;
 
-    int count = 0;
-    while(iss >> tok) {
-        if (count == 0)
-            fact.var_idx = std::stoi(tok);
-        else
-            fact.var_val = std::stoi(tok);
-        count++;
-    }
+    iss >> tok;
+    fact.var_idx = std::stoi(tok);
+
+    iss >> tok;
+    fact.var_val = std::stoi(tok);
+
     return fact;
 }
 
@@ -182,6 +208,74 @@ void PlanningTask::get_goal(std::ifstream &file) {
     assert(line == "end_goal");
 }
 
+void PlanningTask::get_actions(std::ifstream &file) {
+    std::string line;
+
+    getline(file, line);
+    this->n_actions = std::stoi(line);
+
+    for (int i = 0; i < this->n_actions; i++) {
+        getline(file, line);
+        assert(line == "begin_operator");
+
+        Action action;
+        getline(file, action.name);
+
+        getline(file, line);
+        action.n_preconds = stoi(line);
+
+        for (int i = 0; i < action.n_preconds; i++) {
+            getline(file, line);
+            action.preconds.push_back(parse_fact(line));
+        }
+
+        getline(file, line);
+        action.n_effects = stoi(line);
+
+        for (int i = 0; i < action.n_effects; i++) {
+            getline(file, line);
+            Effect effect;
+
+            std::istringstream iss(line);
+            std::string tok;
+
+            iss >> tok;
+            effect.n_effect_conds = std::stoi(tok);
+
+            for (int i = 0; i < effect.n_effect_conds; i++) {
+                Fact fact;
+
+                iss >> tok;
+                fact.var_idx = std::stoi(tok);
+
+                iss >> tok;
+                fact.var_val = std::stoi(tok);
+
+                effect.effect_conds.push_back(fact);
+            }
+
+            iss >> tok;
+            effect.var_affected = std::stoi(tok);
+
+            iss >> tok;
+            effect.from_value = std::stoi(tok);
+
+            iss >> tok;
+            effect.to_value = std::stoi(tok);
+
+            action.effects.push_back(effect);
+        }
+
+        getline(file, line);
+        action.cost = std::stoi(line);
+        this->actions.push_back(action);
+
+        getline(file, line);
+        assert(line == "end_operator");
+    }
+
+}
+
 int PlanningTask::parse_from_file(std::string filename) {
     std::ifstream file (filename);
 
@@ -195,6 +289,7 @@ int PlanningTask::parse_from_file(std::string filename) {
     get_facts(file);
     get_initial_state(file);
     get_goal(file);
+    get_actions(file);
 
     file.close();
     return 0;

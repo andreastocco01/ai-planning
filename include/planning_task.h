@@ -26,6 +26,25 @@ public:
     std::vector<Fact> facts;
 };
 
+class Effect {
+public:
+    int n_effect_conds;
+    std::vector<Fact> effect_conds;
+    int var_affected;
+    int from_value;
+    int to_value;
+};
+
+class Action {
+public:
+    std::string name;
+    int n_preconds;
+    std::vector<Fact> preconds;
+    int n_effects;
+    std::vector<Effect> effects;
+    int cost;
+};
+
 class PlanningTask {
 public:
     int parse_from_file(std::string filenamme);
@@ -39,6 +58,8 @@ private:
     std::vector<int> initial_state;
     int n_goals;
     std::vector<Fact> goal_state;
+    int n_actions;
+    std::vector<Action> actions;
 
     void assert_version(std::ifstream &file);
     void get_metric(std::ifstream &file);
@@ -47,11 +68,13 @@ private:
     void get_facts(std::ifstream &file);
     void get_initial_state(std::ifstream &file);
     void get_goal(std::ifstream &file);
+    void get_actions(std::ifstream &file);
 
     void print_vars();
     void print_facts();
     void print_initial_state();
     void print_goal();
+    void print_actions();
 };
 
 #endif
