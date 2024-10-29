@@ -1,5 +1,7 @@
 #include <iostream>
 #include "include/planning_task.h"
+#include "include/planning_task_parser.h"
+#include "include/planning_task_utils.h"
 
 int main(int argc, char** argv) {
 
@@ -8,13 +10,9 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    PlanningTask pt;
-    if (pt.parse_from_file(argv[1])) {
-        std::cout << "Error while opening the file" << std::endl;
-        return 1;
-    }
-
-    pt.print();
+    PlanningTaskParser parser;
+    PlanningTask pt = parser.parse_from_file(argv[1]);
+    PlanningTaskUtils::print_planning_task(pt);
 
     std::cout << "File parsed!" << std::endl;
     return 0;

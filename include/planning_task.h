@@ -56,9 +56,6 @@ public:
 
 class PlanningTask {
 public:
-    int parse_from_file(std::string filenamme);
-    void print();
-private:
     int metric; // 0 no action costs, 1 action costs
     int n_vars;
     std::vector<Variable> vars;
@@ -72,22 +69,18 @@ private:
     int n_axioms;
     std::vector<Axiom> axioms;
 
-    void assert_version(std::ifstream &file);
-    void get_metric(std::ifstream &file);
-    void get_variables(std::ifstream &file);
-    Fact parse_fact(std::string line);
-    void get_facts(std::ifstream &file);
-    void get_initial_state(std::ifstream &file);
-    void get_goal(std::ifstream &file);
-    void get_actions(std::ifstream &file);
-    void get_axioms(std::ifstream &file);
-
-    void print_vars();
-    void print_facts();
-    void print_initial_state();
-    void print_goal();
-    void print_actions();
-    void print_axioms();
+    PlanningTask(int metric,
+        int n_vars,
+        std::vector<Variable> &vars,
+        int n_mutex,
+        std::vector<MutexGroup> &mutexes,
+        std::vector<int> &initial_state,
+        int n_goals,
+        std::vector<Fact> &goal_state,
+        int n_actions,
+        std::vector<Action> &actions,
+        int n_axioms,
+        std::vector<Axiom> &axioms);
 };
 
 #endif
