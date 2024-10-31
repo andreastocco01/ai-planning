@@ -11,6 +11,8 @@ namespace PlanningTaskUtils {
     void print_planning_task_goal(PlanningTask &pt);
     void print_planning_task_actions(PlanningTask &pt);
     void print_planning_task_axioms(PlanningTask &pt);
+
+    int get_random_number(int lower, int upper);
 }
 
 #endif

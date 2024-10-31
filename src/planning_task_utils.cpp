@@ -1,4 +1,5 @@
 #include "../include/planning_task_utils.h"
+#include <cstdlib>
 #include <iostream>
 
 void PlanningTaskUtils::print_planning_task_vars(PlanningTask &pt) {
@@ -89,4 +90,8 @@ void PlanningTaskUtils::print_planning_task(PlanningTask &pt) {
     print_planning_task_actions(pt);
     std::cout << "Axioms:" << std::endl;
     print_planning_task_axioms(pt);
+}
+
+int PlanningTaskUtils::get_random_number(int lower, int upper) {
+    return lower + rand() % (upper - lower);
 }

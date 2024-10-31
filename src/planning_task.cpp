@@ -1,4 +1,5 @@
 #include "../include/planning_task.h"
+#include "../include/planning_task_utils.h"
 #include <fstream>
 #include <iostream>
 #include <cassert>
@@ -29,6 +30,8 @@ PlanningTask::PlanningTask(int metric,
         this->actions = actions;
         this->n_axioms = n_axioms;
         this->axioms = axioms;
+
+        this->solution_cost = 0;
 }
 
 /*
@@ -96,10 +99,53 @@ void PlanningTask::apply_axioms(std::vector<int> &current_state) {
     }
 }
 
+std::vector<Action> PlanningTask::get_possible_actions(std::vector<int> &current_state) {
+    std::vector<Action> actions;
+    for (int i = 0; i < this->n_actions; i++) {
+        Action action = this->actions[i];
+        int j;
+        for (j = 0; j < action.n_preconds; j++)
+            if (current_state[action.preconds[j].var_idx] != action.preconds[j].var_val)
+                break;
+        if (j == action.n_preconds)
+            actions.push_back(action);
+    }
+    return actions;
+}
+
+void PlanningTask::apply_action(Action action, std::vector<int> &current_state) {
+    for (int i = 0; i < action.n_effects; i++) {
+        int j;
+        for (j = 0; j < action.effects[i].n_effect_conds; j++) {
+            std::vector<Fact> effect_conds = action.effects[i].effect_conds;
+            if (current_state[effect_conds[j].var_idx] != effect_conds[j].var_val &&
+                current_state[effect_conds[j].var_idx] != -1)
+                break;
+        }
+        if (j < action.effects[i].n_effect_conds)
+            continue;
+        int var = action.effects[i].var_affected;
+        if (current_state[var] == action.effects[i].from_value ||
+            action.effects[i].from_value == -1) {
+            current_state[var] = action.effects[i].to_value;
+            this->solution.push_back(action);
+            if (this->metric == 1)
+                this->solution_cost += action.cost;
+            else
+                this->solution_cost += 1;
+        }
+    }
+}
+
 void PlanningTask::greedy() {
+    srand(0);
     std::vector<int> current_state = this->initial_state;
 
     while (!goal_reached(current_state)) {
         apply_axioms(current_state);
+        std::vector<Action> possible_actions = get_possible_actions(current_state);
+        apply_action(possible_actions[PlanningTaskUtils::get_random_number(0, possible_actions.size())], current_state);
     }
+
+    std::cout << "Solution cost: " << this->solution_cost << std::endl;
 }

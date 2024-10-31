@@ -69,8 +69,8 @@ public:
     int n_axioms;
     std::vector<Axiom> axioms;
 
-    std::vector<Action> best_solution;
-    int best_solution_cost;
+    std::vector<Action> solution;
+    int solution_cost;
 
     PlanningTask(int metric,
         int n_vars,
@@ -93,6 +93,8 @@ private:
     bool check_axiom_cond(Axiom axiom, std::vector<int> &current_state);
     bool check_mutex_groups(int var_to_update, int new_value, std::vector<int> &current_state);
     int get_max_axiom_layer();
+    std::vector<Action> get_possible_actions(std::vector<int> &current_state);
+    void apply_action(Action action, std::vector<int> &current_state);
 };
 
 #endif
