@@ -32,4 +32,5 @@
 *.app
 
 /build
-test_problem.txt
+parsing_test.txt
+/DeletefreeSAS
