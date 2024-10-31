@@ -12,8 +12,7 @@ int main(int argc, char** argv) {
 
     PlanningTaskParser parser;
     PlanningTask pt = parser.parse_from_file(argv[1]);
-    PlanningTaskUtils::print_planning_task(pt);
-
     std::cout << "File parsed!" << std::endl;
+
     return 0;
 }
