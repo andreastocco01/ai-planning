@@ -137,7 +137,7 @@ void PlanningTask::apply_action(Action action, std::vector<int> &current_state) 
     }
 }
 
-void PlanningTask::greedy() {
+void PlanningTask::brute_force() {
     srand(0);
     std::vector<int> current_state = this->initial_state;
 

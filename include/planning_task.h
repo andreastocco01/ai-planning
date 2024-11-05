@@ -85,7 +85,7 @@ public:
         int n_axioms,
         std::vector<Axiom> &axioms);
 
-    void greedy();
+    void brute_force();
 
 private:
     bool goal_reached(std::vector<int> &current_state);
