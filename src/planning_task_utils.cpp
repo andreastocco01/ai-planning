@@ -1,6 +1,7 @@
 #include "../include/planning_task_utils.h"
 #include <cstdlib>
 #include <iostream>
+#include <vector>
 
 void PlanningTaskUtils::print_var(Variable &var) {
     std::cout << var.name << std::endl;
@@ -38,9 +39,9 @@ void PlanningTaskUtils::print_planning_task_mutexes(PlanningTask &pt) {
     }
 }
 
-void PlanningTaskUtils::print_planning_task_initial_state(PlanningTask &pt) {
-    for (int i = 0; i < pt.n_vars; i++) {
-        std::cout << pt.initial_state[i] << std::endl;
+void PlanningTaskUtils::print_planning_task_state(std::vector<int> &state) {
+    for (int i = 0; i < state.size(); i++) {
+        std::cout << state[i] << std::endl;
     }
     std::cout << std::endl;
 }
@@ -115,7 +116,7 @@ void PlanningTaskUtils::print_planning_task(PlanningTask &pt) {
     std::cout << "Mutexes:" << std::endl;
     print_planning_task_mutexes(pt);
     std::cout << "Initial state:" << std::endl;
-    print_planning_task_initial_state(pt);
+    print_planning_task_state(pt.initial_state);
     std::cout << "Goal state:" << std::endl;
     print_planning_task_goal(pt);
     std::cout << "Actions:" << std::endl;
