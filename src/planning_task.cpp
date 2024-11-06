@@ -149,8 +149,13 @@ void PlanningTask::brute_force(int seed) {
     while (!goal_reached(current_state)) {
         apply_axioms(current_state);
         std::vector<Action> possible_actions = get_possible_actions(current_state);
+        if (possible_actions.empty())
+            break;
         apply_action(possible_actions[PlanningTaskUtils::get_random_number(0, possible_actions.size())], current_state);
     }
 
-    std::cout << "Solution cost: " << this->solution_cost << std::endl;
+    if (goal_reached(current_state))
+        std::cout << "Solution cost: " << this->solution_cost << std::endl;
+    else
+        std::cout << "Goal state not reached: couldn't apply any action" << std::endl;;
 }
