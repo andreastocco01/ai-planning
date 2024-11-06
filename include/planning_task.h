@@ -43,6 +43,8 @@ public:
     int n_effects;
     std::vector<Effect> effects;
     int cost;
+
+    bool is_used; // this flag is 1 if the action is used in the plan
 };
 
 class Axiom {

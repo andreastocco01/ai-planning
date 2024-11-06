@@ -107,8 +107,10 @@ std::vector<Action> PlanningTask::get_possible_actions(std::vector<int> &current
         for (j = 0; j < action.n_preconds; j++)
             if (current_state[action.preconds[j].var_idx] != action.preconds[j].var_val)
                 break;
-        if (j == action.n_preconds)
+        if (j == action.n_preconds && !action.is_used) {
+            this->actions[i].is_used = true;
             actions.push_back(action);
+        }
     }
     return actions;
 }

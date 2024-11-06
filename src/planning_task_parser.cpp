@@ -210,6 +210,7 @@ std::vector<Action> PlanningTaskParser::get_actions(std::ifstream &file) {
 
         getline(file, line);
         action.cost = std::stoi(line);
+        action.is_used = false;
         actions.push_back(action);
 
         getline(file, line);
