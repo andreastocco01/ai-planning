@@ -6,7 +6,7 @@
 
 void print_usage(std::string executable) {
     std::cerr << "Usage: " << executable << " --from-file <file_name> --alg <alg_code> [--seed <int>]" << std::endl;
-    std::cerr << "Supported alg_code are:" << std::endl << "0: brute_force (seed required)" << std::endl;
+    std::cerr << "Supported alg_code are:" << std::endl << "0: brute_force (seed required)" << "1: greedy (seed required)" << std::endl;
 }
 
 int main(int argc, char** argv) {
@@ -49,6 +49,8 @@ int main(int argc, char** argv) {
 
     if (alg == 0 && seed_flag) {
         pt.brute_force(seed);
+    } else if (alg == 1 && seed_flag) {
+        pt.greedy(seed);
     } else {
         print_usage(argv[0]);
         return 1;

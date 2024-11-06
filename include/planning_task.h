@@ -89,6 +89,7 @@ public:
 
     void print_solution();
     void brute_force(int seed);
+    void greedy(int seed);
 
 private:
     bool goal_reached(std::vector<int> &current_state);
@@ -98,6 +99,7 @@ private:
     int get_max_axiom_layer();
     std::vector<Action> get_possible_actions(std::vector<int> &current_state);
     void apply_action(Action action, std::vector<int> &current_state);
+    std::vector<Action> get_minimum_cost_actions(std::vector<Action> actions);
 };
 
 #endif

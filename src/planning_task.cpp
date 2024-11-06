@@ -6,6 +6,7 @@
 #include <ostream>
 #include <string>
 #include <sstream>
+#include <vector>
 
 PlanningTask::PlanningTask(int metric,
     int n_vars,
@@ -159,6 +160,42 @@ void PlanningTask::brute_force(int seed) {
         if (possible_actions.empty())
             break;
         apply_action(possible_actions[PlanningTaskUtils::get_random_number(0, possible_actions.size())], current_state);
+    }
+
+    if (goal_reached(current_state))
+        print_solution();
+    else
+        std::cout << "Goal state not reached: couldn't apply any action" << std::endl;
+}
+
+std::vector<Action> PlanningTask::get_minimum_cost_actions(std::vector<Action> actions) {
+    int min_cost = actions[0].cost;
+    std::vector<Action> res;
+
+    for (int i = 1; i < actions.size(); i++) {
+        if (actions[i].cost < min_cost)
+            min_cost = actions[i].cost;
+    }
+
+    for (int i = 0; i < actions.size(); i++) {
+        if (actions[i].cost == min_cost)
+            res.push_back(actions[i]);
+    }
+
+    return res;
+}
+
+void PlanningTask::greedy(int seed) {
+    srand(seed);
+    std::vector<int> current_state = this->initial_state;
+
+    while (!goal_reached(current_state)) {
+        apply_axioms(current_state);
+        std::vector<Action> possible_actions = get_possible_actions(current_state);
+        if (possible_actions.empty())
+            break;
+        std::vector<Action> minimum_cost_actions = get_minimum_cost_actions(possible_actions);
+        apply_action(minimum_cost_actions[PlanningTaskUtils::get_random_number(0, minimum_cost_actions.size())], current_state);
     }
 
     if (goal_reached(current_state))
