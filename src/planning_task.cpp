@@ -142,6 +142,13 @@ void PlanningTask::apply_action(Action action, std::vector<int> &current_state) 
     }
 }
 
+void PlanningTask::print_solution() {
+    for (int i = 0; i < this->solution.size(); i++) {
+        std::cout << this->solution[i].name << std::endl;
+    }
+    std::cout << "Cost: " << this->solution_cost << std::endl;
+}
+
 void PlanningTask::brute_force(int seed) {
     srand(seed);
     std::vector<int> current_state = this->initial_state;
@@ -155,7 +162,7 @@ void PlanningTask::brute_force(int seed) {
     }
 
     if (goal_reached(current_state))
-        std::cout << "Solution cost: " << this->solution_cost << std::endl;
+        print_solution();
     else
-        std::cout << "Goal state not reached: couldn't apply any action" << std::endl;;
+        std::cout << "Goal state not reached: couldn't apply any action" << std::endl;
 }

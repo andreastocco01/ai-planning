@@ -87,6 +87,7 @@ public:
         int n_axioms,
         std::vector<Axiom> &axioms);
 
+    void print_solution();
     void brute_force(int seed);
 
 private:
