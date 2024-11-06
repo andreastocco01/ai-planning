@@ -55,7 +55,10 @@ bool PlanningTask::check_axiom_cond(Axiom axiom, std::vector<int> &current_state
 }
 
 /*
-    check if apply the axiom would break a mutex
+    check if the application of an axiom would break a mutex
+    in each mutex at most one fact can be true
+
+    if a mutex already have a true fact, then we cannot apply any update to that mutex
 */
 bool PlanningTask::check_mutex_groups(int var_to_update, int new_value, std::vector<int> &current_state) {
     for (int i = 0; i < this->n_mutex; i++) {
@@ -127,8 +130,8 @@ void PlanningTask::apply_action(Action action, std::vector<int> &current_state) 
         if (j < action.effects[i].n_effect_conds)
             continue;
         int var = action.effects[i].var_affected;
-        if (current_state[var] == action.effects[i].from_value ||
-            action.effects[i].from_value == -1) {
+        if ((current_state[var] == action.effects[i].from_value ||
+            action.effects[i].from_value == -1) && check_mutex_groups(var, action.effects[i].to_value, current_state)) {
             current_state[var] = action.effects[i].to_value;
             this->solution.push_back(action);
             if (this->metric == 1)
