@@ -87,7 +87,7 @@ public:
         int n_axioms,
         std::vector<Axiom> &axioms);
 
-    void brute_force();
+    void brute_force(int seed);
 
 private:
     bool goal_reached(std::vector<int> &current_state);

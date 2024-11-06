@@ -142,8 +142,8 @@ void PlanningTask::apply_action(Action action, std::vector<int> &current_state) 
     }
 }
 
-void PlanningTask::brute_force() {
-    srand(0);
+void PlanningTask::brute_force(int seed) {
+    srand(seed);
     std::vector<int> current_state = this->initial_state;
 
     while (!goal_reached(current_state)) {
