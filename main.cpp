@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
     if (alg == 0 && seed_flag) {
         pt.brute_force(seed);
     } else if (alg == 1 && seed_flag) {
-        pt.greedy(seed);
+        // TODO implement greedy
     } else {
         print_usage(argv[0]);
         return 1;

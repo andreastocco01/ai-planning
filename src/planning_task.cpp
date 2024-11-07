@@ -47,14 +47,6 @@ bool PlanningTask::goal_reached(std::vector<int> &current_state) {
     return true;
 }
 
-bool PlanningTask::check_axiom_cond(Axiom axiom, std::vector<int> &current_state) {
-    for (int i = 0; i < axiom.n_conds; i++) {
-        if (current_state[axiom.conds[i].var_idx] != axiom.conds[i].var_val)
-            return false;
-    }
-    return true;
-}
-
 /*
     check if the application of an axiom would break a mutex
     in each mutex at most one fact can be true
@@ -88,13 +80,21 @@ int PlanningTask::get_max_axiom_layer(){
     return max;
 }
 
+bool PlanningTask::check_axiom_cond(Axiom axiom, std::vector<int> &current_state) {
+    for (int i = 0; i < axiom.n_conds; i++) {
+        if (current_state[axiom.conds[i].var_idx] != axiom.conds[i].var_val)
+            return false;
+    }
+    return true;
+}
+
 void PlanningTask::apply_axioms(std::vector<int> &current_state) {
     int max_axiom_layer = get_max_axiom_layer();
     for (int axiom_layer = 0; axiom_layer <= max_axiom_layer; axiom_layer++) {
         for (int i = 0; i < this->n_axioms; i++){
             Axiom axiom = this->axioms[i];
             if (this->vars[axiom.affected_var].axiom_layer == axiom_layer && check_axiom_cond(axiom, current_state)) {
-                if ((current_state[axiom.affected_var] == axiom.from_value || current_state[axiom.affected_var] == -1) &&
+                if ((current_state[axiom.affected_var] == axiom.from_value || axiom.from_value == -1) &&
                     check_mutex_groups(axiom.affected_var, axiom.to_value, current_state)) {
                     current_state[axiom.affected_var] = axiom.to_value;
                 }
@@ -103,44 +103,50 @@ void PlanningTask::apply_axioms(std::vector<int> &current_state) {
     }
 }
 
-std::vector<Action> PlanningTask::get_possible_actions(std::vector<int> &current_state) {
-    std::vector<Action> actions;
+std::vector<int> PlanningTask::get_possible_actions_idx(std::vector<int> &current_state) {
+    std::vector<int> action_idx;
     for (int i = 0; i < this->n_actions; i++) {
         Action action = this->actions[i];
+        if (action.is_used)
+            continue; // skip actions already used
         int j;
         for (j = 0; j < action.n_preconds; j++)
             if (current_state[action.preconds[j].var_idx] != action.preconds[j].var_val)
                 break;
-        if (j == action.n_preconds && !action.is_used) {
-            this->actions[i].is_used = true;
-            actions.push_back(action);
-        }
+        if (j == action.n_preconds)
+            action_idx.push_back(i);
     }
-    return actions;
+    return action_idx;
 }
 
-void PlanningTask::apply_action(Action action, std::vector<int> &current_state) {
+void PlanningTask::apply_action(Action &action, std::vector<int> &current_state) {
+    int applied_effects = 0;
     for (int i = 0; i < action.n_effects; i++) {
+        Effect effect = action.effects[i];
         int j;
-        for (j = 0; j < action.effects[i].n_effect_conds; j++) {
-            std::vector<Fact> effect_conds = action.effects[i].effect_conds;
+        for (j = 0; j < effect.n_effect_conds; j++) {
+            std::vector<Fact> effect_conds = effect.effect_conds;
             if (current_state[effect_conds[j].var_idx] != effect_conds[j].var_val &&
-                current_state[effect_conds[j].var_idx] != -1)
+                effect_conds[j].var_val != -1)
                 break;
         }
-        if (j < action.effects[i].n_effect_conds)
+        if (j < effect.n_effect_conds) // the effect cannot be applied
             continue;
-        int var = action.effects[i].var_affected;
-        if ((current_state[var] == action.effects[i].from_value ||
-            action.effects[i].from_value == -1) && check_mutex_groups(var, action.effects[i].to_value, current_state)) {
-            current_state[var] = action.effects[i].to_value;
-            this->solution.push_back(action);
+        int var = effect.var_affected;
+        if ((current_state[var] == effect.from_value ||
+            effect.from_value == -1) && check_mutex_groups(var, effect.to_value, current_state)) {
+            current_state[var] = effect.to_value;
+            applied_effects++;
+            if (applied_effects == 1)
+                this->solution.push_back(action);
             if (this->metric == 1)
                 this->solution_cost += action.cost;
             else
                 this->solution_cost += 1;
         }
     }
+    if (applied_effects == action.n_effects)
+        action.is_used = true; // an action is used only if all the effects are applied once
 }
 
 void PlanningTask::print_solution() {
@@ -156,46 +162,11 @@ void PlanningTask::brute_force(int seed) {
 
     while (!goal_reached(current_state)) {
         apply_axioms(current_state);
-        std::vector<Action> possible_actions = get_possible_actions(current_state);
-        if (possible_actions.empty())
+        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state);
+        if (possible_actions_idx.empty())
             break;
-        apply_action(possible_actions[PlanningTaskUtils::get_random_number(0, possible_actions.size())], current_state);
-    }
-
-    if (goal_reached(current_state))
-        print_solution();
-    else
-        std::cout << "Goal state not reached: couldn't apply any action" << std::endl;
-}
-
-std::vector<Action> PlanningTask::get_minimum_cost_actions(std::vector<Action> actions) {
-    int min_cost = actions[0].cost;
-    std::vector<Action> res;
-
-    for (int i = 1; i < actions.size(); i++) {
-        if (actions[i].cost < min_cost)
-            min_cost = actions[i].cost;
-    }
-
-    for (int i = 0; i < actions.size(); i++) {
-        if (actions[i].cost == min_cost)
-            res.push_back(actions[i]);
-    }
-
-    return res;
-}
-
-void PlanningTask::greedy(int seed) {
-    srand(seed);
-    std::vector<int> current_state = this->initial_state;
-
-    while (!goal_reached(current_state)) {
-        apply_axioms(current_state);
-        std::vector<Action> possible_actions = get_possible_actions(current_state);
-        if (possible_actions.empty())
-            break;
-        std::vector<Action> minimum_cost_actions = get_minimum_cost_actions(possible_actions);
-        apply_action(minimum_cost_actions[PlanningTaskUtils::get_random_number(0, minimum_cost_actions.size())], current_state);
+        int action_to_apply_idx = possible_actions_idx[PlanningTaskUtils::get_random_number(0, possible_actions_idx.size())];
+        apply_action(this->actions[action_to_apply_idx], current_state);
     }
 
     if (goal_reached(current_state))

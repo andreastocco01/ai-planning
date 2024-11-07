@@ -89,7 +89,6 @@ public:
 
     void print_solution();
     void brute_force(int seed);
-    void greedy(int seed);
 
 private:
     bool goal_reached(std::vector<int> &current_state);
@@ -97,9 +96,8 @@ private:
     bool check_axiom_cond(Axiom axiom, std::vector<int> &current_state);
     bool check_mutex_groups(int var_to_update, int new_value, std::vector<int> &current_state);
     int get_max_axiom_layer();
-    std::vector<Action> get_possible_actions(std::vector<int> &current_state);
-    void apply_action(Action action, std::vector<int> &current_state);
-    std::vector<Action> get_minimum_cost_actions(std::vector<Action> actions);
+    std::vector<int> get_possible_actions_idx(std::vector<int> &current_state);
+    void apply_action(Action &action, std::vector<int> &current_state);
 };
 
 #endif
