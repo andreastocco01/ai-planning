@@ -32,5 +32,6 @@
 *.app
 
 /build
-parsing_test.txt
+parsing_test.sas
+axiom_mutex_test.sas
 /DeletefreeSAS
