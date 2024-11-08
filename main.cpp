@@ -51,7 +51,8 @@ int main(int argc, char** argv) {
         pt.brute_force(seed);
         pt.print_solution();
     } else if (alg == 1 && seed_flag) {
-        // TODO implement greedy
+        pt.greedy(seed);
+        pt.print_solution();
     } else {
         print_usage(argv[0]);
         return 1;

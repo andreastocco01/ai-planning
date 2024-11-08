@@ -1,5 +1,6 @@
 #include "../include/planning_task.h"
 #include "../include/planning_task_utils.h"
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <cassert>
@@ -174,4 +175,50 @@ void PlanningTask::brute_force(int seed) {
         std::cout << "Solution found" << std::endl;
     else
         std::cout << "Goal state not reached" << std::endl;
+}
+
+std::vector<int> PlanningTask::get_min_cost_actions_idx(std::vector<int> &actions_idx) {
+    std::vector<int> res;
+    int min_cost = this->actions[actions_idx[0]].cost;
+
+    // find minimum cost
+    for (int i = 1; i < actions_idx.size(); i++) {
+        int idx = actions_idx[i];
+        if (this->actions[idx].cost < min_cost)
+            min_cost = this->actions[idx].cost;
+    }
+
+    // get all minimum cost action indexes
+    for (int i = 0; i < actions_idx.size(); i++) {
+        int idx = actions_idx[i];
+        if (this->actions[idx].cost == min_cost)
+            res.push_back(idx);
+    }
+
+    return res;
+}
+
+void PlanningTask::greedy(int seed) {
+    if (this->metric == 0) { // it is equivalent to brute_force
+        std::cout << "Executing brute force" << std::endl;
+        brute_force(seed);
+    } else {
+        srand(seed);
+        std::vector<int> current_state = this->initial_state;
+
+        while (!goal_reached(current_state)) {
+            apply_axioms(current_state);
+            std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state);
+            if (possible_actions_idx.empty())
+                break;
+            std::vector<int> min_cost_actions_idx = get_min_cost_actions_idx(possible_actions_idx);
+            int action_to_apply_idx = min_cost_actions_idx[PlanningTaskUtils::get_random_number(0, min_cost_actions_idx.size())];
+            apply_action(this->actions[action_to_apply_idx], current_state);
+        }
+
+        if (goal_reached(current_state))
+            std::cout << "Solution found" << std::endl;
+        else
+            std::cout << "Goal state not reached" << std::endl;
+    }
 }
