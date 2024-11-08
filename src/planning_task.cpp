@@ -137,12 +137,13 @@ void PlanningTask::apply_action(Action &action, std::vector<int> &current_state)
             effect.from_value == -1) && check_mutex_groups(var, effect.to_value, current_state)) {
             current_state[var] = effect.to_value;
             applied_effects++;
-            if (applied_effects == 1)
+            if (applied_effects == 1) {
                 this->solution.push_back(action);
-            if (this->metric == 1)
-                this->solution_cost += action.cost;
-            else
-                this->solution_cost += 1;
+                if (this->metric == 1)
+                    this->solution_cost += action.cost;
+                else
+                    this->solution_cost += 1;
+            }
         }
     }
     if (applied_effects == action.n_effects)
@@ -170,7 +171,7 @@ void PlanningTask::brute_force(int seed) {
     }
 
     if (goal_reached(current_state))
-        print_solution();
+        std::cout << "Solution found" << std::endl;
     else
-        std::cout << "Goal state not reached: couldn't apply any action" << std::endl;
+        std::cout << "Goal state not reached" << std::endl;
 }

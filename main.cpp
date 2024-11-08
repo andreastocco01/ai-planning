@@ -49,12 +49,14 @@ int main(int argc, char** argv) {
 
     if (alg == 0 && seed_flag) {
         pt.brute_force(seed);
+        pt.print_solution();
     } else if (alg == 1 && seed_flag) {
         // TODO implement greedy
     } else {
         print_usage(argv[0]);
         return 1;
     }
+    PlanningTaskUtils::print_structure(pt);
 
     return 0;
 }

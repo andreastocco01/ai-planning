@@ -125,6 +125,14 @@ void PlanningTaskUtils::print_planning_task(PlanningTask &pt) {
     print_planning_task_axioms(pt);
 }
 
+void PlanningTaskUtils::print_structure(PlanningTask &pt) {
+    std::cout << "Metric: " << pt.metric << std::endl;
+    std::cout << "Variables: " << pt.n_vars << std::endl;
+    std::cout << "Mutexes: " << pt.n_mutex << std::endl;
+    std::cout << "Actions: " << pt.n_actions << std::endl;
+    std::cout << "Axioms: " << pt.n_axioms << std::endl;
+}
+
 int PlanningTaskUtils::get_random_number(int lower, int upper) {
     return lower + rand() % (upper - lower);
 }

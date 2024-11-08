@@ -5,6 +5,7 @@
 #include <vector>
 
 namespace PlanningTaskUtils {
+    void print_structure(PlanningTask &pt);
     void print_planning_task(PlanningTask &pt);
     void print_planning_task_vars(PlanningTask &pt);
     void print_planning_task_mutexes(PlanningTask &pt);
