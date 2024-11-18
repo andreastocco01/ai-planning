@@ -53,6 +53,9 @@ int main(int argc, char** argv) {
     } else if (alg == 1 && seed_flag) {
         pt.greedy(seed);
         pt.print_solution();
+    } else if (alg == 2) {
+        pt.hamming_distance_search();
+        pt.print_solution();
     } else {
         print_usage(argv[0]);
         return 1;

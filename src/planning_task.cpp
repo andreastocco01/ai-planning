@@ -222,3 +222,62 @@ void PlanningTask::greedy(int seed) {
             std::cout << "Goal state not reached" << std::endl;
     }
 }
+
+Fact PlanningTask::get_goal_having_idx(int idx) {
+    for (int i = 0; i < this->n_goals; i++) {
+        if (this->goal_state[i].var_idx == idx)
+            return this->goal_state[i];
+    }
+    Fact fact;
+    fact.var_idx = -1;
+    fact.var_val = -1;
+    return fact;
+}
+
+std::vector<int> PlanningTask::hamming_distance(std::vector<int> &actions_idx) {
+    std::vector<int> hamming_distances;
+
+    for (int i = 0; i < actions_idx.size(); i++) {
+        std::vector<Effect> effects = this->actions[actions_idx[i]].effects;
+        hamming_distances.push_back(this->n_goals); // initially the hamming distance is equal to the number of facts in the goal state
+        for (int j = 0; j < effects.size(); j++) {
+            Fact fact = get_goal_having_idx(effects[j].var_affected);
+            if (fact.var_idx == -1 && fact.var_val == -1)
+                continue; // no goal fact found
+            if (effects[j].to_value == fact.var_val)
+                hamming_distances[hamming_distances.size() - 1]--; // decrease the hamming distance
+        }
+    }
+
+    return hamming_distances;
+}
+
+void PlanningTask::hamming_distance_search() {
+    std::vector<int> current_state = this->initial_state;
+
+    while (!goal_reached(current_state)) {
+        apply_axioms(current_state);
+        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state);
+        if (possible_actions_idx.empty())
+            break;
+        std::vector<int> hamming_distances = hamming_distance(possible_actions_idx);
+
+        int min_hamming_distance = hamming_distances[0];
+        for (int i = 1; i < hamming_distances.size(); i++) {
+            if (hamming_distances[i] < min_hamming_distance)
+                min_hamming_distance = hamming_distances[i];
+        }
+
+        for (int i = 0; i < hamming_distances.size(); i++) {
+            if (hamming_distances[i] == min_hamming_distance) {
+                apply_action(this->actions[possible_actions_idx[i]], current_state);
+                break;
+            }
+        }
+    }
+
+    if (goal_reached(current_state))
+        std::cout << "Solution found" << std::endl;
+    else
+        std::cout << "Goal state not reached" << std::endl;
+}
