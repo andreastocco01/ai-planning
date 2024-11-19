@@ -90,7 +90,6 @@ public:
     void print_solution();
     void brute_force(int seed);
     void greedy(int seed);
-    void hamming_distance_search();
 
 private:
     bool goal_reached(std::vector<int> &current_state);
@@ -101,8 +100,6 @@ private:
     std::vector<int> get_possible_actions_idx(std::vector<int> &current_state);
     void apply_action(Action &action, std::vector<int> &current_state);
     std::vector<int> get_min_cost_actions_idx(std::vector<int> &actions_idx);
-    std::vector<int> hamming_distance(std::vector<int> &actions_idx);
-    Fact get_goal_having_idx(int idx);
 };
 
 #endif
