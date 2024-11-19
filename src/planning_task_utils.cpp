@@ -41,7 +41,7 @@ void PlanningTaskUtils::print_planning_task_mutexes(PlanningTask &pt) {
 
 void PlanningTaskUtils::print_planning_task_state(std::vector<int> &state) {
     for (int i = 0; i < state.size(); i++) {
-        std::cout << state[i] << std::endl;
+        std::cout << state[i] << " ";
     }
     std::cout << std::endl;
 }

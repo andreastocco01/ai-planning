@@ -45,6 +45,7 @@ public:
     int cost;
 
     bool is_used; // this flag is 1 if the action is used in the plan
+    int h_cost; // the heuristic cost of the action
 };
 
 class Axiom {
@@ -90,6 +91,7 @@ public:
     void print_solution();
     void brute_force(int seed);
     void greedy(int seed);
+    void solve(int seed);
 
 private:
     bool goal_reached(std::vector<int> &current_state);
@@ -100,6 +102,10 @@ private:
     std::vector<int> get_possible_actions_idx(std::vector<int> &current_state);
     void apply_action(Action &action, std::vector<int> &current_state);
     std::vector<int> get_min_cost_actions_idx(std::vector<int> &actions_idx);
+    std::vector<int> get_min_h_cost_actions_idx(std::vector<int> &actions_idx);
+    std::vector<int> get_actions_idx_having_outcome(Fact &fact);
+    int h_add(std::vector<int> &current_state, Fact &fact);
+    void compute_h_add(std::vector<int> &current_state);
 };
 
 #endif

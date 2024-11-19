@@ -1,9 +1,11 @@
 #include "../include/planning_task.h"
 #include "../include/planning_task_utils.h"
+#include <algorithm>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <cassert>
+#include <iterator>
 #include <ostream>
 #include <string>
 #include <sstream>
@@ -221,4 +223,96 @@ void PlanningTask::greedy(int seed) {
         else
             std::cout << "Goal state not reached" << std::endl;
     }
+}
+
+std::vector<int> PlanningTask::get_min_h_cost_actions_idx(std::vector<int> &actions_idx) {
+    std::vector<int> res;
+    int min_cost = this->actions[actions_idx[0]].h_cost;
+
+    // find minimum cost
+    for (int i = 1; i < actions_idx.size(); i++) {
+        int idx = actions_idx[i];
+        if (this->actions[idx].h_cost < min_cost)
+            min_cost = this->actions[idx].h_cost;
+    }
+
+    // get all minimum cost action indexes
+    for (int i = 0; i < actions_idx.size(); i++) {
+        int idx = actions_idx[i];
+        if (this->actions[idx].h_cost == min_cost)
+            res.push_back(idx);
+    }
+
+    return res;
+}
+
+std::vector<int> PlanningTask::get_actions_idx_having_outcome(Fact &fact) {
+    std::vector<int> actions_idx;
+
+    for (int j = 0; j < this->n_actions; j++) {
+        Action action = this->actions[j];
+        for (int k = 0; k < action.n_effects; k++) {
+            Effect effect = action.effects[k];
+            if (effect.var_affected == fact.var_idx && effect.to_value == fact.var_val) {
+                actions_idx.push_back(j);
+            }
+        }
+    }
+
+    return actions_idx;
+}
+
+int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact) {
+    if (current_state[fact.var_idx] == fact.var_val)
+        return 0; // base case
+
+    // get all the actions having "fact" as outcome
+    std::vector<int> actions_idx = get_actions_idx_having_outcome(fact);
+    std::cout << "Actions having outcome: " << fact.var_idx << " " << fact.var_val << std::endl;
+    PlanningTaskUtils::print_planning_task_state(actions_idx);
+
+    std::vector<int> h_costs;
+    for (int i = 0; i < actions_idx.size(); i++) {
+        int idx = actions_idx[i];
+        h_costs.push_back(this->actions[idx].cost);
+        for (int j = 0; j < this->actions[idx].n_preconds; j++) {
+            h_costs[h_costs.size() - 1] += h_add(current_state, this->actions[idx].preconds[j]);
+        }
+        this->actions[idx].h_cost = h_costs.back();
+    }
+
+    auto minIt = std::min_element(h_costs.begin(), h_costs.end());
+    int min = *minIt;
+
+    return min;
+}
+
+void PlanningTask::compute_h_add(std::vector<int> &current_state) {
+    for (int i = 0; i < this->n_goals; i++) {
+        h_add(current_state, this->goal_state[i]);
+    }
+}
+
+void PlanningTask::solve(int seed) {
+    srand(seed);
+    std::vector<int> current_state = this->initial_state;
+
+    while (!goal_reached(current_state)) {
+        apply_axioms(current_state);
+
+        // calculate heuristic costs
+        compute_h_add(current_state);
+
+        // get possible actions
+        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state);
+
+        // get min h cost actions
+        std::vector<int> min_h_cost_actions_idx = get_min_h_cost_actions_idx(possible_actions_idx);
+
+        // apply action
+        int action_to_apply_idx = min_h_cost_actions_idx[PlanningTaskUtils::get_random_number(0, min_h_cost_actions_idx.size())];
+        apply_action(this->actions[action_to_apply_idx], current_state);
+    }
+
+    std::cout << "Solution found!" << std::endl;
 }
