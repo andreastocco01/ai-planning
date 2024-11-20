@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <set>
 
 class Variable {
 public:
@@ -104,7 +105,7 @@ private:
     std::vector<int> get_min_cost_actions_idx(std::vector<int> &actions_idx);
     std::vector<int> get_min_h_cost_actions_idx(std::vector<int> &actions_idx);
     std::vector<int> get_actions_idx_having_outcome(Fact &fact);
-    int h_add(std::vector<int> &current_state, Fact &fact);
+    int h_add(std::vector<int> &current_state, Fact &fact, std::set<int> &visited);
     void compute_h_add(std::vector<int> &current_state);
 };
 

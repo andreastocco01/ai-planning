@@ -262,9 +262,11 @@ std::vector<int> PlanningTask::get_actions_idx_having_outcome(Fact &fact) {
     return actions_idx;
 }
 
-int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact) {
-    if (current_state[fact.var_idx] == fact.var_val)
+int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact, std::set<int> &visited) {
+    if (current_state[fact.var_idx] == fact.var_val || visited.find(fact.var_idx) != visited.end())
         return 0; // base case
+
+    visited.insert(fact.var_idx);
 
     // get all the actions having "fact" as outcome
     std::vector<int> actions_idx = get_actions_idx_having_outcome(fact);
@@ -276,7 +278,7 @@ int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact) {
         int idx = actions_idx[i];
         h_costs.push_back(this->actions[idx].cost);
         for (int j = 0; j < this->actions[idx].n_preconds; j++) {
-            h_costs[h_costs.size() - 1] += h_add(current_state, this->actions[idx].preconds[j]);
+            h_costs[h_costs.size() - 1] += h_add(current_state, this->actions[idx].preconds[j], visited);
         }
         this->actions[idx].h_cost = h_costs.back();
     }
@@ -289,7 +291,8 @@ int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact) {
 
 void PlanningTask::compute_h_add(std::vector<int> &current_state) {
     for (int i = 0; i < this->n_goals; i++) {
-        h_add(current_state, this->goal_state[i]);
+        std::set<int> visited;
+        h_add(current_state, this->goal_state[i], visited);
     }
 }
 
