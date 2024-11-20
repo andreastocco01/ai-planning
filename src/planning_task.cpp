@@ -270,17 +270,21 @@ int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact, std::set<in
 
     // get all the actions having "fact" as outcome
     std::vector<int> actions_idx = get_actions_idx_having_outcome(fact);
-    std::cout << "Actions having outcome: " << fact.var_idx << " " << fact.var_val << std::endl;
-    PlanningTaskUtils::print_planning_task_state(actions_idx);
 
     std::vector<int> h_costs;
     for (int i = 0; i < actions_idx.size(); i++) {
         int idx = actions_idx[i];
-        h_costs.push_back(this->actions[idx].cost);
+
+        if (this->metric == 1)
+            this->actions[idx].h_cost = this->actions[idx].cost;
+        else
+            this->actions[idx].h_cost = 1;
+
         for (int j = 0; j < this->actions[idx].n_preconds; j++) {
-            h_costs[h_costs.size() - 1] += h_add(current_state, this->actions[idx].preconds[j], visited);
+            this->actions[idx].h_cost += h_add(current_state, this->actions[idx].preconds[j], visited);
         }
-        this->actions[idx].h_cost = h_costs.back();
+
+        h_costs.push_back(this->actions[idx].h_cost);
     }
 
     auto minIt = std::min_element(h_costs.begin(), h_costs.end());
@@ -296,6 +300,21 @@ void PlanningTask::compute_h_add(std::vector<int> &current_state) {
     }
 }
 
+void PlanningTask::remove_satisfied_actions(std::vector<int> &current_state, std::vector<int> &possible_actions_idx) {
+    for (int i = possible_actions_idx.size() - 1; i >= 0; i--) {
+        int idx = possible_actions_idx[i];
+        std::vector<Effect> effects = this->actions[idx].effects;
+        int count = 0;
+        for (int j = 0; j < effects.size(); j++) {
+            if (current_state[effects[j].var_affected] == effects[j].to_value)
+                count++;
+        }
+        if (count == effects.size()){
+            possible_actions_idx.erase(possible_actions_idx.begin() + i);
+        }
+    }
+}
+
 void PlanningTask::solve(int seed) {
     srand(seed);
     std::vector<int> current_state = this->initial_state;
@@ -308,6 +327,9 @@ void PlanningTask::solve(int seed) {
 
         // get possible actions
         std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state);
+
+        // remove actions having outcome already satisfied
+        remove_satisfied_actions(current_state, possible_actions_idx);
 
         // get min h cost actions
         std::vector<int> min_h_cost_actions_idx = get_min_h_cost_actions_idx(possible_actions_idx);
