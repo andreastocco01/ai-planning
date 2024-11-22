@@ -6,7 +6,10 @@
 
 void print_usage(std::string executable) {
     std::cerr << "Usage: " << executable << " --from-file <file_name> --alg <alg_code> [--seed <int>]" << std::endl;
-    std::cerr << "Supported alg_code are:" << std::endl << "0: brute_force (seed required)" << "1: greedy (seed required)" << std::endl;
+    std::cerr << "Supported alg_code are:" << std::endl
+            << "0: brute_force (seed required)" << std::endl
+            << "1: greedy (seed required)" << std::endl
+            << "2: h_add (seed required)" << std::endl;
 }
 
 int main(int argc, char** argv) {
@@ -46,6 +49,7 @@ int main(int argc, char** argv) {
     PlanningTaskParser parser;
     PlanningTask pt = parser.parse_from_file(file_name);
     std::cout << "File parsed!" << std::endl;
+    PlanningTaskUtils::print_structure(pt);
 
     if (alg == 0 && seed_flag) {
         pt.brute_force(seed);
@@ -60,7 +64,6 @@ int main(int argc, char** argv) {
         print_usage(argv[0]);
         return 1;
     }
-    PlanningTaskUtils::print_structure(pt);
 
     return 0;
 }

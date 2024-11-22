@@ -311,6 +311,7 @@ void PlanningTask::remove_satisfied_actions(std::vector<int> &current_state, std
         }
         if (count == effects.size()){
             possible_actions_idx.erase(possible_actions_idx.begin() + i);
+            this->actions[idx].is_used = true; // this action shouldn't be returned anymore
         }
     }
 }
