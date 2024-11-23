@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cassert>
 #include <iterator>
+#include <limits>
 #include <ostream>
 #include <string>
 #include <sstream>
@@ -271,6 +272,9 @@ int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact, std::set<in
     // get all the actions having "fact" as outcome
     std::vector<int> actions_idx = get_actions_idx_having_outcome(fact);
 
+    if (actions_idx.empty()) // the fact is unreachable
+        return std::numeric_limits<int>::max();
+
     std::vector<int> h_costs;
     for (int i = 0; i < actions_idx.size(); i++) {
         int idx = actions_idx[i];
@@ -293,11 +297,13 @@ int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact, std::set<in
     return min;
 }
 
-void PlanningTask::compute_h_add(std::vector<int> &current_state) {
+int PlanningTask::compute_h_add(std::vector<int> &current_state) {
+    int total_h_add = 0;
     for (int i = 0; i < this->n_goals; i++) {
         std::set<int> visited;
-        h_add(current_state, this->goal_state[i], visited);
+        total_h_add += h_add(current_state, this->goal_state[i], visited);
     }
+    return total_h_add;
 }
 
 void PlanningTask::remove_satisfied_actions(std::vector<int> &current_state, std::vector<int> &possible_actions_idx) {
@@ -319,12 +325,17 @@ void PlanningTask::remove_satisfied_actions(std::vector<int> &current_state, std
 void PlanningTask::solve(int seed) {
     srand(seed);
     std::vector<int> current_state = this->initial_state;
+    int estimated_cost = std::numeric_limits<int>::max();
 
     while (!goal_reached(current_state)) {
         apply_axioms(current_state);
 
         // calculate heuristic costs
-        compute_h_add(current_state);
+        int total = compute_h_add(current_state);
+        if (total < estimated_cost) {
+            estimated_cost = total;
+            std::cout << "New estimated cost to reach the goal state: " << estimated_cost << std::endl;
+        }
 
         // get possible actions
         std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state);
