@@ -9,7 +9,8 @@ void print_usage(std::string executable) {
     std::cerr << "Supported alg_code are:" << std::endl
             << "0: brute_force (seed required)" << std::endl
             << "1: greedy (seed required)" << std::endl
-            << "2: h_add (seed required)" << std::endl;
+            << "2: h_add (seed required)" << std::endl
+            << "3: h_max (seed required)" << std::endl;
 }
 
 int main(int argc, char** argv) {
@@ -57,8 +58,8 @@ int main(int argc, char** argv) {
     } else if (alg == 1 && seed_flag) {
         pt.greedy(seed);
         pt.print_solution();
-    } else if (alg == 2 && seed_flag) {
-        pt.solve(seed);
+    } else if ((alg == 2 || alg == 3) && seed_flag) {
+        pt.solve(seed, alg);
         pt.print_solution();
     } else {
         print_usage(argv[0]);
