@@ -247,6 +247,14 @@ std::vector<int> PlanningTask::get_min_h_cost_actions_idx(std::vector<int> &acti
     return res;
 }
 
+void PlanningTask::print_action_h_costs(std::vector<int> &actions_idx) {
+    std::cout << "################################## Action h costs:" << std::endl;
+    for (int i = 0; i < actions_idx.size(); i++) {
+        int idx = actions_idx[i];
+        std::cout << this->actions[idx].name << " -> " << this->actions[idx].h_cost << std::endl;
+    }
+}
+
 std::vector<int> PlanningTask::get_actions_idx_having_outcome(Fact &fact) {
     std::vector<int> actions_idx;
 
@@ -345,7 +353,7 @@ int PlanningTask::compute_heuristic(std::vector<int> &current_state, int heurist
         if (heuristic == 2)
             total += h_add(current_state, this->goal_state[i], visited);
         else if (heuristic == 3)
-            total += h_max(current_state, this->goal_state[i], visited);
+            total = std::max(total, h_max(current_state, this->goal_state[i], visited));
     }
     return total;
 }

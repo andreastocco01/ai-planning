@@ -109,6 +109,7 @@ private:
     int h_max(std::vector<int> &current_state, Fact &fact, std::set<int> &visited);
     int compute_heuristic(std::vector<int> &current_state, int heuristic);
     void remove_satisfied_actions(std::vector<int> &current_state, std::vector<int> &possible_actions_idx);
+    void print_action_h_costs(std::vector<int> &actions_idx);
 };
 
 #endif
