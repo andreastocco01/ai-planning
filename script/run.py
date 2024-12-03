@@ -9,7 +9,7 @@ from_file_paths = [
     "../DeletefreeSAS/sokoban-sat08-strips-p05_deletefree.sas",
 ]
 
-alg = 3
+alg = 4
 seed = 0
 
 # Base command
