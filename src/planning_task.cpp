@@ -156,7 +156,14 @@ void PlanningTask::apply_action(Action &action, std::vector<int> &current_state)
 
 void PlanningTask::print_solution() {
     for (int i = 0; i < this->solution.size(); i++) {
-        std::cout << this->solution[i].name << std::endl;
+        int idx;
+        for (int j = 0; j < this->actions.size(); j++) {
+            if (this->actions[j].name == this->solution[i].name) {
+                idx = j;
+                break;
+            }
+        }
+        std::cout << idx << ": " + this->solution[i].name << std::endl;
     }
     std::cout << "Cost: " << this->solution_cost << std::endl;
 }
@@ -404,4 +411,60 @@ void PlanningTask::solve(int seed, int heuristic) {
     }
 
     std::cout << "Solution found!" << std::endl;
+}
+
+void PlanningTask::remove_previous_state_actions(std::vector<int> &actions_idx, std::vector<std::vector<int>> &previous_actions_idx) {
+    for (int i = actions_idx.size() - 1; i >= 0; i--) {
+        for (int j = 0; j < previous_actions_idx.size(); j++) {
+            for (int k = 0; k < previous_actions_idx[j].size(); k++) {
+                if (actions_idx[i] == previous_actions_idx[j][k])
+                    actions_idx.erase(actions_idx.begin() + i);
+            }
+        }
+    }
+}
+
+void PlanningTask::compute_graph() {
+    // structure initialization
+    this->graph_states.push_back(this->initial_state);
+
+    while (!goal_reached(this->graph_states.back())) {
+        std::vector<int> current_state = this->graph_states.back();
+
+        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state); // here we have also the previous state actions
+        if (!actions.empty())
+            remove_previous_state_actions(possible_actions_idx, this->graph_actions);
+        this->graph_actions.push_back(possible_actions_idx);
+
+        // get all the possible outcomes applying all the actions
+        for (int k = 0; k < possible_actions_idx.size(); k++) {
+            int idx = possible_actions_idx[k];
+            Action action = this->actions[idx];
+            for (int i = 0; i < action.n_effects; i++) {
+                Effect effect = action.effects[i];
+                int j;
+                for (j = 0; j < effect.n_effect_conds; j++) {
+                    std::vector<Fact> effect_conds = effect.effect_conds;
+                    if (current_state[effect_conds[j].var_idx] != effect_conds[j].var_val &&
+                        effect_conds[j].var_val != -1)
+                        break;
+                }
+                if (j < effect.n_effect_conds) // the effect cannot be applied
+                    continue;
+                int var = effect.var_affected;
+                if ((current_state[var] == effect.from_value ||
+                    effect.from_value == -1) && check_mutex_groups(var, effect.to_value, current_state)) {
+                    current_state[var] = effect.to_value;
+                }
+            }
+        }
+        this->graph_states.push_back(current_state);
+    }
+
+    for (int i = 0; i < this->graph_states.size(); i++) {
+        std::cout << "##########################################" << std::endl;
+        PlanningTaskUtils::print_planning_task_state(this->graph_states[i]);
+        if (i != this->graph_states.size() - 1)
+            PlanningTaskUtils::print_planning_task_state(this->graph_actions[i]);
+    }
 }

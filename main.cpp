@@ -61,6 +61,10 @@ int main(int argc, char** argv) {
     } else if ((alg == 2 || alg == 3) && seed_flag) {
         pt.solve(seed, alg);
         pt.print_solution();
+    } else if (alg == 4) {
+        pt.compute_graph();
+        pt.solve(seed, 3);
+        pt.print_solution();
     } else {
         print_usage(argv[0]);
         return 1;

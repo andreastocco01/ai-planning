@@ -76,6 +76,10 @@ public:
     std::vector<Action> solution;
     int solution_cost;
 
+    std::vector<std::vector<int>> graph_states;
+    std::vector<std::vector<int>> graph_actions;
+
+
     PlanningTask(int metric,
         int n_vars,
         std::vector<Variable> &vars,
@@ -93,6 +97,7 @@ public:
     void brute_force(int seed);
     void greedy(int seed);
     void solve(int seed, int heuristic);
+    void compute_graph();
 
 private:
     bool goal_reached(std::vector<int> &current_state);
@@ -110,6 +115,7 @@ private:
     int compute_heuristic(std::vector<int> &current_state, int heuristic);
     void remove_satisfied_actions(std::vector<int> &current_state, std::vector<int> &possible_actions_idx);
     void print_action_h_costs(std::vector<int> &actions_idx);
+    void remove_previous_state_actions(std::vector<int> &actions_idx, std::vector<std::vector<int>> &previous_actions_idx);
 };
 
 #endif
