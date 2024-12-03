@@ -460,11 +460,4 @@ void PlanningTask::compute_graph() {
         }
         this->graph_states.push_back(current_state);
     }
-
-    for (int i = 0; i < this->graph_states.size(); i++) {
-        std::cout << "##########################################" << std::endl;
-        PlanningTaskUtils::print_planning_task_state(this->graph_states[i]);
-        if (i != this->graph_states.size() - 1)
-            PlanningTaskUtils::print_planning_task_state(this->graph_actions[i]);
-    }
 }
