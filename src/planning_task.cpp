@@ -303,10 +303,7 @@ int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact, std::set<in
         h_costs.push_back(this->actions[idx].h_cost);
     }
 
-    auto minIt = std::min_element(h_costs.begin(), h_costs.end());
-    int min = *minIt;
-
-    return min;
+    return *std::min_element(h_costs.begin(), h_costs.end());
 }
 
 int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact, std::set<int> &visited) {
@@ -330,24 +327,16 @@ int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact, std::set<in
         else
             this->actions[idx].h_cost = 1;
 
-        std::vector<int> h_max_values;
+        int max_cost = 0;
         for (int j = 0; j < this->actions[idx].n_preconds; j++) {
-            h_max_values.push_back(h_max(current_state, this->actions[idx].preconds[j], visited));
+            max_cost = std::max(max_cost, h_max(current_state, this->actions[idx].preconds[j], visited));
         }
 
-        if (!h_max_values.empty()) {
-            auto maxIt = std::max_element(h_max_values.begin(), h_max_values.end());
-            int max = *maxIt;
-            this->actions[idx].h_cost += max;
-        }
-
+        this->actions[idx].h_cost += max_cost;
         h_costs.push_back(this->actions[idx].h_cost);
     }
 
-    auto minIt = std::min_element(h_costs.begin(), h_costs.end());
-    int min = *minIt;
-
-    return min;
+    return *std::min_element(h_costs.begin(), h_costs.end());
 }
 
 int PlanningTask::compute_heuristic(std::vector<int> &current_state, int heuristic) {

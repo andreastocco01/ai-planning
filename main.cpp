@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
         pt.compute_graph();
         std::cout << "#########################################" << std::endl;
         PlanningTaskUtils::print_graph(pt);
-        pt.solve(seed, 2);
+        pt.solve(seed, 3);
         std::cout << "#########################################" << std::endl;
         pt.print_solution();
         pt.adjust_plan();
