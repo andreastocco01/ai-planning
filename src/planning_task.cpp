@@ -123,8 +123,9 @@ std::vector<int> PlanningTask::get_possible_actions_idx(std::vector<int> &curren
     return action_idx;
 }
 
-void PlanningTask::apply_action(Action &action, std::vector<int> &current_state) {
+void PlanningTask::apply_action(int idx, std::vector<int> &current_state) {
     int applied_effects = 0;
+    Action action = this->actions[idx];
     for (int i = 0; i < action.n_effects; i++) {
         Effect effect = action.effects[i];
         int j;
@@ -142,7 +143,10 @@ void PlanningTask::apply_action(Action &action, std::vector<int> &current_state)
             current_state[var] = effect.to_value;
             applied_effects++;
             if (applied_effects == 1) {
-                this->solution.push_back(action);
+                IndexAction indexAction;
+                indexAction.idx = idx;
+                indexAction.action = action;
+                this->solution.push_back(indexAction);
                 if (this->metric == 1)
                     this->solution_cost += action.cost;
                 else
@@ -156,14 +160,7 @@ void PlanningTask::apply_action(Action &action, std::vector<int> &current_state)
 
 void PlanningTask::print_solution() {
     for (int i = 0; i < this->solution.size(); i++) {
-        int idx;
-        for (int j = 0; j < this->actions.size(); j++) {
-            if (this->actions[j].name == this->solution[i].name) {
-                idx = j;
-                break;
-            }
-        }
-        std::cout << idx << ": " + this->solution[i].name << std::endl;
+        std::cout << this->solution[i].idx << ": " + this->solution[i].action.name << std::endl;
     }
     std::cout << "Cost: " << this->solution_cost << std::endl;
 }
@@ -178,7 +175,7 @@ void PlanningTask::brute_force(int seed) {
         if (possible_actions_idx.empty())
             break;
         int action_to_apply_idx = possible_actions_idx[PlanningTaskUtils::get_random_number(0, possible_actions_idx.size())];
-        apply_action(this->actions[action_to_apply_idx], current_state);
+        apply_action(action_to_apply_idx, current_state);
     }
 
     if (goal_reached(current_state))
@@ -223,7 +220,7 @@ void PlanningTask::greedy(int seed) {
                 break;
             std::vector<int> min_cost_actions_idx = get_min_cost_actions_idx(possible_actions_idx);
             int action_to_apply_idx = min_cost_actions_idx[PlanningTaskUtils::get_random_number(0, min_cost_actions_idx.size())];
-            apply_action(this->actions[action_to_apply_idx], current_state);
+            apply_action(action_to_apply_idx, current_state);
         }
 
         if (goal_reached(current_state))
@@ -407,7 +404,7 @@ void PlanningTask::solve(int seed, int heuristic) {
 
         // apply action
         int action_to_apply_idx = min_h_cost_actions_idx[PlanningTaskUtils::get_random_number(0, min_h_cost_actions_idx.size())];
-        apply_action(this->actions[action_to_apply_idx], current_state);
+        apply_action(action_to_apply_idx, current_state);
     }
 
     std::cout << "Solution found!" << std::endl;
@@ -460,4 +457,7 @@ void PlanningTask::compute_graph() {
         }
         this->graph_states.push_back(current_state);
     }
+}
+
+void PlanningTask::adjust_plan() {
 }

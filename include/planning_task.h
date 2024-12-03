@@ -58,6 +58,12 @@ public:
     int to_value;
 };
 
+class IndexAction {
+public:
+    int idx;
+    Action action;
+};
+
 class PlanningTask {
 public:
     int metric; // 0 no action costs, 1 action costs
@@ -73,7 +79,7 @@ public:
     int n_axioms;
     std::vector<Axiom> axioms;
 
-    std::vector<Action> solution;
+    std::vector<IndexAction> solution;
     int solution_cost;
 
     std::vector<std::vector<int>> graph_states;
@@ -98,6 +104,7 @@ public:
     void greedy(int seed);
     void solve(int seed, int heuristic);
     void compute_graph();
+    void adjust_plan();
 
 private:
     bool goal_reached(std::vector<int> &current_state);
@@ -106,7 +113,7 @@ private:
     bool check_mutex_groups(int var_to_update, int new_value, std::vector<int> &current_state);
     int get_max_axiom_layer();
     std::vector<int> get_possible_actions_idx(std::vector<int> &current_state);
-    void apply_action(Action &action, std::vector<int> &current_state);
+    void apply_action(int idx, std::vector<int> &current_state);
     std::vector<int> get_min_cost_actions_idx(std::vector<int> &actions_idx);
     std::vector<int> get_min_h_cost_actions_idx(std::vector<int> &actions_idx);
     std::vector<int> get_actions_idx_having_outcome(Fact &fact);
