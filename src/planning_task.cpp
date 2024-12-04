@@ -449,23 +449,4 @@ void PlanningTask::compute_graph() {
 }
 
 void PlanningTask::adjust_plan() {
-    for (int i = this->solution.size() - 1; i >= 0; i--) {
-        int idx = this->solution[i].idx;
-        int j = 0;
-        for (; j < this->graph_actions.size(); j++) {
-            std::vector<int> layer = this->graph_actions[j];
-            int k = 0;
-            for (; k < layer.size(); k++) {
-                if (layer[k] == idx)
-                    break;
-            }
-            if (k != layer.size()) // found
-                break;
-        }
-        if (j != this->graph_actions.size())
-            continue;
-        this->solution_cost -= this->solution[i].action.cost;
-        std::cout << "Removed action: " << idx << std::endl;
-        this->solution.erase(this->solution.begin() + i);
-    }
 }
