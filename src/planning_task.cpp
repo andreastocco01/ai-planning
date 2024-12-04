@@ -447,6 +447,3 @@ void PlanningTask::compute_graph() {
         this->graph_states.push_back(current_state);
     }
 }
-
-void PlanningTask::adjust_plan() {
-}

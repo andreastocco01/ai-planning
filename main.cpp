@@ -62,8 +62,8 @@ int main(int argc, char** argv) {
         pt.solve(seed, alg);
         pt.print_solution();
     } else if (alg == 4) {
-        std::cout << "#########################################" << std::endl;
         pt.compute_graph();
+        std::cout << "#########################################" << std::endl;
         PlanningTaskUtils::print_graph(pt);
         pt.solve(seed, 3);
         std::cout << "#########################################" << std::endl;

@@ -104,7 +104,6 @@ public:
     void greedy(int seed);
     void solve(int seed, int heuristic);
     void compute_graph();
-    void adjust_plan();
 
 private:
     bool goal_reached(std::vector<int> &current_state);
