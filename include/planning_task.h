@@ -47,6 +47,7 @@ public:
 
     bool is_used; // this flag is 1 if the action is used in the plan
     int h_cost; // the heuristic cost of the action
+    int graph_layer;
 };
 
 class Axiom {
@@ -112,7 +113,7 @@ private:
     bool check_axiom_cond(Axiom axiom, std::vector<int> &current_state);
     bool check_mutex_groups(int var_to_update, int new_value, std::vector<int> &current_state);
     int get_max_axiom_layer();
-    std::vector<int> get_possible_actions_idx(std::vector<int> &current_state);
+    std::vector<int> get_possible_actions_idx(std::vector<int> &current_state, bool check);
     void apply_action(int idx, std::vector<int> &current_state);
     std::vector<int> get_min_cost_actions_idx(std::vector<int> &actions_idx);
     std::vector<int> get_min_h_cost_actions_idx(std::vector<int> &actions_idx);
@@ -123,6 +124,7 @@ private:
     void remove_satisfied_actions(std::vector<int> &current_state, std::vector<int> &possible_actions_idx);
     void print_action_h_costs(std::vector<int> &actions_idx);
     void remove_previous_state_actions(std::vector<int> &actions_idx, std::vector<std::vector<int>> &previous_actions_idx);
+    bool check_integrity();
 };
 
 #endif

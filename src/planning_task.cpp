@@ -107,11 +107,11 @@ void PlanningTask::apply_axioms(std::vector<int> &current_state) {
     }
 }
 
-std::vector<int> PlanningTask::get_possible_actions_idx(std::vector<int> &current_state) {
+std::vector<int> PlanningTask::get_possible_actions_idx(std::vector<int> &current_state, bool check) {
     std::vector<int> action_idx;
     for (int i = 0; i < this->n_actions; i++) {
         Action action = this->actions[i];
-        if (action.is_used)
+        if (!check && action.is_used)
             continue; // skip actions already used
         int j;
         for (j = 0; j < action.n_preconds; j++)
@@ -171,7 +171,7 @@ void PlanningTask::brute_force(int seed) {
 
     while (!goal_reached(current_state)) {
         apply_axioms(current_state);
-        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state);
+        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, false);
         if (possible_actions_idx.empty())
             break;
         int action_to_apply_idx = possible_actions_idx[PlanningTaskUtils::get_random_number(0, possible_actions_idx.size())];
@@ -215,7 +215,7 @@ void PlanningTask::greedy(int seed) {
 
         while (!goal_reached(current_state)) {
             apply_axioms(current_state);
-            std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state);
+            std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, false);
             if (possible_actions_idx.empty())
                 break;
             std::vector<int> min_cost_actions_idx = get_min_cost_actions_idx(possible_actions_idx);
@@ -347,6 +347,7 @@ int PlanningTask::compute_heuristic(std::vector<int> &current_state, int heurist
             total += h_add(current_state, this->goal_state[i], visited);
         else if (heuristic == 3)
             total = std::max(total, h_max(current_state, this->goal_state[i], visited));
+            // total += h_max(current_state, this->goal_state[i], visited); TODO
     }
     return total;
 }
@@ -383,7 +384,7 @@ void PlanningTask::solve(int seed, int heuristic) {
         }
 
         // get possible actions
-        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state);
+        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, false);
 
         // remove actions having outcome already satisfied
         remove_satisfied_actions(current_state, possible_actions_idx);
@@ -414,12 +415,19 @@ void PlanningTask::compute_graph() {
     // structure initialization
     this->graph_states.push_back(this->initial_state);
 
+    int graph_layer = 0;
     while (!goal_reached(this->graph_states.back())) {
         std::vector<int> current_state = this->graph_states.back();
 
-        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state); // here we have also the previous state actions
+        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, false); // here we have also the previous state actions
         if (!actions.empty())
             remove_previous_state_actions(possible_actions_idx, this->graph_actions);
+
+        // assign to each action the graph layer
+        for (int i = 0; i < possible_actions_idx.size(); i++) {
+            this->actions[possible_actions_idx[i]].graph_layer = graph_layer;
+        }
+        graph_layer++;
         this->graph_actions.push_back(possible_actions_idx);
 
         // get all the possible outcomes applying all the actions
@@ -448,6 +456,44 @@ void PlanningTask::compute_graph() {
     }
 }
 
+bool PlanningTask::check_integrity() {
+    std::vector<int> current_state = this->initial_state;
+    for (int k = 0; k < this->solution.size(); k++) {
+        IndexAction indexAction = this->solution[k];
+        std::cout << "Current action: " << indexAction.idx << std::endl;
+        std::vector<int> actions_idx = get_possible_actions_idx(current_state, true);
+        std::cout << "Possible actions: " << std::endl;
+        PlanningTaskUtils::print_planning_task_state(actions_idx);
+        int p = 0;
+        for (; p < actions_idx.size(); p++) {
+            if (actions_idx[p] == indexAction.idx)
+                break;
+        }
+        if (p == actions_idx.size())
+            return false; // action not applicable at this point
+        for (int i = 0; i < indexAction.action.n_effects; i++) {
+            Effect effect = indexAction.action.effects[i];
+            int j;
+            for (j = 0; j < effect.n_effect_conds; j++) {
+                std::vector<Fact> effect_conds = effect.effect_conds;
+                if (current_state[effect_conds[j].var_idx] != effect_conds[j].var_val &&
+                    effect_conds[j].var_val != -1)
+                    break;
+            }
+            if (j < effect.n_effect_conds) // the effect cannot be applied
+                continue;
+            int var = effect.var_affected;
+            if ((current_state[var] == effect.from_value ||
+                effect.from_value == -1) && check_mutex_groups(var, effect.to_value, current_state)) {
+                current_state[var] = effect.to_value;
+            }
+        }
+    }
+    return true;
+}
+
+// THIS FUNCTION IS WRONG!!!
+// TODO
 void PlanningTask::adjust_plan() {
     for (int i = this->solution.size() - 1; i >= 0; i--) {
         int idx = this->solution[i].idx;
@@ -468,4 +514,30 @@ void PlanningTask::adjust_plan() {
         std::cout << "Removed action: " << idx << std::endl;
         this->solution.erase(this->solution.begin() + i);
     }
+
+    // after removing the useless actions, the remaining ones must be ordered by layer
+    std::vector<int> layer_starting_positions;
+    layer_starting_positions.push_back(0);
+    for (int i = 1; i < this->solution.size(); i++) {
+        if (layer_starting_positions.size() - 1 < this->solution[i].action.graph_layer)
+            layer_starting_positions.push_back(i);
+    }
+    PlanningTaskUtils::print_planning_task_state(layer_starting_positions);
+
+    int i = 0;
+    for (int layer = 0; layer < layer_starting_positions.size(); layer++) {
+        while (this->solution[i].action.graph_layer == layer)
+            i++;
+        int action_layer = this->solution[i].action.graph_layer;
+        if (action_layer > layer)
+            continue;
+        IndexAction to_move = this->solution[i];
+        this->solution.erase(this->solution.begin() + i);
+        // this->solution.insert(this->solution.begin() + layer_starting_positions[action_layer + 1], to_move);
+    }
+
+    if (check_integrity())
+        std::cout << "Integrity OK" << std::endl;
+    else
+        std::cout << "Integrity not OK" << std::endl;
 }
