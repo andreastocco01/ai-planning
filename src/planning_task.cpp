@@ -492,52 +492,21 @@ bool PlanningTask::check_integrity() {
     return true;
 }
 
-// THIS FUNCTION IS WRONG!!!
-// TODO
-void PlanningTask::adjust_plan() {
-    for (int i = this->solution.size() - 1; i >= 0; i--) {
-        int idx = this->solution[i].idx;
-        int j = 0;
-        for (; j < this->graph_actions.size(); j++) {
-            std::vector<int> layer = this->graph_actions[j];
-            int k = 0;
-            for (; k < layer.size(); k++) {
-                if (layer[k] == idx)
-                    break;
-            }
-            if (k != layer.size()) // found
-                break;
+bool PlanningTask::action_in_graph(int action_idx) {
+    for (int layer = 0; layer < this->graph_actions.size(); layer++) {
+        std::vector<int> actions = this->graph_actions[layer];
+        for (int i = 0; i < actions.size(); i++) {
+            if (action_idx == actions[i])
+                return true;
         }
-        if (j != this->graph_actions.size())
+    }
+    return false;
+}
+
+void PlanningTask::adjust_plan() {
+    for (int i = 0; i < this->solution.size(); i++) {
+        if (action_in_graph(this->solution[i].idx)) // action contained in the graph? nothing to do
             continue;
-        this->solution_cost -= this->solution[i].action.cost;
-        std::cout << "Removed action: " << idx << std::endl;
-        this->solution.erase(this->solution.begin() + i);
+        printf("%d\n", this->solution[i].idx);
     }
-
-    // after removing the useless actions, the remaining ones must be ordered by layer
-    std::vector<int> layer_starting_positions;
-    layer_starting_positions.push_back(0);
-    for (int i = 1; i < this->solution.size(); i++) {
-        if (layer_starting_positions.size() - 1 < this->solution[i].action.graph_layer)
-            layer_starting_positions.push_back(i);
-    }
-    PlanningTaskUtils::print_planning_task_state(layer_starting_positions);
-
-    int i = 0;
-    for (int layer = 0; layer < layer_starting_positions.size(); layer++) {
-        while (this->solution[i].action.graph_layer == layer)
-            i++;
-        int action_layer = this->solution[i].action.graph_layer;
-        if (action_layer > layer)
-            continue;
-        IndexAction to_move = this->solution[i];
-        this->solution.erase(this->solution.begin() + i);
-        // this->solution.insert(this->solution.begin() + layer_starting_positions[action_layer + 1], to_move);
-    }
-
-    if (check_integrity())
-        std::cout << "Integrity OK" << std::endl;
-    else
-        std::cout << "Integrity not OK" << std::endl;
 }

@@ -125,6 +125,7 @@ private:
     void print_action_h_costs(std::vector<int> &actions_idx);
     void remove_previous_state_actions(std::vector<int> &actions_idx, std::vector<std::vector<int>> &previous_actions_idx);
     bool check_integrity();
+    bool action_in_graph(int action_idx);
 };
 
 #endif
