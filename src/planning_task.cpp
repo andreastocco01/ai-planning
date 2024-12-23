@@ -352,7 +352,6 @@ int PlanningTask::compute_heuristic(std::vector<int> &current_state, int heurist
             total += h_add(current_state, this->goal_state[i], visited);
         else if (heuristic == 3)
             total = std::max(total, h_max(current_state, this->goal_state[i], visited));
-            // total += h_max(current_state, this->goal_state[i], visited); TODO
     }
     return total;
 }
