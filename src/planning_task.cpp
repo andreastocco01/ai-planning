@@ -107,18 +107,23 @@ void PlanningTask::apply_axioms(std::vector<int> &current_state) {
     }
 }
 
-std::vector<int> PlanningTask::get_possible_actions_idx(std::vector<int> &current_state, bool check) {
+std::vector<int> PlanningTask::get_possible_actions_idx(std::vector<int> &current_state, bool check_usage, bool check_graph) {
     std::vector<int> action_idx;
     for (int i = 0; i < this->n_actions; i++) {
         Action action = this->actions[i];
-        if (!check && action.is_used)
+        if (check_usage && action.is_used)
             continue; // skip actions already used
         int j;
         for (j = 0; j < action.n_preconds; j++)
             if (current_state[action.preconds[j].var_idx] != action.preconds[j].var_val)
                 break;
-        if (j == action.n_preconds)
-            action_idx.push_back(i);
+        if (j == action.n_preconds) {
+           if (check_graph) {
+               if (action_in_graph(i))
+                   action_idx.push_back(i);
+           } else
+                action_idx.push_back(i);
+        }
     }
     return action_idx;
 }
@@ -171,7 +176,7 @@ void PlanningTask::brute_force(int seed) {
 
     while (!goal_reached(current_state)) {
         apply_axioms(current_state);
-        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, false);
+        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, true, false);
         if (possible_actions_idx.empty())
             break;
         int action_to_apply_idx = possible_actions_idx[PlanningTaskUtils::get_random_number(0, possible_actions_idx.size())];
@@ -215,7 +220,7 @@ void PlanningTask::greedy(int seed) {
 
         while (!goal_reached(current_state)) {
             apply_axioms(current_state);
-            std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, false);
+            std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, true, false);
             if (possible_actions_idx.empty())
                 break;
             std::vector<int> min_cost_actions_idx = get_min_cost_actions_idx(possible_actions_idx);
@@ -368,7 +373,7 @@ void PlanningTask::remove_satisfied_actions(std::vector<int> &current_state, std
     }
 }
 
-void PlanningTask::solve(int seed, int heuristic) {
+void PlanningTask::solve(int seed, int heuristic, bool check_graph) {
     srand(seed);
     std::vector<int> current_state = this->initial_state;
     int estimated_cost = std::numeric_limits<int>::max();
@@ -384,7 +389,7 @@ void PlanningTask::solve(int seed, int heuristic) {
         }
 
         // get possible actions
-        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, false);
+        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, true, check_graph);
 
         // remove actions having outcome already satisfied
         remove_satisfied_actions(current_state, possible_actions_idx);
@@ -419,7 +424,7 @@ void PlanningTask::compute_graph() {
     while (!goal_reached(this->graph_states.back())) {
         std::vector<int> current_state = this->graph_states.back();
 
-        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, false); // here we have also the previous state actions
+        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, false, false); // here we have also the previous state actions
         if (!actions.empty())
             remove_previous_state_actions(possible_actions_idx, this->graph_actions);
 
@@ -461,7 +466,7 @@ bool PlanningTask::check_integrity() {
     for (int k = 0; k < this->solution.size(); k++) {
         IndexAction indexAction = this->solution[k];
         std::cout << "Current action: " << indexAction.idx << std::endl;
-        std::vector<int> actions_idx = get_possible_actions_idx(current_state, true);
+        std::vector<int> actions_idx = get_possible_actions_idx(current_state, false, false);
         std::cout << "Possible actions: " << std::endl;
         PlanningTaskUtils::print_planning_task_state(actions_idx);
         int p = 0;
@@ -501,12 +506,4 @@ bool PlanningTask::action_in_graph(int action_idx) {
         }
     }
     return false;
-}
-
-void PlanningTask::adjust_plan() {
-    for (int i = 0; i < this->solution.size(); i++) {
-        if (action_in_graph(this->solution[i].idx)) // action contained in the graph? nothing to do
-            continue;
-        printf("%d\n", this->solution[i].idx);
-    }
 }

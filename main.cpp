@@ -59,16 +59,13 @@ int main(int argc, char** argv) {
         pt.greedy(seed);
         pt.print_solution();
     } else if ((alg == 2 || alg == 3) && seed_flag) {
-        pt.solve(seed, alg);
+        pt.solve(seed, alg, false);
         pt.print_solution();
     } else if (alg == 4) {
         pt.compute_graph();
         std::cout << "#########################################" << std::endl;
         PlanningTaskUtils::print_graph(pt);
-        pt.solve(seed, 3);
-        std::cout << "#########################################" << std::endl;
-        pt.print_solution();
-        pt.adjust_plan();
+        pt.solve(seed, 3, true);
         std::cout << "#########################################" << std::endl;
         pt.print_solution();
     } else {

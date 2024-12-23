@@ -103,9 +103,8 @@ public:
     void print_solution();
     void brute_force(int seed);
     void greedy(int seed);
-    void solve(int seed, int heuristic);
+    void solve(int seed, int heuristic, bool check_graph);
     void compute_graph();
-    void adjust_plan();
 
 private:
     bool goal_reached(std::vector<int> &current_state);
@@ -113,7 +112,7 @@ private:
     bool check_axiom_cond(Axiom axiom, std::vector<int> &current_state);
     bool check_mutex_groups(int var_to_update, int new_value, std::vector<int> &current_state);
     int get_max_axiom_layer();
-    std::vector<int> get_possible_actions_idx(std::vector<int> &current_state, bool check);
+    std::vector<int> get_possible_actions_idx(std::vector<int> &current_state, bool check_usage, bool check_graph);
     void apply_action(int idx, std::vector<int> &current_state);
     std::vector<int> get_min_cost_actions_idx(std::vector<int> &actions_idx);
     std::vector<int> get_min_h_cost_actions_idx(std::vector<int> &actions_idx);
