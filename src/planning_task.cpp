@@ -496,3 +496,14 @@ bool PlanningTask::check_integrity() {
     }
     return true;
 }
+
+bool PlanningTask::action_in_graph(int action_idx) {
+    for (int layer = 0; layer < this->graph_actions.size(); layer++) {
+        std::vector<int> actions = this->graph_actions[layer];
+        for (int i = 0; i < actions.size(); i++) {
+            if (action_idx == actions[i])
+                return true;
+        }
+    }
+    return false;
+}
