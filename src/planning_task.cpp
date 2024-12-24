@@ -108,7 +108,7 @@ void PlanningTask::apply_axioms(std::vector<int> &current_state) {
 }
 
 std::vector<int> PlanningTask::get_possible_actions_idx(std::vector<int> &current_state, bool check_usage, bool check_graph) {
-    std::vector<int> action_idx;
+    std::vector<int> actions_idx;
     for (int i = 0; i < this->n_actions; i++) {
         Action action = this->actions[i];
         if (check_usage && action.is_used)
@@ -120,24 +120,24 @@ std::vector<int> PlanningTask::get_possible_actions_idx(std::vector<int> &curren
         if (j == action.n_preconds) {
            if (check_graph) {
                if (action_in_graph(i))
-                   action_idx.push_back(i);
+                   actions_idx.push_back(i);
            } else
-                action_idx.push_back(i);
+                actions_idx.push_back(i);
         }
     }
-    return action_idx;
+    return actions_idx;
 }
 
 void PlanningTask::apply_action(int idx, std::vector<int> &current_state) {
-    int applied_effects = 0;
     Action action = this->actions[idx];
+    int count_applied_effects = 0; // count applied effects during this iteration
     for (int i = 0; i < action.n_effects; i++) {
         Effect effect = action.effects[i];
         int j;
         for (j = 0; j < effect.n_effect_conds; j++) {
-            std::vector<Fact> effect_conds = effect.effect_conds;
-            if (current_state[effect_conds[j].var_idx] != effect_conds[j].var_val &&
-                effect_conds[j].var_val != -1)
+            Fact effect_cond = effect.effect_conds[j];
+            if (current_state[effect_cond.var_idx] != effect_cond.var_val &&
+                effect_cond.var_val != -1)
                 break;
         }
         if (j < effect.n_effect_conds) // the effect cannot be applied
@@ -146,21 +146,24 @@ void PlanningTask::apply_action(int idx, std::vector<int> &current_state) {
         if ((current_state[var] == effect.from_value ||
             effect.from_value == -1) && check_mutex_groups(var, effect.to_value, current_state)) {
             current_state[var] = effect.to_value;
-            applied_effects++;
-            if (applied_effects == 1) {
-                IndexAction indexAction;
-                indexAction.idx = idx;
-                indexAction.action = action;
-                this->solution.push_back(indexAction);
-                if (this->metric == 1)
-                    this->solution_cost += action.cost;
-                else
-                    this->solution_cost += 1;
-            }
+            count_applied_effects++;
         }
     }
-    if (applied_effects == action.n_effects)
-        action.is_used = true; // an action is used only if all the effects are applied once
+
+    if (count_applied_effects > 0 && action.applied_effects == 0) { // first time
+        IndexAction indexAction;
+        indexAction.idx = idx;
+        indexAction.action = action;
+        this->solution.push_back(indexAction);
+        if (this->metric == 1)
+            this->solution_cost += action.cost;
+        else
+            this->solution_cost += 1;
+    }
+
+    action.applied_effects += count_applied_effects; // add to the total number of applied effects the effects applied during this iteration
+    if (action.applied_effects == action.n_effects) // all the effects were applied in some iteration
+        action.is_used = true;
 }
 
 void PlanningTask::print_solution() {
@@ -402,6 +405,11 @@ void PlanningTask::solve(int seed, int heuristic, bool check_graph) {
     }
 
     std::cout << "Solution found!" << std::endl;
+
+    if (check_integrity())
+        std::cout << "Integrity check passed!" << std::endl;
+    else
+        std::cout << "Integrity check NOT passed!" << std::endl;
 }
 
 void PlanningTask::remove_previous_state_actions(std::vector<int> &actions_idx, std::vector<std::vector<int>> &previous_actions_idx) {
@@ -464,10 +472,7 @@ bool PlanningTask::check_integrity() {
     std::vector<int> current_state = this->initial_state;
     for (int k = 0; k < this->solution.size(); k++) {
         IndexAction indexAction = this->solution[k];
-        std::cout << "Current action: " << indexAction.idx << std::endl;
         std::vector<int> actions_idx = get_possible_actions_idx(current_state, false, false);
-        std::cout << "Possible actions: " << std::endl;
-        PlanningTaskUtils::print_planning_task_state(actions_idx);
         int p = 0;
         for (; p < actions_idx.size(); p++) {
             if (actions_idx[p] == indexAction.idx)
