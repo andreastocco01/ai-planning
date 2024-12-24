@@ -119,7 +119,7 @@ std::vector<int> PlanningTask::get_possible_actions_idx(std::vector<int> &curren
                 break;
         if (j == action.n_preconds) {
            if (check_graph) {
-               if (action_in_graph(i))
+               if (this->actions[i].graph_layer != -1)
                    actions_idx.push_back(i);
            } else
                 actions_idx.push_back(i);
