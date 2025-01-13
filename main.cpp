@@ -54,12 +54,15 @@ int main(int argc, char** argv) {
 
     if (alg == 0 && seed_flag) {
         pt.brute_force(seed);
+        std::cout << "#########################################" << std::endl;
         pt.print_solution();
     } else if (alg == 1 && seed_flag) {
         pt.greedy(seed);
+        std::cout << "#########################################" << std::endl;
         pt.print_solution();
     } else if ((alg == 2 || alg == 3) && seed_flag) {
         pt.solve(seed, alg, false);
+        std::cout << "#########################################" << std::endl;
         pt.print_solution();
     } else if (alg == 4) {
         pt.compute_graph();
