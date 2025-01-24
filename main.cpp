@@ -5,17 +5,17 @@
 #include "include/planning_task_utils.h"
 
 void print_usage(std::string executable) {
-    std::cerr << "Usage: " << executable << " --from-file <file_name> --alg <alg_code> [--seed <int>]" << std::endl;
+    std::cerr << "Usage: " << executable << " --from-file <file_name> --alg <alg_code> --seed <int> --time_limit <int>" << std::endl;
     std::cerr << "Supported alg_code are:" << std::endl
-            << "0: random (seed required)" << std::endl
-            << "1: greedy (seed required)" << std::endl
-            << "2: h_add (seed required)" << std::endl
-            << "3: h_max (seed required)" << std::endl;
+            << "0: random" << std::endl
+            << "1: greedy" << std::endl
+            << "2: h_add" << std::endl
+            << "3: h_max" << std::endl;
 }
 
 int main(int argc, char** argv) {
 
-    if (argc < 5) {
+    if (argc != 9) {
         print_usage(argv[0]);
         return 1;
     }
@@ -23,9 +23,11 @@ int main(int argc, char** argv) {
     bool from_file_flag = false;
     bool alg_flag = false;
     bool seed_flag = false;
+    bool time_limit_flag = false;
     std::string file_name;
     int alg;
     int seed;
+    int time_limit;
     for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "--from-file") {
@@ -40,9 +42,13 @@ int main(int argc, char** argv) {
             seed_flag = true;
             seed = std::stoi(argv[++i]);
         }
+        if(arg == "--time_limit") {
+            time_limit_flag = true;
+            time_limit = std::stoi(argv[++i]);
+        }
     }
 
-    if (!(from_file_flag && alg_flag && seed_flag) || alg < 0 || alg > 3) {
+    if (!(from_file_flag && alg_flag && seed_flag && time_limit_flag) || alg < 0 || alg > 3) {
         print_usage(argv[0]);
         return 1;
     }
@@ -52,7 +58,7 @@ int main(int argc, char** argv) {
     std::cout << "File parsed!" << std::endl;
     PlanningTaskUtils::print_structure(pt);
 
-    pt.solve(seed, alg, false);
+    pt.solve(seed, alg, false, time_limit);
     std::cout << "#########################################" << std::endl;
     pt.print_solution();
 

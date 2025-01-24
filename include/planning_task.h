@@ -102,7 +102,7 @@ public:
         std::vector<Axiom> &axioms);
 
     void print_solution();
-    void solve(int seed, int heuristic, bool check_graph);
+    void solve(int seed, int heuristic, bool check_graph, int time_limit);
     void compute_graph();
 
 private:

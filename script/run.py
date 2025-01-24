@@ -11,9 +11,10 @@ from_file_paths = [
 
 alg = 4
 seed = 0
+time_limit = 60
 
 # Base command
-base_command = "make && ./main --alg {} --from-file {} --seed {} > {}"
+base_command = "make && ./main --alg {} --from-file {} --seed {} --time_limit {} > {}"
 
 # Iterate over the file paths and execute the command for each
 for file_path in from_file_paths:
@@ -22,7 +23,7 @@ for file_path in from_file_paths:
     output_file = "../out/" + output_file
 
     # Construct the full command
-    command = base_command.format(alg, file_path, seed, output_file)
+    command = base_command.format(alg, file_path, seed, time_limit, output_file)
 
     print(f"Executing: {command}")
 

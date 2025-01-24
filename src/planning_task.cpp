@@ -11,6 +11,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <chrono>
 
 PlanningTask::PlanningTask(int metric,
     int n_vars,
@@ -310,10 +311,14 @@ void PlanningTask::remove_satisfied_actions(std::vector<int> &current_state, std
     }
 }
 
-void PlanningTask::solve(int seed, int heuristic, bool check_graph) {
+void PlanningTask::solve(int seed, int heuristic, bool check_graph, int time_limit) {
     srand(seed);
     std::vector<int> current_state = this->initial_state;
     int estimated_cost = std::numeric_limits<int>::max();
+
+    // Start timer
+    auto start_time = std::chrono::steady_clock::now();
+    auto max_execution_time = std::chrono::seconds(time_limit);
 
     // h_cost = cost in greedy
     if (heuristic == 1) {
@@ -325,7 +330,21 @@ void PlanningTask::solve(int seed, int heuristic, bool check_graph) {
         }
     }
 
+    int iteration_count = 0; // Track iterations for periodic time checks
+
     while (!goal_reached(current_state)) {
+
+        // Periodically check elapsed time
+        // TODO: tune time check frequency
+        if (iteration_count % 100 == 0) { // Check every 100 iterations
+            auto elapsed_time = std::chrono::steady_clock::now() - start_time;
+            if (elapsed_time > max_execution_time) {
+                std::cout << "Time limit exceeded. Terminating search." << std::endl;
+                return;
+            }
+        }
+        iteration_count++; // Increment iteration count
+
         apply_axioms(current_state);
 
         // calculate heuristic costs
