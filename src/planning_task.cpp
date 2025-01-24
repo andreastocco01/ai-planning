@@ -318,7 +318,10 @@ void PlanningTask::solve(int seed, int heuristic, bool check_graph) {
     // h_cost = cost in greedy
     if (heuristic == 1) {
         for (int i = 0; i < this->n_actions; i++) {
-            this->actions[i].h_cost = this->actions[i].cost;
+            if (this->metric == 1)
+                this->actions[i].h_cost = this->actions[i].cost;
+            else
+                this->actions[i].h_cost = 1; // greedy becomes random
         }
     }
 
