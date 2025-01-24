@@ -102,7 +102,7 @@ public:
         std::vector<Axiom> &axioms);
 
     void print_solution();
-    void brute_force(int seed);
+    void random(int seed);
     void greedy(int seed);
     void solve(int seed, int heuristic, bool check_graph);
     void compute_graph();

@@ -173,7 +173,7 @@ void PlanningTask::print_solution() {
     std::cout << "Cost: " << this->solution_cost << std::endl;
 }
 
-void PlanningTask::brute_force(int seed) {
+void PlanningTask::random(int seed) {
     srand(seed);
     std::vector<int> current_state = this->initial_state;
 
@@ -214,9 +214,9 @@ std::vector<int> PlanningTask::get_min_cost_actions_idx(std::vector<int> &action
 }
 
 void PlanningTask::greedy(int seed) {
-    if (this->metric == 0) { // it is equivalent to brute_force
-        std::cout << "Executing brute force" << std::endl;
-        brute_force(seed);
+    if (this->metric == 0) { // it is equivalent to random
+        std::cout << "Executing random" << std::endl;
+        random(seed);
     } else {
         srand(seed);
         std::vector<int> current_state = this->initial_state;
