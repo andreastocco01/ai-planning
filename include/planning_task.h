@@ -102,8 +102,6 @@ public:
         std::vector<Axiom> &axioms);
 
     void print_solution();
-    void random(int seed);
-    void greedy(int seed);
     void solve(int seed, int heuristic, bool check_graph);
     void compute_graph();
 
@@ -115,7 +113,6 @@ private:
     int get_max_axiom_layer();
     std::vector<int> get_possible_actions_idx(std::vector<int> &current_state, bool check_usage, bool check_graph);
     void apply_action(int idx, std::vector<int> &current_state);
-    std::vector<int> get_min_cost_actions_idx(std::vector<int> &actions_idx);
     std::vector<int> get_min_h_cost_actions_idx(std::vector<int> &actions_idx);
     std::vector<int> get_actions_idx_having_outcome(Fact &fact);
     int h_add(std::vector<int> &current_state, Fact &fact, std::set<int> &visited);

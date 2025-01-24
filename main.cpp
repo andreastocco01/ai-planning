@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    if (!(from_file_flag && alg_flag)) {
+    if (!(from_file_flag && alg_flag && seed_flag) || alg < 0 || alg > 3) {
         print_usage(argv[0]);
         return 1;
     }
@@ -52,29 +52,9 @@ int main(int argc, char** argv) {
     std::cout << "File parsed!" << std::endl;
     PlanningTaskUtils::print_structure(pt);
 
-    if (alg == 0 && seed_flag) {
-        pt.random(seed);
-        std::cout << "#########################################" << std::endl;
-        pt.print_solution();
-    } else if (alg == 1 && seed_flag) {
-        pt.greedy(seed);
-        std::cout << "#########################################" << std::endl;
-        pt.print_solution();
-    } else if ((alg == 2 || alg == 3) && seed_flag) {
-        pt.solve(seed, alg, false);
-        std::cout << "#########################################" << std::endl;
-        pt.print_solution();
-    } else if (alg == 4) {
-        pt.compute_graph();
-        std::cout << "#########################################" << std::endl;
-        PlanningTaskUtils::print_graph(pt);
-        pt.solve(seed, 3, true);
-        std::cout << "#########################################" << std::endl;
-        pt.print_solution();
-    } else {
-        print_usage(argv[0]);
-        return 1;
-    }
+    pt.solve(seed, alg, false);
+    std::cout << "#########################################" << std::endl;
+    pt.print_solution();
 
     return 0;
 }

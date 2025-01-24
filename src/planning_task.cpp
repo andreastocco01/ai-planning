@@ -173,71 +173,6 @@ void PlanningTask::print_solution() {
     std::cout << "Cost: " << this->solution_cost << std::endl;
 }
 
-void PlanningTask::random(int seed) {
-    srand(seed);
-    std::vector<int> current_state = this->initial_state;
-
-    while (!goal_reached(current_state)) {
-        apply_axioms(current_state);
-        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, true, false);
-        if (possible_actions_idx.empty())
-            break;
-        int action_to_apply_idx = possible_actions_idx[PlanningTaskUtils::get_random_number(0, possible_actions_idx.size())];
-        apply_action(action_to_apply_idx, current_state);
-    }
-
-    if (goal_reached(current_state))
-        std::cout << "Solution found" << std::endl;
-    else
-        std::cout << "Goal state not reached" << std::endl;
-}
-
-std::vector<int> PlanningTask::get_min_cost_actions_idx(std::vector<int> &actions_idx) {
-    std::vector<int> res;
-    int min_cost = this->actions[actions_idx[0]].cost;
-
-    // find minimum cost
-    for (int i = 1; i < actions_idx.size(); i++) {
-        int idx = actions_idx[i];
-        if (this->actions[idx].cost < min_cost)
-            min_cost = this->actions[idx].cost;
-    }
-
-    // get all minimum cost action indexes
-    for (int i = 0; i < actions_idx.size(); i++) {
-        int idx = actions_idx[i];
-        if (this->actions[idx].cost == min_cost)
-            res.push_back(idx);
-    }
-
-    return res;
-}
-
-void PlanningTask::greedy(int seed) {
-    if (this->metric == 0) { // it is equivalent to random
-        std::cout << "Executing random" << std::endl;
-        random(seed);
-    } else {
-        srand(seed);
-        std::vector<int> current_state = this->initial_state;
-
-        while (!goal_reached(current_state)) {
-            apply_axioms(current_state);
-            std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, true, false);
-            if (possible_actions_idx.empty())
-                break;
-            std::vector<int> min_cost_actions_idx = get_min_cost_actions_idx(possible_actions_idx);
-            int action_to_apply_idx = min_cost_actions_idx[PlanningTaskUtils::get_random_number(0, min_cost_actions_idx.size())];
-            apply_action(action_to_apply_idx, current_state);
-        }
-
-        if (goal_reached(current_state))
-            std::cout << "Solution found" << std::endl;
-        else
-            std::cout << "Goal state not reached" << std::endl;
-    }
-}
-
 std::vector<int> PlanningTask::get_min_h_cost_actions_idx(std::vector<int> &actions_idx) {
     std::vector<int> res;
     int min_cost = this->actions[actions_idx[0]].h_cost;
@@ -380,14 +315,23 @@ void PlanningTask::solve(int seed, int heuristic, bool check_graph) {
     std::vector<int> current_state = this->initial_state;
     int estimated_cost = std::numeric_limits<int>::max();
 
+    // h_cost = cost in greedy
+    if (heuristic == 1) {
+        for (int i = 0; i < this->n_actions; i++) {
+            this->actions[i].h_cost = this->actions[i].cost;
+        }
+    }
+
     while (!goal_reached(current_state)) {
         apply_axioms(current_state);
 
         // calculate heuristic costs
-        int total = compute_heuristic(current_state, heuristic);
-        if (total < estimated_cost) {
-            estimated_cost = total;
-            std::cout << "New estimated cost to reach the goal state: " << estimated_cost << std::endl;
+        if (heuristic == 2 || heuristic == 3) {
+            int total = compute_heuristic(current_state, heuristic);
+            if (total < estimated_cost) {
+                estimated_cost = total;
+                std::cout << "New estimated cost to reach the goal state: " << estimated_cost << std::endl;
+            }
         }
 
         // get possible actions
@@ -397,10 +341,15 @@ void PlanningTask::solve(int seed, int heuristic, bool check_graph) {
         remove_satisfied_actions(current_state, possible_actions_idx);
 
         // get min h cost actions
-        std::vector<int> min_h_cost_actions_idx = get_min_h_cost_actions_idx(possible_actions_idx);
+        int action_to_apply_idx;
+        if (heuristic == 0) { // random
+            action_to_apply_idx = possible_actions_idx[PlanningTaskUtils::get_random_number(0, possible_actions_idx.size())];
+        } else {
+            std::vector<int> min_h_cost_actions_idx = get_min_h_cost_actions_idx(possible_actions_idx);
+            action_to_apply_idx = min_h_cost_actions_idx[PlanningTaskUtils::get_random_number(0, min_h_cost_actions_idx.size())];
+        }
 
         // apply action
-        int action_to_apply_idx = min_h_cost_actions_idx[PlanningTaskUtils::get_random_number(0, min_h_cost_actions_idx.size())];
         apply_action(action_to_apply_idx, current_state);
     }
 
