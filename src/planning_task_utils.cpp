@@ -133,17 +133,6 @@ void PlanningTaskUtils::print_structure(PlanningTask &pt) {
     std::cout << "Axioms: " << pt.n_axioms << std::endl;
 }
 
-void PlanningTaskUtils::print_graph(PlanningTask &pt) {
-    for (int i = 0; i < pt.graph_states.size(); i++) {
-        std::cout << "Layer " << i << " state: ";
-        PlanningTaskUtils::print_planning_task_state(pt.graph_states[i]);
-        if (i != pt.graph_states.size() - 1) {
-            std::cout << "Layer " << i << " actions: ";
-            PlanningTaskUtils::print_planning_task_state(pt.graph_actions[i]);
-        }
-    }
-}
-
 int PlanningTaskUtils::get_random_number(int lower, int upper) {
     return lower + rand() % (upper - lower);
 }

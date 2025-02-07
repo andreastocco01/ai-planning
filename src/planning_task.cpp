@@ -110,7 +110,7 @@ void PlanningTask::apply_axioms(std::vector<int> &current_state) {
     }
 }
 
-std::vector<int> PlanningTask::get_possible_actions_idx(std::vector<int> &current_state, bool check_usage, bool check_graph) {
+std::vector<int> PlanningTask::get_possible_actions_idx(std::vector<int> &current_state, bool check_usage) {
     std::vector<int> actions_idx;
     for (int i = 0; i < this->n_actions; i++) {
         Action action = this->actions[i];
@@ -121,11 +121,7 @@ std::vector<int> PlanningTask::get_possible_actions_idx(std::vector<int> &curren
             if (current_state[action.preconds[j].var_idx] != action.preconds[j].var_val)
                 break;
         if (j == action.n_preconds) {
-           if (check_graph) {
-               if (this->actions[i].graph_layer != -1)
-                   actions_idx.push_back(i);
-           } else
-                actions_idx.push_back(i);
+            actions_idx.push_back(i);
         }
     }
     return actions_idx;
@@ -319,7 +315,7 @@ void PlanningTask::remove_satisfied_actions(std::vector<int> &current_state, std
     }
 }
 
-void PlanningTask::solve(int seed, int heuristic, bool check_graph, int time_limit) {
+void PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
     int pid = fork();
 
     if (pid == 0) { // child process
@@ -358,7 +354,7 @@ void PlanningTask::solve(int seed, int heuristic, bool check_graph, int time_lim
         }
 
         // get possible actions
-        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, true, check_graph);
+        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, true);
 
         // remove actions having outcome already satisfied
         remove_satisfied_actions(current_state, possible_actions_idx);
@@ -378,10 +374,12 @@ void PlanningTask::solve(int seed, int heuristic, bool check_graph, int time_lim
 
     std::cout << "Solution found!" << std::endl;
 
-    if (check_integrity())
-        std::cout << "Integrity check passed!" << std::endl;
-    else
-        std::cout << "Integrity check NOT passed!" << std::endl;
+    if (debug) {
+        if (check_integrity())
+            std::cout << "Integrity check passed!" << std::endl;
+        else
+            std::cout << "Integrity check NOT passed!" << std::endl;
+    }
 
     kill(pid, SIGTERM);
 }
@@ -397,56 +395,11 @@ void PlanningTask::remove_previous_state_actions(std::vector<int> &actions_idx, 
     }
 }
 
-void PlanningTask::compute_graph() {
-    // structure initialization
-    this->graph_states.push_back(this->initial_state);
-
-    int graph_layer = 0;
-    while (!goal_reached(this->graph_states.back())) {
-        std::vector<int> current_state = this->graph_states.back();
-
-        std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, false, false); // here we have also the previous state actions
-        if (!actions.empty())
-            remove_previous_state_actions(possible_actions_idx, this->graph_actions);
-
-        // assign to each action the graph layer
-        for (int i = 0; i < possible_actions_idx.size(); i++) {
-            this->actions[possible_actions_idx[i]].graph_layer = graph_layer;
-        }
-        graph_layer++;
-        this->graph_actions.push_back(possible_actions_idx);
-
-        // get all the possible outcomes applying all the actions
-        for (int k = 0; k < possible_actions_idx.size(); k++) {
-            int idx = possible_actions_idx[k];
-            Action action = this->actions[idx];
-            for (int i = 0; i < action.n_effects; i++) {
-                Effect effect = action.effects[i];
-                int j;
-                for (j = 0; j < effect.n_effect_conds; j++) {
-                    std::vector<Fact> effect_conds = effect.effect_conds;
-                    if (current_state[effect_conds[j].var_idx] != effect_conds[j].var_val &&
-                        effect_conds[j].var_val != -1)
-                        break;
-                }
-                if (j < effect.n_effect_conds) // the effect cannot be applied
-                    continue;
-                int var = effect.var_affected;
-                if ((current_state[var] == effect.from_value ||
-                    effect.from_value == -1) && check_mutex_groups(var, effect.to_value, current_state)) {
-                    current_state[var] = effect.to_value;
-                }
-            }
-        }
-        this->graph_states.push_back(current_state);
-    }
-}
-
 bool PlanningTask::check_integrity() {
     std::vector<int> current_state = this->initial_state;
     for (int k = 0; k < this->solution.size(); k++) {
         IndexAction indexAction = this->solution[k];
-        std::vector<int> actions_idx = get_possible_actions_idx(current_state, false, false);
+        std::vector<int> actions_idx = get_possible_actions_idx(current_state, false);
         int p = 0;
         for (; p < actions_idx.size(); p++) {
             if (actions_idx[p] == indexAction.idx)
@@ -473,15 +426,4 @@ bool PlanningTask::check_integrity() {
         }
     }
     return true;
-}
-
-bool PlanningTask::action_in_graph(int action_idx) {
-    for (int layer = 0; layer < this->graph_actions.size(); layer++) {
-        std::vector<int> actions = this->graph_actions[layer];
-        for (int i = 0; i < actions.size(); i++) {
-            if (action_idx == actions[i])
-                return true;
-        }
-    }
-    return false;
 }

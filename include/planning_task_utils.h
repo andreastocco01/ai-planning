@@ -21,8 +21,6 @@ namespace PlanningTaskUtils {
     void print_effect(Effect &effect);
     void print_axiom(Axiom &axiom);
 
-    void print_graph(PlanningTask &pt);
-
     int get_random_number(int lower, int upper);
 }
 
