@@ -13,6 +13,7 @@
 #include <vector>
 #include <unistd.h>
 #include <signal.h>
+#include <omp.h> // Include OpenMP header
 
 PlanningTask::PlanningTask(int metric,
     int n_vars,
@@ -286,12 +287,18 @@ int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact, std::set<in
 
 int PlanningTask::compute_heuristic(std::vector<int> &current_state, int heuristic) {
     int total = 0;
-    for (int i = 0; i < this->n_goals; i++) {
-        std::set<int> visited;
-        if (heuristic == 2)
+    if (heuristic == 2) {
+        #pragma omp parallel for reduction(+:total)
+        for (int i = 0; i < this->n_goals; i++) {
+            std::set<int> visited;
             total += h_add(current_state, this->goal_state[i], visited);
-        else if (heuristic == 3)
+        }
+    } else if (heuristic == 3) {
+        #pragma omp parallel for reduction(max:total)
+        for (int i = 0; i < this->n_goals; i++) {
+            std::set<int> visited;
             total = std::max(total, h_max(current_state, this->goal_state[i], visited));
+        }
     }
     return total;
 }
