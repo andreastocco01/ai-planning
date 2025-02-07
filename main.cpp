@@ -5,7 +5,7 @@
 #include "include/planning_task_utils.h"
 
 void print_usage(std::string executable) {
-    std::cerr << "Usage: " << executable << " --from-file <file_name> --alg <alg_code> --seed <int> --time_limit <int> --debug <bool>" << std::endl;
+    std::cerr << "Usage: " << executable << " --from-file <file_name> --alg <alg_code> --seed <int> --time-limit <int> --debug <bool>" << std::endl;
     std::cerr << "Supported alg_code are:" << std::endl
             << "0: random" << std::endl
             << "1: greedy" << std::endl
@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
             seed_flag = true;
             seed = std::stoi(argv[++i]);
         }
-        if(arg == "--time_limit") {
+        if(arg == "--time-limit") {
             time_limit_flag = true;
             time_limit = std::stoi(argv[++i]);
         }

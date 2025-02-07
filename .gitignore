@@ -37,3 +37,5 @@ axiom_mutex_test.sas
 /DeletefreeSAS
 /out
 /.ropeproject
+/script/logs
+/script/tasks.txt

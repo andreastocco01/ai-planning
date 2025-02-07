@@ -14,7 +14,7 @@ seed = 0
 time_limit = 60
 
 # Base command
-base_command = "make && ./main --alg {} --from-file {} --seed {} --time_limit {} > {}"
+base_command = "make && ./main --alg {} --from-file {} --seed {} --time-limit {} > {}"
 
 # Iterate over the file paths and execute the command for each
 for file_path in from_file_paths:
