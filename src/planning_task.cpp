@@ -384,17 +384,6 @@ void PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
     kill(pid, SIGTERM);
 }
 
-void PlanningTask::remove_previous_state_actions(std::vector<int> &actions_idx, std::vector<std::vector<int>> &previous_actions_idx) {
-    for (int i = actions_idx.size() - 1; i >= 0; i--) {
-        for (int j = 0; j < previous_actions_idx.size(); j++) {
-            for (int k = 0; k < previous_actions_idx[j].size(); k++) {
-                if (actions_idx[i] == previous_actions_idx[j][k])
-                    actions_idx.erase(actions_idx.begin() + i);
-            }
-        }
-    }
-}
-
 bool PlanningTask::check_integrity() {
     std::vector<int> current_state = this->initial_state;
     for (int k = 0; k < this->solution.size(); k++) {

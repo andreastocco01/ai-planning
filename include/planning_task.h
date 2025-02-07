@@ -114,7 +114,6 @@ private:
     int compute_heuristic(std::vector<int> &current_state, int heuristic);
     void remove_satisfied_actions(std::vector<int> &current_state, std::vector<int> &possible_actions_idx);
     void print_action_h_costs(std::vector<int> &actions_idx);
-    void remove_previous_state_actions(std::vector<int> &actions_idx, std::vector<std::vector<int>> &previous_actions_idx);
     bool check_integrity();
 };
 
