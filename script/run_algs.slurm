@@ -1,10 +1,11 @@
 #!/bin/bash
 #SBATCH --job-name=execute_algs
 #SBATCH --partition=arrow
-#SBATCH --array=1-1 # 1-1000 for full testbed
+#SBATCH --array=1-1000 # 1-1000 for full testbed
 #SBATCH --mem=14GB
 #SBATCH --time=60
 #SBATCH --error=logs/%A_%a.err
+#SBATCH --output=logs/%A_%a.out
 
 # warm up processors
 sudo cpupower frequency-set -g performance
@@ -19,7 +20,7 @@ ulimit -v 16777216
 # COMMANDS TO EXECUTE
 
 # Number of tasks per job
-TASKS_PER_JOB=40 # 125 for full testbed
+TASKS_PER_JOB=125 # 125 for full testbed
 
 # Compute the range of lines for this job
 START_LINE=$(( (SLURM_ARRAY_TASK_ID - 1) * TASKS_PER_JOB + 1 ))

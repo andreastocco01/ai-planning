@@ -1,6 +1,6 @@
 from os import listdir
 
-files = [file for file in listdir('../DeletefreeSAS/') if file == 'sokoban-sat08-strips-p03_deletefree.sas']
+files = [file for file in listdir('../DeletefreeSAS/')]
 algs = ['0', '1', '2', '3']
 seeds = range(42, 52)
 
