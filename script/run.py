@@ -9,12 +9,12 @@ from_file_paths = [
     "../DeletefreeSAS/sokoban-sat08-strips-p05_deletefree.sas",
 ]
 
-alg = 4
+alg = 3
 seed = 0
 time_limit = 60
 
 # Base command
-base_command = "make && ./main --alg {} --from-file {} --seed {} --time-limit {} > {}"
+base_command = "make && ./main --alg {} --from-file {} --seed {} --time-limit {} --debug 0 > {}"
 
 # Iterate over the file paths and execute the command for each
 for file_path in from_file_paths:

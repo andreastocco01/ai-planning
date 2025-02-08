@@ -61,11 +61,29 @@ int main(int argc, char** argv) {
 
     PlanningTaskParser parser;
     PlanningTask pt = parser.parse_from_file(file_name);
-    std::cout << "File parsed!" << std::endl;
+    std::cout << "File " << file_name << " parsed!" << std::endl << std::endl;
+    std::cout << "############ File structure #############" << std::endl;
     PlanningTaskUtils::print_structure(pt);
 
+    std::cout << std::endl << "Running algorithm: ";
+
+    switch (alg) {
+        case 0:
+            std::cout << "random" << std::endl;
+            break;
+        case 1:
+            std::cout << "greedy" << std::endl;
+            break;
+        case 2:
+            std::cout << "h_add" << std::endl;
+            break;
+        case 3:
+            std::cout << "h_max" << std::endl;
+            break;
+    }
+
     pt.solve(seed, alg, debug, time_limit);
-    std::cout << "#########################################" << std::endl;
+    std::cout << std::endl << "############### Solution ###############" << std::endl;
     pt.print_solution();
 
     return 0;
