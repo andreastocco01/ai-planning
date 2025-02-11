@@ -248,19 +248,21 @@ int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact, std::set<in
     return *std::min_element(h_costs.begin(), h_costs.end());
 }
 
-int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact, std::set<int> &visited) {
-    if (current_state[fact.var_idx] == fact.var_val || visited.find(fact.var_idx) != visited.end())
+int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact, std::unordered_map<int, int> &memo) {
+    if (current_state[fact.var_idx] == fact.var_val)
         return 0; // base case
 
-    visited.insert(fact.var_idx);
+    if (memo.find(fact.var_idx) != memo.end())
+        return memo[fact.var_idx]; // Use cached result
 
     // get all the actions having "fact" as outcome
     std::vector<int> actions_idx = get_actions_idx_having_outcome(fact);
 
+    std::cout << "NON SONO ROTTO" << std::endl;
     if (actions_idx.empty()) // the fact is unreachable
-        return std::numeric_limits<int>::max();
+        return memo[fact.var_idx] = std::numeric_limits<int>::max();
 
-    std::vector<int> h_costs;
+    int min_h_cost = std::numeric_limits<int>::max();
     for (int i = 0; i < actions_idx.size(); i++) {
         int idx = actions_idx[i];
 
@@ -271,31 +273,39 @@ int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact, std::set<in
 
         int max_cost = 0;
         for (int j = 0; j < this->actions[idx].n_preconds; j++) {
-            max_cost = std::max(max_cost, h_max(current_state, this->actions[idx].preconds[j], visited));
+            max_cost = std::max(max_cost, h_max(current_state, this->actions[idx].preconds[j], memo));
         }
 
         this->actions[idx].h_cost += max_cost;
-        h_costs.push_back(this->actions[idx].h_cost);
+        min_h_cost = std::min(min_h_cost, this->actions[idx].h_cost);
     }
 
-    return *std::min_element(h_costs.begin(), h_costs.end());
+    return memo[fact.var_idx] = min_h_cost;
 }
 
 int PlanningTask::compute_heuristic(std::vector<int> &current_state, int heuristic) {
     int total = 0;
-    if (heuristic == 2) {
+    std::unordered_map<int, int> memo;
+
+    /*if (heuristic == 2) {
         #pragma omp parallel for reduction(+:total)
         for (int i = 0; i < this->n_goals; i++) {
-            std::set<int> visited;
-            total += h_add(current_state, this->goal_state[i], visited);
+            total += h_add(current_state, this->goal_state[i], memo);
         }
-    } else if (heuristic == 3) {
-        #pragma omp parallel for reduction(max:total)
-        for (int i = 0; i < this->n_goals; i++) {
-            std::set<int> visited;
-            total = std::max(total, h_max(current_state, this->goal_state[i], visited));
+        } else*/ if (heuristic == 3) {
+        #pragma omp parallel
+        {
+            int local_max = 0;
+            #pragma omp for nowait
+            for (int i = 0; i < this->n_goals; i++) {
+                std::cout << "Goal #" << i << "/" << this->n_goals << std::endl;
+                local_max = std::max(local_max, h_max(current_state, this->goal_state[i], memo));
+            }
+            #pragma omp critical
+            total = std::max(total, local_max);
         }
     }
+
     return total;
 }
 
