@@ -7,13 +7,3 @@ add_executable(main
 	src/planning_task_utils.cpp
 	src/planning_task_parser.cpp
 )
-
-# Find OpenMP
-find_package(OpenMP REQUIRED)
-
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(main PRIVATE OpenMP::OpenMP_CXX)
-    message(STATUS "OpenMP found and linked!")
-else()
-    message(FATAL_ERROR "OpenMP not found!")
-endif()

@@ -111,7 +111,7 @@ private:
     std::vector<int> get_min_h_cost_actions_idx(std::vector<int> &actions_idx);
     std::vector<int> get_actions_idx_having_outcome(Fact &fact);
     int h_add(std::vector<int> &current_state, Fact &fact, std::set<int> &visited);
-    int h_max(std::vector<int> &current_state, Fact &fact, std::unordered_map<int, int> &memo);
+    int h_max(std::vector<int> &current_state, Fact &fact, std::set<int> &visited, std::unordered_map<int, int> &cache);
     int compute_heuristic(std::vector<int> &current_state, int heuristic);
     void remove_satisfied_actions(std::vector<int> &current_state, std::vector<int> &possible_actions_idx);
     void print_action_h_costs(std::vector<int> &actions_idx);
