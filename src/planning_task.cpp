@@ -323,7 +323,7 @@ void PlanningTask::remove_satisfied_actions(std::vector<int> &current_state, std
     }
 }
 
-void PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
+int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
     int pid = fork();
 
     if (pid == 0) { // child process
@@ -348,6 +348,8 @@ void PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
         }
     }
 
+    bool no_solution = false;
+
     while (!goal_reached(current_state)) {
 
         apply_axioms(current_state);
@@ -363,6 +365,11 @@ void PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
 
         // get possible actions
         std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, true);
+
+        if (possible_actions_idx.empty()){
+            no_solution = true;
+            break;
+        }
 
         // remove actions having outcome already satisfied
         remove_satisfied_actions(current_state, possible_actions_idx);
@@ -380,7 +387,14 @@ void PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
         apply_action(action_to_apply_idx, current_state);
     }
 
-    std::cout << "Solution found!" << std::endl;
+    kill(pid, SIGTERM);
+
+    if (no_solution) {
+        std::cout << "Solution does not exist!" << std::endl;
+        return -1;
+    } else {
+        std::cout << "Solution found!" << std::endl;
+    }
 
     if (debug) {
         if (check_integrity())
@@ -389,7 +403,7 @@ void PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
             std::cout << "Integrity check NOT passed!" << std::endl;
     }
 
-    kill(pid, SIGTERM);
+    return 0;
 }
 
 bool PlanningTask::check_integrity() {

@@ -82,9 +82,10 @@ int main(int argc, char** argv) {
             break;
     }
 
-    pt.solve(seed, alg, debug, time_limit);
-    std::cout << std::endl << "############### Solution ###############" << std::endl;
-    pt.print_solution();
+    if (!pt.solve(seed, alg, debug, time_limit)) {
+        std::cout << std::endl << "############### Solution ###############" << std::endl;
+        pt.print_solution();
+    }
 
     return 0;
 }
