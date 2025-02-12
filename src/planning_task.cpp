@@ -127,10 +127,9 @@ std::vector<int> PlanningTask::get_possible_actions_idx(std::vector<int> &curren
 }
 
 void PlanningTask::apply_action(int idx, std::vector<int> &current_state) {
-    Action action = this->actions[idx];
     int count_applied_effects = 0; // count applied effects during this iteration
-    for (int i = 0; i < action.n_effects; i++) {
-        Effect effect = action.effects[i];
+    for (int i = 0; i < this->actions[idx].n_effects; i++) {
+        Effect effect = this->actions[idx].effects[i];
         int j;
         for (j = 0; j < effect.n_effect_conds; j++) {
             Fact effect_cond = effect.effect_conds[j];
@@ -148,20 +147,21 @@ void PlanningTask::apply_action(int idx, std::vector<int> &current_state) {
         }
     }
 
-    if (count_applied_effects > 0 && action.applied_effects == 0) { // first time
+    if (count_applied_effects > 0 && this->actions[idx].applied_effects == 0) { // first time
         IndexAction indexAction;
         indexAction.idx = idx;
-        indexAction.action = action;
+        indexAction.action = this->actions[idx];
         this->solution.push_back(indexAction);
         if (this->metric == 1)
-            this->solution_cost += action.cost;
+            this->solution_cost += this->actions[idx].cost;
         else
             this->solution_cost += 1;
     }
 
-    action.applied_effects += count_applied_effects; // add to the total number of applied effects the effects applied during this iteration
-    if (action.applied_effects == action.n_effects) // all the effects were applied in some iteration
-        action.is_used = true;
+    this->actions[idx].applied_effects += count_applied_effects; // add to the total number of applied effects the effects applied during this iteration
+    if (this->actions[idx].applied_effects == this->actions[idx].n_effects) {// all the effects were applied in some iteration
+        this->actions[idx].is_used = true;
+    }
 }
 
 void PlanningTask::print_solution() {
@@ -366,13 +366,13 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
         // get possible actions
         std::vector<int> possible_actions_idx = get_possible_actions_idx(current_state, true);
 
+        // remove actions having outcome already satisfied
+        remove_satisfied_actions(current_state, possible_actions_idx);
+
         if (possible_actions_idx.empty()){
             no_solution = true;
             break;
         }
-
-        // remove actions having outcome already satisfied
-        remove_satisfied_actions(current_state, possible_actions_idx);
 
         // get min h cost actions
         int action_to_apply_idx;
