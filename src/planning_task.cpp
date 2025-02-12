@@ -216,7 +216,12 @@ std::vector<int> PlanningTask::get_actions_idx_having_outcome(Fact &fact) {
     return actions_idx;
 }
 
-int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact, std::set<int> &visited) {
+int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact, std::set<int> &visited, std::unordered_map<int, int> &cache) {
+    // **Check Cache**
+    if (cache.find(fact.var_idx) != cache.end()) {
+        return cache[fact.var_idx]; // Return stored result
+    }
+
     if (current_state[fact.var_idx] == fact.var_val || visited.find(fact.var_idx) != visited.end())
         return 0; // base case
 
@@ -228,23 +233,24 @@ int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact, std::set<in
     if (actions_idx.empty()) // the fact is unreachable
         return std::numeric_limits<int>::max();
 
-    std::vector<int> h_costs;
-    for (int i = 0; i < actions_idx.size(); i++) {
-        int idx = actions_idx[i];
+    int min_h_cost = std::numeric_limits<int>::max();
 
+    for (int idx : actions_idx) {
         if (this->metric == 1)
             this->actions[idx].h_cost = this->actions[idx].cost;
         else
             this->actions[idx].h_cost = 1;
 
         for (int j = 0; j < this->actions[idx].n_preconds; j++) {
-            this->actions[idx].h_cost += h_add(current_state, this->actions[idx].preconds[j], visited);
+            this->actions[idx].h_cost += h_add(current_state, this->actions[idx].preconds[j], visited, cache);
         }
 
-        h_costs.push_back(this->actions[idx].h_cost);
+        min_h_cost = std::min(min_h_cost, this->actions[idx].h_cost);
     }
 
-    return *std::min_element(h_costs.begin(), h_costs.end());
+    // **Store Computed Result in Cache**
+    cache[fact.var_idx] = min_h_cost;
+    return min_h_cost;
 }
 
 int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact, std::set<int> &visited, std::unordered_map<int, int> &cache) {
@@ -262,9 +268,8 @@ int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact, std::set<in
     // Get all the actions having "fact" as outcome
     std::vector<int> actions_idx = get_actions_idx_having_outcome(fact);
 
-    if (actions_idx.empty()) { // The fact is unreachable
+    if (actions_idx.empty()) // The fact is unreachable
         return std::numeric_limits<int>::max();
-    }
 
     int min_h_cost = std::numeric_limits<int>::max();
 
@@ -295,7 +300,7 @@ int PlanningTask::compute_heuristic(std::vector<int> &current_state, int heurist
     if (heuristic == 2) {
         for (int i = 0; i < this->n_goals; i++) {
             std::set<int> visited;
-            total += h_add(current_state, this->goal_state[i], visited);
+            total += h_add(current_state, this->goal_state[i], visited, cache);
         }
     } else if (heuristic == 3) {
         for (int i = 0; i < this->n_goals; i++) {
