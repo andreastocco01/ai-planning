@@ -329,13 +329,15 @@ void PlanningTask::remove_satisfied_actions(std::vector<int> &current_state, std
 }
 
 int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
-    int pid = fork();
-
-    if (pid == 0) { // child process
-        sleep(time_limit);
-        std::cerr << "Time limit reached. Killing parent process." << std::endl;
-        kill(getppid(), SIGTERM); // Send SIGTERM to the parent process
-        exit(0);                  // Exit child process
+    int pid;
+    if (time_limit != -1) {
+        pid = fork();
+        if (pid == 0) { // child process
+            sleep(time_limit);
+            std::cerr << "Time limit reached. Killing parent process." << std::endl;
+            kill(getppid(), SIGTERM); // Send SIGTERM to the parent process
+            exit(0);                  // Exit child process
+        }
     }
 
     // parent process
@@ -392,7 +394,9 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
         apply_action(action_to_apply_idx, current_state);
     }
 
-    kill(pid, SIGTERM);
+    if (time_limit != -1) {
+        kill(pid, SIGTERM);
+    }
 
     if (no_solution) {
         std::cout << "Solution does not exist!" << std::endl;

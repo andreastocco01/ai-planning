@@ -5,7 +5,7 @@
 #include "include/planning_task_utils.h"
 
 void print_usage(std::string executable) {
-    std::cerr << "Usage: " << executable << " --from-file <file_name> --alg <alg_code> --seed <int> --time-limit <int> --debug <bool>" << std::endl;
+    std::cerr << "Usage: " << executable << " --from-file <file_name> --alg <alg_code> --seed <int> [--time-limit <int>] --debug <bool>" << std::endl;
     std::cerr << "Supported alg_code are:" << std::endl
             << "0: random" << std::endl
             << "1: greedy" << std::endl
@@ -15,7 +15,7 @@ void print_usage(std::string executable) {
 
 int main(int argc, char** argv) {
 
-    if (argc != 11) {
+    if (argc < 9) {
         print_usage(argv[0]);
         return 1;
     }
@@ -54,10 +54,13 @@ int main(int argc, char** argv) {
         }
     }
 
-    if (!(from_file_flag && alg_flag && seed_flag && time_limit_flag && debug_flag) || alg < 0 || alg > 3) {
+    if (!(from_file_flag && alg_flag && seed_flag && debug_flag) || alg < 0 || alg > 3) {
         print_usage(argv[0]);
         return 1;
     }
+
+    if (!time_limit_flag)
+        time_limit = -1;
 
     PlanningTaskParser parser;
     PlanningTask pt = parser.parse_from_file(file_name);
