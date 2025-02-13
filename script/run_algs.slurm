@@ -42,7 +42,7 @@ sed -n "${START_LINE},${END_LINE}p" tasks.txt | while read INSTANCE ALGORITHM SE
     OUTPUT_DIR="../out/${MAPPED_ALGO}"
     mkdir -p "$OUTPUT_DIR"
     OUTPUT_FILE="${OUTPUT_DIR}/${BASENAME}_${MAPPED_ALGO}_${SEED}.out"
-    ../build/main --from-file "../DeletefreeSAS/$INSTANCE" --alg "$ALGORITHM" --seed "$SEED" --debug 0 --time-limit 60 > "$OUTPUT_FILE"
+    ../build/main --from-file "../DeletefreeSAS/$INSTANCE" --alg "$ALGORITHM" --seed "$SEED" --debug 0 > "$OUTPUT_FILE"
 done
 
 # back to power saving mode
