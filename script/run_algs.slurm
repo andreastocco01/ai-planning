@@ -2,6 +2,7 @@
 #SBATCH --job-name=planning
 #SBATCH --partition=arrow
 #SBATCH --array=1-1000 # 1-1000 for full testbed
+#SBATCH --time=02:10:00 # time limit per job!
 #SBATCH --mem=14GB
 #SBATCH --error=logs/%A_%a.err
 #SBATCH --output=logs/%A_%a.out

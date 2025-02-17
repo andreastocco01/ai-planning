@@ -39,3 +39,4 @@ axiom_mutex_test.sas
 /.ropeproject
 /script/logs
 /script/tasks.txt
+/script/timeout_log.txt
