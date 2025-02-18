@@ -8,9 +8,16 @@ def extract_instance_costs(file_list, directory):
     instance_costs = []
     for filename in file_list:
         with open(directory + filename, 'r') as file:
-            lines = file.readlines()
-            if lines and re.match('Cost: ', lines[-1]):
-                instance_costs.append(int(lines[-1].strip().split(' ')[1]))
+            content = file.read()
+            if "Solution found!" in content:
+                file.seek(0)
+                lines = file.readlines()
+                try:
+                    instance_costs.append(int(lines[-1].split(' ')[1]))
+                except:
+                    print(directory + filename)
+            elif "Solution does not exist!" in content:
+                instance_costs.append(0)
             else:
                 instance_costs.append(-1)
     return instance_costs
@@ -43,7 +50,7 @@ hmax_alg_dir = output_base_dir + '/hmax/'
 
 # Collect test instances
 test_instances = [
-    filename for filename in listdir('../DeletefreeSAS') # Match all .sas files, adjust if needed
+    filename for filename in listdir('../DeletefreeSAS')
 ]
 
 primal_gaps = [[] for _ in range(4)]  # [0]: random, [1]: greedy, [2]: hadd, [3]: hmax
@@ -52,10 +59,10 @@ for instance in test_instances:
     instance_base_name = instance.split('.')[0]  # Remove .sas extension
 
     # Get matching files for each algorithm
-    random_alg_files = [file for file in listdir(random_alg_dir) if re.match(instance_base_name, file)]
-    greedy_alg_files = [file for file in listdir(greedy_alg_dir) if re.match(instance_base_name, file)]
-    hadd_alg_files = [file for file in listdir(hadd_alg_dir) if re.match(instance_base_name, file)]
-    hmax_alg_files = [file for file in listdir(hmax_alg_dir) if re.match(instance_base_name, file)]
+    random_alg_files = [file for file in listdir(random_alg_dir) if re.search(instance_base_name, file)]
+    greedy_alg_files = [file for file in listdir(greedy_alg_dir) if re.search(instance_base_name, file)]
+    hadd_alg_files = [file for file in listdir(hadd_alg_dir) if re.search(instance_base_name, file)]
+    hmax_alg_files = [file for file in listdir(hmax_alg_dir) if re.search(instance_base_name, file)]
 
     # Extract costs
     instance_costs = [
@@ -81,6 +88,11 @@ random_points = get_alg_points(primal_gaps[0])
 greedy_points = get_alg_points(primal_gaps[1])
 hadd_points = get_alg_points(primal_gaps[2])
 hmax_points = get_alg_points(primal_gaps[3])
+
+print('random_points = ', random_points)
+print('greedy_points = ', greedy_points)
+print('hadd_points = ', hadd_points)
+print('hmax_points = ', hmax_points)
 
 # Define x-axis values (thresholds from 0.0 to 1.0)
 x_values = np.arange(0.0, 1.1, 0.1)
