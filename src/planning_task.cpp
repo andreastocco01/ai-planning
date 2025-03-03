@@ -13,6 +13,9 @@
 #include <vector>
 #include <unistd.h>
 #include <signal.h>
+#include "../include/pq.h"
+
+#define FIND_FACT_INDEX(f) (std::find(this->facts.begin(), this->facts.end(), (f)) - this->facts.begin())
 
 PlanningTask::PlanningTask(int metric,
     int n_vars,
@@ -39,6 +42,40 @@ PlanningTask::PlanningTask(int metric,
         this->axioms = axioms;
 
         this->solution_cost = 0;
+
+        for(int i = 0; i < this->n_actions; i++) {
+            Action action = this->actions[i];
+            std::vector<Fact> preconds = action.preconds;
+            std::vector<Effect> effects = action.effects;
+
+            for(int j = 0; j < preconds.size(); j++) {
+                if (this->map_fact_actions.find(preconds[j]) == this->map_fact_actions.end()) { // inserting new entry
+                    this->map_fact_actions[preconds[j]] = get_actions_idx_having_precond(preconds[j]);
+                    this->facts.push_back(preconds[j]);
+                }
+            }
+
+            for(int j = 0; j < effects.size(); j++) {
+                Fact f;
+                f.var_idx = effects[j].var_affected;
+                f.var_val = effects[j].to_value;
+
+                if (this->map_fact_actions.find(f) == this->map_fact_actions.end()) { // inserting new entry
+                    this->map_fact_actions[f] = get_actions_idx_having_precond(f);
+                    this->facts.push_back(f);
+                }
+            }
+        }
+        // add also facts that are in the initial state, but not in any action precond!
+        for(int i = 0; i < this->initial_state.size(); i++) {
+            Fact f;
+            f.var_idx = i;
+            f.var_val = this->initial_state[i];
+            if (this->map_fact_actions.find(f) == this->map_fact_actions.end()) {
+                this->map_fact_actions[f] = get_actions_idx_having_precond(f);
+                this->facts.push_back(f);
+            }
+        }
 }
 
 /*
@@ -216,6 +253,26 @@ std::vector<int> PlanningTask::get_actions_idx_having_outcome(Fact &fact) {
     return actions_idx;
 }
 
+// it returns also all the actions having no precondition at all
+// because these actions have "all possible facts as precondition"!
+std::vector<int> PlanningTask::get_actions_idx_having_precond(Fact &fact) {
+    std::vector<int> actions_idx;
+
+    for (int j = 0; j < this->n_actions; j++) {
+        Action action = this->actions[j];
+        for (int k = 0; k < action.n_preconds; k++) {
+            Fact precond = action.preconds[k];
+            if (precond.var_idx == fact.var_idx && precond.var_val == fact.var_val) {
+                actions_idx.push_back(j);
+            }
+        }
+        if (action.n_preconds == 0)
+            actions_idx.push_back(j); // add also the actions that doesn't have any precondition
+    }
+
+    return actions_idx;
+}
+
 int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact, std::set<int> &visited, std::unordered_map<int, int> &cache) {
     // **Check Cache**
     if (cache.find(fact.var_idx) != cache.end()) {
@@ -293,6 +350,63 @@ int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact, std::set<in
     return min_h_cost;
 }
 
+int PlanningTask::h_max_optimized(std::vector<int>& current_state) {
+    PriorityQueue<int> pq(this->map_fact_actions.size()); // the total number of facts is the size of the map
+    const int inf = 2147483647;
+    std::vector<int> fact_costs(this->map_fact_actions.size(), inf); // all fact costs initialized to +inf
+
+    // except the facts that are in the current_state
+    for(int i = 0; i < current_state.size(); i++) {
+        Fact f;
+        f.var_idx = i;
+        f.var_val = current_state[i];
+
+        fact_costs[FIND_FACT_INDEX(f)] = 0;
+        pq.push(FIND_FACT_INDEX(f), 0); // push also these facts in the queue
+    }
+
+    while (!pq.isEmpty()) {
+        Fact f = this->facts[pq.top()];
+        pq.pop();
+        std::vector<int> actions_idx = this->map_fact_actions[f];
+
+        for(int i = 0; i < actions_idx.size(); i++) {
+            int max_pre = 0;
+            Action action = this->actions[actions_idx[i]];
+            for(int j = 0; j < action.n_preconds; j++) {
+                Fact pre = action.preconds[j];
+                max_pre = std::max(max_pre, fact_costs[FIND_FACT_INDEX(pre)]);
+            }
+            // nothing to do if some preconditions are still unreachable
+            if (max_pre >= inf)
+                continue;
+            int new_cost = max_pre + action.cost;
+            this->actions[actions_idx[i]].h_cost = new_cost;
+            for(int j = 0; j < action.n_effects; j++) {
+                Fact eff;
+                eff.var_idx = action.effects[j].var_affected;
+                eff.var_val = action.effects[j].to_value;
+
+                int fact_idx = FIND_FACT_INDEX(eff);
+
+                if(new_cost < fact_costs[fact_idx]) {
+                    fact_costs[fact_idx] = new_cost;
+                    if (pq.has(fact_idx))
+                        pq.change(fact_idx, new_cost);
+                    else
+					    pq.push(fact_idx, new_cost);
+                }
+            }
+        }
+    }
+
+    int total = 0;
+    for (int i = 0; i < this->n_goals; i++) {
+        total = std::max(total, fact_costs[FIND_FACT_INDEX(goal_state[i])]);
+    }
+    return total;
+}
+
 int PlanningTask::compute_heuristic(std::vector<int> &current_state, int heuristic) {
     int total = 0;
     std::unordered_map<int, int> cache; // Cache to store heuristic values
@@ -364,6 +478,14 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
         // calculate heuristic costs
         if (heuristic == 2 || heuristic == 3) {
             int total = compute_heuristic(current_state, heuristic);
+            if (total < estimated_cost) {
+                estimated_cost = total;
+                std::cout << "New estimated cost to reach the goal state: " << estimated_cost << std::endl;
+            }
+        }
+
+        if (heuristic == 4) {
+            int total = h_max_optimized(current_state);
             if (total < estimated_cost) {
                 estimated_cost = total;
                 std::cout << "New estimated cost to reach the goal state: " << estimated_cost << std::endl;

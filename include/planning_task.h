@@ -20,6 +20,21 @@ class Fact {
 public:
     int var_idx;
     int var_val;
+    int hash() const {
+        return std::hash<int>{}(var_idx) ^ (std::hash<int>{}(var_val) << 1);
+    }
+
+    // Define equality operator
+    bool operator==(const Fact& other) const {
+        return var_idx == other.var_idx && var_val == other.var_val;
+    }
+};
+
+// Custom hash function
+struct FactHasher {
+    int operator()(const Fact& f) const {
+        return f.hash();
+    }
 };
 
 class MutexGroup {
@@ -80,6 +95,8 @@ public:
     std::vector<Action> actions;
     int n_axioms;
     std::vector<Axiom> axioms;
+    std::unordered_map<Fact, std::vector<int>, FactHasher> map_fact_actions;
+    std::vector<Fact> facts; // mapping index -> Fact
 
     std::vector<IndexAction> solution;
     int solution_cost;
@@ -110,8 +127,10 @@ private:
     void apply_action(int idx, std::vector<int> &current_state);
     std::vector<int> get_min_h_cost_actions_idx(std::vector<int> &actions_idx);
     std::vector<int> get_actions_idx_having_outcome(Fact &fact);
+    std::vector<int> get_actions_idx_having_precond(Fact &fact);
     int h_add(std::vector<int> &current_state, Fact &fact, std::set<int> &visited, std::unordered_map<int, int> &cache);
     int h_max(std::vector<int> &current_state, Fact &fact, std::set<int> &visited, std::unordered_map<int, int> &cache);
+    int h_max_optimized(std::vector<int> &current_state);
     int compute_heuristic(std::vector<int> &current_state, int heuristic);
     void remove_satisfied_actions(std::vector<int> &current_state, std::vector<int> &possible_actions_idx);
     void print_action_h_costs(std::vector<int> &actions_idx);
