@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <iostream>
+#include <cassert>
 
 template<typename ScoreType>
 class PriorityQueue
