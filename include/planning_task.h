@@ -135,6 +135,7 @@ private:
     void remove_satisfied_actions(std::vector<int> &current_state, std::vector<int> &possible_actions_idx);
     void print_action_h_costs(std::vector<int> &actions_idx);
     bool check_integrity();
+    void create_structs();
 };
 
 #endif

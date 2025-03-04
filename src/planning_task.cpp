@@ -42,40 +42,6 @@ PlanningTask::PlanningTask(int metric,
         this->axioms = axioms;
 
         this->solution_cost = 0;
-
-        for(int i = 0; i < this->n_actions; i++) {
-            Action action = this->actions[i];
-            std::vector<Fact> preconds = action.preconds;
-            std::vector<Effect> effects = action.effects;
-
-            for(int j = 0; j < preconds.size(); j++) {
-                if (this->map_fact_actions.find(preconds[j]) == this->map_fact_actions.end()) { // inserting new entry
-                    this->map_fact_actions[preconds[j]] = get_actions_idx_having_precond(preconds[j]);
-                    this->facts.push_back(preconds[j]);
-                }
-            }
-
-            for(int j = 0; j < effects.size(); j++) {
-                Fact f;
-                f.var_idx = effects[j].var_affected;
-                f.var_val = effects[j].to_value;
-
-                if (this->map_fact_actions.find(f) == this->map_fact_actions.end()) { // inserting new entry
-                    this->map_fact_actions[f] = get_actions_idx_having_precond(f);
-                    this->facts.push_back(f);
-                }
-            }
-        }
-        // add also facts that are in the initial state, but not in any action precond!
-        for(int i = 0; i < this->initial_state.size(); i++) {
-            Fact f;
-            f.var_idx = i;
-            f.var_val = this->initial_state[i];
-            if (this->map_fact_actions.find(f) == this->map_fact_actions.end()) {
-                this->map_fact_actions[f] = get_actions_idx_having_precond(f);
-                this->facts.push_back(f);
-            }
-        }
 }
 
 /*
@@ -407,6 +373,44 @@ int PlanningTask::h_max_optimized(std::vector<int>& current_state) {
     return total;
 }
 
+void PlanningTask::create_structs() {
+    for(int i = 0; i < this->n_actions; i++) {
+        Action action = this->actions[i];
+        std::vector<Fact> preconds = action.preconds;
+        std::vector<Effect> effects = action.effects;
+
+        // add precond facts
+        for(int j = 0; j < preconds.size(); j++) {
+            if (this->map_fact_actions.find(preconds[j]) == this->map_fact_actions.end()) { // inserting new entry
+                this->map_fact_actions[preconds[j]] = get_actions_idx_having_precond(preconds[j]);
+                this->facts.push_back(preconds[j]);
+            }
+        }
+
+        // add effect facts
+        for(int j = 0; j < effects.size(); j++) {
+            Fact f;
+            f.var_idx = effects[j].var_affected;
+            f.var_val = effects[j].to_value;
+
+            if (this->map_fact_actions.find(f) == this->map_fact_actions.end()) { // inserting new entry
+                this->map_fact_actions[f] = get_actions_idx_having_precond(f);
+                this->facts.push_back(f);
+            }
+        }
+    }
+    // add also facts that are in the initial state, but not in any action precond!
+    for(int i = 0; i < this->initial_state.size(); i++) {
+        Fact f;
+        f.var_idx = i;
+        f.var_val = this->initial_state[i];
+        if (this->map_fact_actions.find(f) == this->map_fact_actions.end()) {
+            this->map_fact_actions[f] = get_actions_idx_having_precond(f);
+            this->facts.push_back(f);
+        }
+    }
+}
+
 int PlanningTask::compute_heuristic(std::vector<int> &current_state, int heuristic) {
     int total = 0;
     std::unordered_map<int, int> cache; // Cache to store heuristic values
@@ -467,6 +471,12 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
             else
                 this->actions[i].h_cost = 1; // greedy becomes random
         }
+    }
+
+    if (heuristic == 4) {
+        std::cout << "Creating structs..." << std::endl;
+        create_structs();
+        std::cout << "Done" << std::endl;
     }
 
     bool no_solution = false;
