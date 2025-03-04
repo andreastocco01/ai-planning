@@ -228,7 +228,7 @@ std::vector<int> PlanningTask::get_actions_idx_having_precond(Fact &fact) {
         Action action = this->actions[j];
         for (int k = 0; k < action.n_preconds; k++) {
             Fact precond = action.preconds[k];
-            if (precond.var_idx == fact.var_idx && precond.var_val == fact.var_val) {
+            if (precond == fact) {
                 actions_idx.push_back(j);
             }
         }

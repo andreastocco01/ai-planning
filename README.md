@@ -34,4 +34,5 @@ Plot values:
 # Comparisons
 
 h_max_optimized DeletefreeSAS/freecell-probfreecell-13-4_deletefree.sas -> 1:36 minutes, 260 final cost
+
 h_max DeletefreeSAS/freecell-probfreecell-13-4_deletefree.sas -> 10:14 minutes, 260 final cost
