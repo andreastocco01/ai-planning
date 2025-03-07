@@ -1,21 +1,24 @@
 #include <iostream>
 #include <string>
+
 #include "include/planning_task.h"
 #include "include/planning_task_parser.h"
 #include "include/planning_task_utils.h"
 
 void print_usage(std::string executable) {
-    std::cerr << "Usage: " << executable << " --from-file <file_name> --alg <alg_code> --seed <int> [--time-limit <int>] --debug <bool>" << std::endl;
+    std::cerr << "Usage: " << executable
+              << " --from-file <file_name> --alg <alg_code> --seed <int> "
+                 "[--time-limit <int>] --debug <bool>"
+              << std::endl;
     std::cerr << "Supported alg_code are:" << std::endl
-            << "0: random" << std::endl
-            << "1: greedy" << std::endl
-            << "2: h_add" << std::endl
-            << "3: h_max" << std::endl
-            << "4: h_max_optimized" << std::endl;
+              << "0: random" << std::endl
+              << "1: greedy" << std::endl
+              << "2: h_add" << std::endl
+              << "3: h_max" << std::endl
+              << "4: h_max_optimized" << std::endl;
 }
 
 int main(int argc, char** argv) {
-
     if (argc < 9) {
         print_usage(argv[0]);
         return 1;
@@ -45,23 +48,23 @@ int main(int argc, char** argv) {
             seed_flag = true;
             seed = std::stoi(argv[++i]);
         }
-        if(arg == "--time-limit") {
+        if (arg == "--time-limit") {
             time_limit_flag = true;
             time_limit = std::stoi(argv[++i]);
         }
-        if(arg == "--debug") {
+        if (arg == "--debug") {
             debug_flag = true;
             debug = std::stoi(argv[++i]);
         }
     }
 
-    if (!(from_file_flag && alg_flag && seed_flag && debug_flag) || alg < 0 || alg > 4) {
+    if (!(from_file_flag && alg_flag && seed_flag && debug_flag) || alg < 0 ||
+        alg > 4) {
         print_usage(argv[0]);
         return 1;
     }
 
-    if (!time_limit_flag)
-        time_limit = -1;
+    if (!time_limit_flag) time_limit = -1;
 
     PlanningTaskParser parser;
     PlanningTask pt = parser.parse_from_file(file_name);
@@ -90,7 +93,8 @@ int main(int argc, char** argv) {
     }
 
     if (!pt.solve(seed, alg, debug, time_limit)) {
-        std::cout << std::endl << "############### Solution ###############" << std::endl;
+        std::cout << std::endl
+                  << "############### Solution ###############" << std::endl;
         pt.print_solution();
     }
 

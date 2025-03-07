@@ -1,4 +1,5 @@
 #include "../include/planning_task_parser.h"
+
 #include <cassert>
 #include <cstddef>
 #include <stdexcept>
@@ -64,7 +65,7 @@ std::vector<Variable> PlanningTaskParser::get_variables(std::ifstream &file) {
     return vars;
 }
 
-Fact PlanningTaskParser::parse_fact(std::string line){
+Fact PlanningTaskParser::parse_fact(std::string line) {
     Fact fact;
     std::istringstream iss(line);
     std::string tok;
@@ -108,7 +109,8 @@ std::vector<MutexGroup> PlanningTaskParser::get_facts(std::ifstream &file) {
     return mutexes;
 }
 
-std::vector<int> PlanningTaskParser::get_initial_state(std::ifstream &file, int n_vars) {
+std::vector<int> PlanningTaskParser::get_initial_state(std::ifstream &file,
+                                                       int n_vars) {
     std::vector<int> initial_state;
     std::string line;
     getline(file, line);
@@ -212,7 +214,7 @@ std::vector<Action> PlanningTaskParser::get_actions(std::ifstream &file) {
         action.cost = std::stoi(line);
         action.is_used = false;
         action.applied_effects = 0;
-        action.h_cost = -1; // not valid
+        action.h_cost = -1;  // not valid
         actions.push_back(action);
 
         getline(file, line);
@@ -267,7 +269,7 @@ std::vector<Axiom> PlanningTaskParser::get_axioms(std::ifstream &file) {
 }
 
 PlanningTask PlanningTaskParser::parse_from_file(std::string filename) {
-    std::ifstream file (filename);
+    std::ifstream file(filename);
 
     if (!file.is_open()) {
         throw std::runtime_error("Failed to open the file");
@@ -285,6 +287,6 @@ PlanningTask PlanningTaskParser::parse_from_file(std::string filename) {
     file.close();
 
     return PlanningTask(metric, vars.size(), vars, mutexes.size(), mutexes,
-        initial_state, goal_state.size(), goal_state, actions.size(),
-        actions, axioms.size(), axioms);
+                        initial_state, goal_state.size(), goal_state,
+                        actions.size(), actions, axioms.size(), axioms);
 }

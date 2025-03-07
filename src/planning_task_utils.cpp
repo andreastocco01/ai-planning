@@ -1,4 +1,5 @@
 #include "../include/planning_task_utils.h"
+
 #include <cstdlib>
 #include <iostream>
 #include <vector>
@@ -58,11 +59,10 @@ void PlanningTaskUtils::print_effect(Effect &effect) {
     std::cout << effect.n_effect_conds << " ";
     for (int i = 0; i < effect.n_effect_conds; i++) {
         std::cout << effect.effect_conds[i].var_idx << " "
-        << effect.effect_conds[i].var_val << " ";
+                  << effect.effect_conds[i].var_val << " ";
     }
-    std::cout << effect.var_affected << " "
-    << effect.from_value << " "
-    << effect.to_value << std::endl;
+    std::cout << effect.var_affected << " " << effect.from_value << " "
+              << effect.to_value << std::endl;
 }
 
 void PlanningTaskUtils::print_action(Action &action) {
@@ -94,9 +94,8 @@ void PlanningTaskUtils::print_axiom(Axiom &axiom) {
     for (int i = 0; i < axiom.n_conds; i++) {
         print_fact(axiom.conds[i]);
     }
-    std::cout << axiom.affected_var << " "
-    << axiom.from_value << " "
-    << axiom.to_value << std::endl;
+    std::cout << axiom.affected_var << " " << axiom.from_value << " "
+              << axiom.to_value << std::endl;
 }
 
 void PlanningTaskUtils::print_planning_task_axioms(PlanningTask &pt) {
@@ -105,7 +104,6 @@ void PlanningTaskUtils::print_planning_task_axioms(PlanningTask &pt) {
         print_axiom(pt.axioms[i]);
         std::cout << std::endl;
     }
-
 }
 
 void PlanningTaskUtils::print_planning_task(PlanningTask &pt) {
