@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 
@@ -214,7 +215,7 @@ std::vector<Action> PlanningTaskParser::get_actions(std::ifstream &file) {
         action.cost = std::stoi(line);
         action.is_used = false;
         action.applied_effects = 0;
-        action.h_cost = -1;  // not valid
+        action.h_cost = std::numeric_limits<int>::max();
         actions.push_back(action);
 
         getline(file, line);

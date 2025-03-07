@@ -341,6 +341,66 @@ int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact,
     return min_h_cost;
 }
 
+int PlanningTask::h_add_optimized(std::vector<int> &current_state) {
+    PriorityQueue<int> pq(
+        this->map_fact_actions
+            .size());  // the total number of facts is the size of the map
+    int inf = std::numeric_limits<int>::max();
+    std::vector<int> fact_costs(this->map_fact_actions.size(),
+                                inf);  // all fact costs initialized to +inf
+
+    // except the facts that are in the current_state
+    for (int i = 0; i < current_state.size(); i++) {
+        Fact f;
+        f.var_idx = i;
+        f.var_val = current_state[i];
+
+        fact_costs[FIND_FACT_INDEX(f)] = 0;
+        pq.push(FIND_FACT_INDEX(f), 0);  // push also these facts in the queue
+    }
+
+    while (!pq.isEmpty()) {
+        Fact f = this->facts[pq.top()];
+        pq.pop();
+        std::vector<int> actions_idx = this->map_fact_actions[f];
+
+        for (int i = 0; i < actions_idx.size(); i++) {
+            int pre_cost = 0;
+            Action action = this->actions[actions_idx[i]];
+            for (int j = 0; j < action.n_preconds; j++) {
+                Fact pre = action.preconds[j];
+                pre_cost += fact_costs[FIND_FACT_INDEX(pre)];
+            }
+            // nothing to do if some preconditions are still unreachable
+            // i have to handle also the overflow case
+            if (pre_cost < 0 || pre_cost >= inf) continue;
+            int new_cost = pre_cost + action.cost;
+            this->actions[actions_idx[i]].h_cost = new_cost;
+            for (int j = 0; j < action.n_effects; j++) {
+                Fact eff;
+                eff.var_idx = action.effects[j].var_affected;
+                eff.var_val = action.effects[j].to_value;
+
+                int fact_idx = FIND_FACT_INDEX(eff);
+
+                if (new_cost < fact_costs[fact_idx]) {
+                    fact_costs[fact_idx] = new_cost;
+                    if (pq.has(fact_idx))
+                        pq.change(fact_idx, new_cost);
+                    else
+                        pq.push(fact_idx, new_cost);
+                }
+            }
+        }
+    }
+
+    int total = 0;
+    for (int i = 0; i < this->n_goals; i++) {
+        total += fact_costs[FIND_FACT_INDEX(goal_state[i])];
+    }
+    return total;
+}
+
 int PlanningTask::h_max_optimized(std::vector<int> &current_state) {
     PriorityQueue<int> pq(
         this->map_fact_actions
@@ -509,7 +569,7 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
         }
     }
 
-    if (heuristic == 4) {
+    if (heuristic == 4 || heuristic == 5) {
         std::cout << "Creating structs..." << std::endl;
         create_structs();
         std::cout << "Done" << std::endl;
@@ -530,8 +590,12 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
             }
         }
 
-        if (heuristic == 4) {
-            int total = h_max_optimized(current_state);
+        if (heuristic == 4 || heuristic == 5) {
+            int total;
+            if (heuristic == 4)
+                total = h_max_optimized(current_state);
+            else
+                total = h_add_optimized(current_state);
             if (total < estimated_cost) {
                 estimated_cost = total;
                 std::cout << "New estimated cost to reach the goal state: "
