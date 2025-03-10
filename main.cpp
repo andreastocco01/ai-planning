@@ -14,9 +14,7 @@ void print_usage(std::string executable) {
               << "0: random" << std::endl
               << "1: greedy" << std::endl
               << "2: h_add" << std::endl
-              << "3: h_max" << std::endl
-              << "4: h_max_optimized" << std::endl
-              << "5: h_add_optimized" << std::endl;
+              << "3: h_max" << std::endl;
 }
 
 int main(int argc, char** argv) {
@@ -60,7 +58,7 @@ int main(int argc, char** argv) {
     }
 
     if (!(from_file_flag && alg_flag && seed_flag && debug_flag) || alg < 0 ||
-        alg > 5) {
+        alg > 3) {
         print_usage(argv[0]);
         return 1;
     }
@@ -87,12 +85,6 @@ int main(int argc, char** argv) {
             break;
         case 3:
             std::cout << "h_max" << std::endl;
-            break;
-        case 4:
-            std::cout << "h_max_optimized" << std::endl;
-            break;
-        case 5:
-            std::cout << "h_add_optimized" << std::endl;
             break;
     }
 

@@ -128,7 +128,6 @@ class PlanningTask {
               std::set<int> &visited, std::unordered_map<int, int> &cache);
     int h_add_optimized(std::vector<int> &current_state);
     int h_max_optimized(std::vector<int> &current_state);
-    int compute_heuristic(std::vector<int> &current_state, int heuristic);
     void remove_satisfied_actions(std::vector<int> &current_state,
                                   std::vector<int> &possible_actions_idx);
     void print_action_h_costs(std::vector<int> &actions_idx);
