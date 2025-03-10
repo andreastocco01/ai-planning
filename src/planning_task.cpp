@@ -367,6 +367,7 @@ int PlanningTask::h_add_optimized(std::vector<int> &current_state) {
         for (int i = 0; i < actions_idx.size(); i++) {
             int pre_cost = 0;
             Action action = this->actions[actions_idx[i]];
+            if (action.is_used) continue;  // skip actions already used
             for (int j = 0; j < action.n_preconds; j++) {
                 Fact pre = action.preconds[j];
                 pre_cost += fact_costs[FIND_FACT_INDEX(pre)];
@@ -427,6 +428,7 @@ int PlanningTask::h_max_optimized(std::vector<int> &current_state) {
         for (int i = 0; i < actions_idx.size(); i++) {
             int max_pre = 0;
             Action action = this->actions[actions_idx[i]];
+            if (action.is_used) continue;  // skip actions already used
             for (int j = 0; j < action.n_preconds; j++) {
                 Fact pre = action.preconds[j];
                 max_pre = std::max(max_pre, fact_costs[FIND_FACT_INDEX(pre)]);
