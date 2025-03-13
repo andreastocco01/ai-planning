@@ -121,7 +121,6 @@ class PlanningTask {
     void apply_action(int idx, std::vector<int> &current_state);
     std::vector<int> get_min_h_cost_actions_idx(std::vector<int> &actions_idx);
     std::vector<int> get_actions_idx_having_outcome(Fact &fact);
-    std::vector<int> get_actions_idx_having_precond(Fact &fact);
     int h_add(std::vector<int> &current_state, Fact &fact,
               std::set<int> &visited, std::unordered_map<int, int> &cache);
     int h_max(std::vector<int> &current_state, Fact &fact,

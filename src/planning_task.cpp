@@ -13,6 +13,7 @@
 #include <ostream>
 #include <sstream>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "../include/planning_task_utils.h"
@@ -234,27 +235,6 @@ std::vector<int> PlanningTask::get_actions_idx_having_outcome(Fact &fact) {
     return actions_idx;
 }
 
-// it returns also all the actions having no precondition at all
-// because these actions have "all possible facts as precondition"!
-std::vector<int> PlanningTask::get_actions_idx_having_precond(Fact &fact) {
-    std::vector<int> actions_idx;
-
-    for (int j = 0; j < this->n_actions; j++) {
-        Action action = this->actions[j];
-        for (int k = 0; k < action.n_preconds; k++) {
-            Fact precond = action.preconds[k];
-            if (precond == fact) {
-                actions_idx.push_back(j);
-            }
-        }
-        if (action.n_preconds == 0)
-            actions_idx.push_back(
-                j);  // add also the actions that doesn't have any precondition
-    }
-
-    return actions_idx;
-}
-
 int PlanningTask::h_add_optimized(std::vector<int> &current_state) {
     PriorityQueue<int> pq(
         this->map_fact_actions
@@ -377,45 +357,68 @@ int PlanningTask::h_max_optimized(std::vector<int> &current_state) {
 }
 
 void PlanningTask::create_structs() {
+    // Map from Fact to list of actions that have this fact as a precondition
+    std::unordered_map<Fact, std::vector<int>, FactHasher>
+        fact_to_actions_precond;
+
+    // List of actions that have no preconditions
+    std::vector<int> actions_with_no_preconds;
+
+    // Set to collect all unique facts
+    std::unordered_set<Fact, FactHasher> unique_facts;
+
+    // === First pass: Build fact -> actions mapping based on preconditions ===
     for (int i = 0; i < this->n_actions; i++) {
-        Action action = this->actions[i];
-        std::vector<Fact> preconds = action.preconds;
-        std::vector<Effect> effects = action.effects;
+        Action &action = this->actions[i];  // Avoid copy, use reference
 
-        // add precond facts
-        for (int j = 0; j < preconds.size(); j++) {
-            if (this->map_fact_actions.find(preconds[j]) ==
-                this->map_fact_actions.end()) {  // inserting new entry
-                this->map_fact_actions[preconds[j]] =
-                    get_actions_idx_having_precond(preconds[j]);
-                this->facts.push_back(preconds[j]);
-            }
-        }
-
-        // add effect facts
-        for (int j = 0; j < effects.size(); j++) {
-            Fact f;
-            f.var_idx = effects[j].var_affected;
-            f.var_val = effects[j].to_value;
-
-            if (this->map_fact_actions.find(f) ==
-                this->map_fact_actions.end()) {  // inserting new entry
-                this->map_fact_actions[f] = get_actions_idx_having_precond(f);
-                this->facts.push_back(f);
+        if (action.preconds.empty()) {
+            actions_with_no_preconds.push_back(
+                i);  // Collect actions with no preconditions
+        } else {
+            for (auto &precond : action.preconds) {
+                fact_to_actions_precond[precond].push_back(i);
+                unique_facts.insert(
+                    precond);  // Collect unique facts from preconditions
             }
         }
     }
-    // add also facts that are in the initial state, but not in any action
-    // precond!
+
+    // === Second pass: Handle effects and collect facts ===
+    for (int i = 0; i < this->n_actions; i++) {
+        Action &action = this->actions[i];
+        for (auto &effect : action.effects) {
+            Fact f{effect.var_affected, effect.to_value};
+            if (fact_to_actions_precond.find(f) ==
+                fact_to_actions_precond.end()) {
+                // If this fact hasn't been seen as a precondition, create empty
+                // entry
+                fact_to_actions_precond[f] = {};
+            }
+            unique_facts.insert(f);  // Collect unique facts from effects
+        }
+    }
+
+    // === Third pass: Handle facts from initial state ===
     for (int i = 0; i < this->initial_state.size(); i++) {
-        Fact f;
-        f.var_idx = i;
-        f.var_val = this->initial_state[i];
-        if (this->map_fact_actions.find(f) == this->map_fact_actions.end()) {
-            this->map_fact_actions[f] = get_actions_idx_having_precond(f);
-            this->facts.push_back(f);
+        Fact f{i, this->initial_state[i]};
+        if (fact_to_actions_precond.find(f) == fact_to_actions_precond.end()) {
+            fact_to_actions_precond[f] = {};  // Ensure presence in map
         }
+        unique_facts.insert(f);  // Collect unique facts from initial state
     }
+
+    // === Now build map_fact_actions by adding also actions without
+    // preconditions ===
+    for (auto &[fact, actions_list] : fact_to_actions_precond) {
+        // Add actions without preconditions to each fact's action list
+        actions_list.insert(actions_list.end(),
+                            actions_with_no_preconds.begin(),
+                            actions_with_no_preconds.end());
+        this->map_fact_actions[fact] = actions_list;  // Final mapping
+    }
+
+    // === Finally, set unique facts list ===
+    this->facts.assign(unique_facts.begin(), unique_facts.end());
 }
 
 void PlanningTask::remove_satisfied_actions(
