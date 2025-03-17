@@ -35,8 +35,8 @@
 parsing_test.sas
 axiom_mutex_test.sas
 /DeletefreeSAS
-/out
+/out*
 /.ropeproject
-/script/logs
+/script/logs*
 /script/tasks.txt
-/script/timeout_log.txt
+/script/timeout*
