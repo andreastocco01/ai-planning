@@ -95,6 +95,8 @@ class PlanningTask {
     std::vector<Axiom> axioms;
     std::unordered_map<Fact, std::vector<int>, FactHasher> map_fact_actions;
     std::vector<Fact> facts;  // mapping index -> Fact
+    std::unordered_map<Fact, int, FactHasher> fact_to_index;
+    std::vector<int> actions_no_preconds;
 
     std::vector<IndexAction> solution;
     int solution_cost;
@@ -125,6 +127,7 @@ class PlanningTask {
               std::set<int> &visited, std::unordered_map<int, int> &cache);
     int h_max(std::vector<int> &current_state, Fact &fact,
               std::set<int> &visited, std::unordered_map<int, int> &cache);
+    int compute_heuristic(std::vector<int> &current_state, int heuristic);
     int h_add_optimized(std::vector<int> &current_state);
     int h_max_optimized(std::vector<int> &current_state);
     void remove_satisfied_actions(std::vector<int> &current_state,

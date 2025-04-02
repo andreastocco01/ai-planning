@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
     }
 
     if (!(from_file_flag && alg_flag && seed_flag && debug_flag) || alg < 0 ||
-        alg > 3) {
+        alg > 5) {
         print_usage(argv[0]);
         return 1;
     }
@@ -85,6 +85,9 @@ int main(int argc, char** argv) {
             break;
         case 3:
             std::cout << "h_max" << std::endl;
+            break;
+        case 5:
+            std::cout << "h_max non optimized" << std::endl;
             break;
     }
 
