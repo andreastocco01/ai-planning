@@ -61,7 +61,8 @@ class Action {
 
     bool is_used;  // this flag is 1 if the action is used in the plan
     int applied_effects;
-    int h_cost;  // the heuristic cost of the action
+    int h_cost;    // the heuristic cost of the action
+    bool utility;  // whether an action is useful
 };
 
 class Axiom {
@@ -135,6 +136,9 @@ class PlanningTask {
     void print_action_h_costs(std::vector<int> &actions_idx);
     bool check_integrity();
     void create_structs();
+    void set_action_utility(Fact fact, std::set<int> &visited_actions,
+                            std::vector<int> &current_state);
+    void reset_actions_metadata();
 };
 
 #endif

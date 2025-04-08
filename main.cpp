@@ -96,6 +96,28 @@ int main(int argc, char** argv) {
                   << "############### Solution ###############" << std::endl;
         pt.print_solution();
     }
+    std::cout << std::endl;
+
+    PlanningTask pt2 = parser.parse_from_file(file_name);
+    std::cout << "Running algorithm: h_max optimized" << std::endl;
+    if (!pt2.solve(seed, 3, debug, time_limit)) {
+        std::cout << std::endl
+                  << "############### Solution ###############" << std::endl;
+        pt2.print_solution();
+    }
+    std::cout << std::endl;
+
+    if (pt2.solution_cost == pt.solution_cost &&
+        pt2.solution.size() == pt.solution.size()) {
+        for (int i = 0; i < pt.solution.size(); i++) {
+            if (pt2.solution[i].idx != pt.solution[i].idx) {
+                std::cout << "The two solutions are different" << std::endl;
+                return 1;
+            }
+        }
+        std::cout << "The algorithms found the same solution" << std::endl;
+    } else
+        std::cout << "The costs or the sizes are different" << std::endl;
 
     return 0;
 }
