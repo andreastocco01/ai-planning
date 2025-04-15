@@ -94,7 +94,8 @@ class PlanningTask {
     std::vector<Action> actions;
     int n_axioms;
     std::vector<Axiom> axioms;
-    std::unordered_map<Fact, std::vector<int>, FactHasher> map_fact_actions;
+    std::unordered_map<Fact, std::vector<int>, FactHasher> map_precond_actions;
+    std::unordered_map<Fact, std::vector<int>, FactHasher> map_effect_actions;
     std::vector<Fact> facts;  // mapping index -> Fact
     std::unordered_map<Fact, int, FactHasher> fact_to_index;
     std::vector<int> actions_no_preconds;
@@ -123,7 +124,6 @@ class PlanningTask {
                                               bool check_usage);
     void apply_action(int idx, std::vector<int> &current_state);
     std::vector<int> get_min_h_cost_actions_idx(std::vector<int> &actions_idx);
-    std::vector<int> get_actions_idx_having_outcome(Fact &fact);
     int h_add(std::vector<int> &current_state, Fact &fact,
               std::set<int> &visited, std::unordered_map<int, int> &cache);
     int h_max(std::vector<int> &current_state, Fact &fact,
