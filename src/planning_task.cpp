@@ -518,19 +518,20 @@ int PlanningTask::iterative_h_max(std::vector<int> &current_state, Fact fact) {
 }
 
 int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact,
-                        std::set<int> &visited,
+                        std::unordered_set<int> &visited,
                         std::unordered_map<int, int> &cache) {
     // **Check Cache**
-    if (cache.find(fact.var_idx) != cache.end()) {
+    /*if (cache.find(FIND_FACT_INDEX(fact)) != cache.end()) {
         return cache[fact.var_idx];  // Return stored result
-    }
+    }*/
 
+    int fact_idx = FIND_FACT_INDEX(fact);
     if (current_state[fact.var_idx] == fact.var_val ||
-        visited.find(fact.var_idx) != visited.end()) {
+        visited.find(fact_idx) != visited.end()) {
         return 0;  // Base case
     }
 
-    visited.insert(fact.var_idx);
+    visited.insert(fact_idx);
 
     // Get all the actions having "fact" as outcome
     std::vector<int> actions_idx = this->map_effect_actions[fact];
@@ -541,7 +542,7 @@ int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact,
     int min_h_cost = std::numeric_limits<int>::max();
 
     for (int idx : actions_idx) {
-        this->actions[idx].utility = true;
+        if (this->actions[idx].is_used) continue;
         if (this->metric == 1)
             this->actions[idx].h_cost = this->actions[idx].cost;
         else
@@ -559,7 +560,7 @@ int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact,
     }
 
     // **Store Computed Result in Cache**
-    cache[fact.var_idx] = min_h_cost;
+    // cache[FIND_FACT_INDEX(fact)] = min_h_cost;
     return min_h_cost;
 }
 
@@ -582,7 +583,7 @@ int PlanningTask::compute_heuristic(std::vector<int> &current_state,
         }
     } else if (heuristic == 5) {
         for (int i = 0; i < this->n_goals; i++) {
-            std::set<int> visited;
+            std::unordered_set<int> visited;
             total = std::max(total, h_max(current_state, this->goal_state[i],
                                           visited, cache));
         }

@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 class Variable {
@@ -127,7 +128,8 @@ class PlanningTask {
     int h_add(std::vector<int> &current_state, Fact &fact,
               std::set<int> &visited, std::unordered_map<int, int> &cache);
     int h_max(std::vector<int> &current_state, Fact &fact,
-              std::set<int> &visited, std::unordered_map<int, int> &cache);
+              std::unordered_set<int> &visited,
+              std::unordered_map<int, int> &cache);
     int compute_heuristic(std::vector<int> &current_state, int heuristic);
     int h_add_optimized(std::vector<int> &current_state);
     int h_max_optimized(std::vector<int> &current_state);
