@@ -139,6 +139,7 @@ class PlanningTask {
     void set_action_utility(Fact fact, std::set<int> &visited_actions,
                             std::vector<int> &current_state);
     void reset_actions_metadata();
+    void iterative_h_max(std::vector<int> &current_state, Fact fact);
 };
 
 #endif

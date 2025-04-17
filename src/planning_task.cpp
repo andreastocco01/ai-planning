@@ -11,6 +11,7 @@
 #include <iterator>
 #include <limits>
 #include <ostream>
+#include <queue>
 #include <sstream>
 #include <stack>
 #include <string>
@@ -20,7 +21,7 @@
 #include "../include/planning_task_utils.h"
 #include "../include/pq.h"
 
-#define FIND_FACT_INDEX(f) (this->fact_to_index.at(f))
+#define FIND_FACT_INDEX(f) (this->fact_to_index[f])
 
 PlanningTask::PlanningTask(int metric, int n_vars, std::vector<Variable> &vars,
                            int n_mutex, std::vector<MutexGroup> &mutexes,
@@ -442,13 +443,81 @@ int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact,
     return min_h_cost;
 }
 
+class StackFrame {
+   public:
+    int action_idx;
+    Fact from;
+};
+
+void PlanningTask::iterative_h_max(std::vector<int> &current_state, Fact fact) {
+    int inf = std::numeric_limits<int>::max();
+    std::vector<int> fact_costs(this->facts.size(), inf);
+
+    // Initialize current state facts
+    for (int i = 0; i < current_state.size(); i++) {
+        Fact f{i, current_state[i]};
+        int idx = FIND_FACT_INDEX(f);
+        fact_costs[idx] = 0;
+    }
+
+    std::queue<Fact> fqueue;
+    fqueue.push(fact);
+    std::stack<StackFrame> astack;
+    std::vector<bool> visited_actions(this->n_actions, false);
+    std::vector<bool> visited_facts(this->facts.size(), false);
+
+    do {
+        Fact current = fqueue.front();
+        fqueue.pop();
+
+        if (fact_costs[FIND_FACT_INDEX(current)] == 0) continue;
+
+        std::vector<int> actions = this->map_effect_actions[current];
+        for (int i = 0; i < actions.size(); i++) {
+            if (this->actions[actions[i]].is_used ||
+                visited_actions[actions[i]])
+                continue;
+
+            visited_actions[actions[i]] = true;
+            astack.push({actions[i], current});
+            Action action = this->actions[actions[i]];
+            for (int j = 0; j < action.n_preconds; j++) {
+                int fact_idx = FIND_FACT_INDEX(action.preconds[j]);
+                if (visited_facts[fact_idx]) continue;
+
+                visited_facts[fact_idx] = true;
+                fqueue.push(action.preconds[j]);
+            }
+        }
+    } while (!fqueue.empty());
+
+    // actually compute the costs
+    while (!astack.empty()) {
+        StackFrame entry = astack.top();
+        astack.pop();
+
+        Action &action = this->actions[entry.action_idx];
+
+        int max_pre = 0;
+        for (int j = 0; j < action.n_preconds; j++) {
+            max_pre = std::max(max_pre,
+                               fact_costs[FIND_FACT_INDEX(action.preconds[j])]);
+        }
+        action.h_cost =
+            this->metric == 1 ? (action.cost + max_pre) : (1 + max_pre);
+
+        int fact_idx = FIND_FACT_INDEX(entry.from);
+        fact_costs[fact_idx] = std::min(fact_costs[fact_idx], action.h_cost);
+    }
+}
+
 int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact,
                         std::set<int> &visited,
                         std::unordered_map<int, int> &cache) {
     // **Check Cache**
-    /*if (cache.find(fact.var_idx) != cache.end()) {
+    if (cache.find(fact.var_idx) != cache.end()) {
         return cache[fact.var_idx];  // Return stored result
-        }*/
+    }
 
     if (current_state[fact.var_idx] == fact.var_val ||
         visited.find(fact.var_idx) != visited.end()) {
@@ -484,7 +553,7 @@ int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact,
     }
 
     // **Store Computed Result in Cache**
-    // cache[fact.var_idx] = min_h_cost;
+    cache[fact.var_idx] = min_h_cost;
     return min_h_cost;
 }
 
@@ -624,6 +693,12 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
                 estimated_cost = total;
                 std::cout << "New estimated cost to reach the goal state: "
                           << estimated_cost << std::endl;
+            }
+        }
+
+        if (heuristic == 6) {
+            for (int i = 0; i < this->n_goals; i++) {
+                iterative_h_max(current_state, this->goal_state[i]);
             }
         }
 

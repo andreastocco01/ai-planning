@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
     }
 
     if (!(from_file_flag && alg_flag && seed_flag && debug_flag) || alg < 0 ||
-        alg > 5) {
+        alg > 6) {
         print_usage(argv[0]);
         return 1;
     }
