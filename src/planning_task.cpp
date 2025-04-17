@@ -449,7 +449,7 @@ class StackFrame {
     Fact from;
 };
 
-void PlanningTask::iterative_h_max(std::vector<int> &current_state, Fact fact) {
+int PlanningTask::iterative_h_max(std::vector<int> &current_state, Fact fact) {
     int inf = std::numeric_limits<int>::max();
     std::vector<int> fact_costs(this->facts.size(), inf);
 
@@ -460,18 +460,20 @@ void PlanningTask::iterative_h_max(std::vector<int> &current_state, Fact fact) {
         fact_costs[idx] = 0;
     }
 
-    std::queue<Fact> fqueue;
+    std::queue<Fact> fqueue;  // FIFO
     fqueue.push(fact);
-    std::stack<StackFrame> astack;
+    std::stack<StackFrame> astack;  // LIFO
     std::vector<bool> visited_actions(this->n_actions, false);
     std::vector<bool> visited_facts(this->facts.size(), false);
 
+    // create the sequence of actions to compute costs
     do {
-        Fact current = fqueue.front();
+        Fact current = fqueue.front();  // get the oldest fact in the queue
         fqueue.pop();
 
         if (fact_costs[FIND_FACT_INDEX(current)] == 0) continue;
 
+        // get the actions having the popped fact as effect
         std::vector<int> actions = this->map_effect_actions[current];
         for (int i = 0; i < actions.size(); i++) {
             if (this->actions[actions[i]].is_used ||
@@ -479,6 +481,7 @@ void PlanningTask::iterative_h_max(std::vector<int> &current_state, Fact fact) {
                 continue;
 
             visited_actions[actions[i]] = true;
+            // push the pair (action, fact) onto the stack
             astack.push({actions[i], current});
             Action action = this->actions[actions[i]];
             for (int j = 0; j < action.n_preconds; j++) {
@@ -486,6 +489,7 @@ void PlanningTask::iterative_h_max(std::vector<int> &current_state, Fact fact) {
                 if (visited_facts[fact_idx]) continue;
 
                 visited_facts[fact_idx] = true;
+                // push the precondition to the end of the fact queue
                 fqueue.push(action.preconds[j]);
             }
         }
@@ -493,7 +497,7 @@ void PlanningTask::iterative_h_max(std::vector<int> &current_state, Fact fact) {
 
     // actually compute the costs
     while (!astack.empty()) {
-        StackFrame entry = astack.top();
+        StackFrame entry = astack.top();  // get the last inserted action
         astack.pop();
 
         Action &action = this->actions[entry.action_idx];
@@ -509,6 +513,8 @@ void PlanningTask::iterative_h_max(std::vector<int> &current_state, Fact fact) {
         int fact_idx = FIND_FACT_INDEX(entry.from);
         fact_costs[fact_idx] = std::min(fact_costs[fact_idx], action.h_cost);
     }
+
+    return fact_costs[FIND_FACT_INDEX(fact)];
 }
 
 int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact,
@@ -579,6 +585,11 @@ int PlanningTask::compute_heuristic(std::vector<int> &current_state,
             std::set<int> visited;
             total = std::max(total, h_max(current_state, this->goal_state[i],
                                           visited, cache));
+        }
+    } else if (heuristic == 6) {
+        for (int i = 0; i < this->n_goals; i++) {
+            total = std::max(
+                total, iterative_h_max(current_state, this->goal_state[i]));
         }
     }
 
@@ -696,14 +707,8 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
             }
         }
 
-        if (heuristic == 6) {
-            for (int i = 0; i < this->n_goals; i++) {
-                iterative_h_max(current_state, this->goal_state[i]);
-            }
-        }
-
         // calculate heuristic costs
-        if (heuristic == 4 || heuristic == 5) {
+        if (heuristic == 4 || heuristic == 5 || heuristic == 6) {
             int total = compute_heuristic(current_state, heuristic);
             if (total < estimated_cost) {
                 estimated_cost = total;
