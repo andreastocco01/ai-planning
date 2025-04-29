@@ -443,11 +443,50 @@ int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact,
     return min_h_cost;
 }
 
+class QueueFrame {
+   public:
+    Fact fact;
+    int level;
+};
+
 class StackFrame {
    public:
     int action_idx;
     Fact from;
+    int level;
 };
+
+void print_queue(std::queue<QueueFrame> q) {
+    while (!q.empty()) {
+        QueueFrame frame = q.front();
+        std::cout << "([" << frame.fact.var_idx << ", " << frame.fact.var_val
+                  << "], " << frame.level << ")"
+                  << " ";
+        q.pop();
+    }
+    std::cout << std::endl;
+}
+
+void print_stack(std::stack<StackFrame> s) {
+    int level = s.size() - 1;
+    while (!s.empty()) {
+        StackFrame frame = s.top();
+        std::cout << level-- << ": "
+                  << "(" << frame.action_idx << ", [" << frame.from.var_idx
+                  << ", " << frame.from.var_val << "], " << frame.level << ")"
+                  << std::endl;
+        s.pop();
+    }
+    std::cout << std::endl;
+}
+
+void print_array_queue(std::vector<QueueFrame> arr) {
+    for (int i = 0; i < arr.size(); i++) {
+        std::cout << "([" << arr[i].fact.var_idx << ", " << arr[i].fact.var_val
+                  << "], " << arr[i].level << ") ";
+    }
+    std::cout << std::endl;
+}
 
 int PlanningTask::iterative_h_max(std::vector<int> &current_state, Fact fact) {
     int inf = std::numeric_limits<int>::max();
@@ -460,15 +499,18 @@ int PlanningTask::iterative_h_max(std::vector<int> &current_state, Fact fact) {
         fact_costs[idx] = 0;
     }
 
-    std::queue<Fact> fqueue;  // FIFO
-    fqueue.push(fact);
+    std::queue<QueueFrame> fqueue;  // FIFO
+    fqueue.push({fact, -1});
     std::stack<StackFrame> astack;  // LIFO
     std::vector<bool> visited_actions(this->n_actions, false);
     std::vector<bool> visited_facts(this->facts.size(), false);
+    std::vector<QueueFrame> queue;
 
     // create the sequence of actions to compute costs
     do {
-        Fact current = fqueue.front();  // get the oldest fact in the queue
+        Fact current = fqueue.front().fact;  // get the oldest fact in the queue
+        int level = fqueue.front().level;
+        queue.push_back({current, level});
         fqueue.pop();
 
         if (fact_costs[FIND_FACT_INDEX(current)] == 0) continue;
@@ -482,7 +524,7 @@ int PlanningTask::iterative_h_max(std::vector<int> &current_state, Fact fact) {
 
             visited_actions[actions[i]] = true;
             // push the pair (action, fact) onto the stack
-            astack.push({actions[i], current});
+            astack.push({actions[i], current, level});
             Action action = this->actions[actions[i]];
             for (int j = 0; j < action.n_preconds; j++) {
                 int fact_idx = FIND_FACT_INDEX(action.preconds[j]);
@@ -490,11 +532,13 @@ int PlanningTask::iterative_h_max(std::vector<int> &current_state, Fact fact) {
 
                 visited_facts[fact_idx] = true;
                 // push the precondition to the end of the fact queue
-                fqueue.push(action.preconds[j]);
+                fqueue.push({action.preconds[j], (int)astack.size() - 1});
             }
         }
     } while (!fqueue.empty());
 
+    print_array_queue(queue);
+    print_stack(astack);
     // actually compute the costs
     while (!astack.empty()) {
         StackFrame entry = astack.top();  // get the last inserted action
