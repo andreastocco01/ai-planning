@@ -763,6 +763,11 @@ int PlanningTask::compute_heuristic(std::vector<int> &current_state,
 
 void PlanningTask::set_action_utility(Fact fact, std::set<int> &visited,
                                       std::vector<int> &current_state) {
+    if (current_state[fact.var_idx] == fact.var_val ||
+        visited.find(fact.var_idx) != visited.end()) {
+        return;  // Base case
+    }
+
     visited.insert(fact.var_idx);
 
     // Get all the actions having "fact" as outcome
@@ -854,9 +859,9 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
         std::vector<int> possible_actions_idx =
             get_possible_actions_idx(current_state, true);
 
-        std::cout << "POSSIBLE ACTIONS: ";
+        /*std::cout << "POSSIBLE ACTIONS: ";
         PlanningTaskUtils::print_planning_task_state(possible_actions_idx);
-        print_action_h_costs(possible_actions_idx);
+        print_action_h_costs(possible_actions_idx);*/
 
         // remove actions having outcome already satisfied
         remove_satisfied_actions(current_state, possible_actions_idx);
@@ -885,7 +890,7 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
                     0, min_h_cost_actions_idx.size())];
         }
 
-        std::cout << "APPLIED ACTION: " << action_to_apply_idx << std::endl;
+        // std::cout << "APPLIED ACTION: " << action_to_apply_idx << std::endl;
         // apply action
         apply_action(action_to_apply_idx, current_state);
 
