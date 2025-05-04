@@ -29,6 +29,11 @@ class Fact {
     bool operator==(const Fact &other) const {
         return var_idx == other.var_idx && var_val == other.var_val;
     }
+
+    bool operator!=(const Fact &other) const {
+        return !(this->var_idx == other.var_idx &&
+                 this->var_val == other.var_val);
+    }
 };
 
 // Custom hash function
@@ -81,6 +86,19 @@ class IndexAction {
     Action action;
 };
 
+class QueueFrame {
+   public:
+    Fact fact;
+    int level;
+};
+
+class StackFrame {
+   public:
+    int action_idx;
+    Fact from;
+    int level;
+};
+
 class PlanningTask {
    public:
     int metric;  // 0 no action costs, 1 action costs
@@ -100,6 +118,11 @@ class PlanningTask {
     std::vector<Fact> facts;  // mapping index -> Fact
     std::unordered_map<Fact, int, FactHasher> fact_to_index;
     std::vector<int> actions_no_preconds;
+
+    std::unordered_map<Fact, std::vector<QueueFrame>, FactHasher> map_fqueue;
+    std::unordered_map<Fact, std::vector<StackFrame>, FactHasher> map_astack;
+    std::unordered_map<Fact, std::vector<bool>, FactHasher> visited_actions;
+    std::unordered_map<Fact, std::vector<bool>, FactHasher> visited_facts;
 
     std::vector<IndexAction> solution;
     int solution_cost;
@@ -142,6 +165,9 @@ class PlanningTask {
                             std::vector<int> &current_state);
     void reset_actions_metadata();
     int iterative_h_max(std::vector<int> &current_state, Fact fact);
+    void create_callstack();
+    void update_goal_callstack(int applied_action_idx,
+                               std::vector<int> &current_state, Fact f);
 };
 
 #endif
