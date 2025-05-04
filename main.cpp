@@ -81,13 +81,16 @@ int main(int argc, char** argv) {
             std::cout << "greedy" << std::endl;
             break;
         case 2:
-            std::cout << "h_add" << std::endl;
+            std::cout << "hadd" << std::endl;
             break;
         case 3:
-            std::cout << "h_max" << std::endl;
+            std::cout << "hmax_prof" << std::endl;
             break;
         case 5:
-            std::cout << "h_max non optimized" << std::endl;
+            std::cout << "hmax_rec" << std::endl;
+            break;
+        case 6:
+            std::cout << "hmax_it" << std::endl;
             break;
     }
 

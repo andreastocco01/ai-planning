@@ -590,46 +590,54 @@ void PlanningTask::update_goal_callstack(int applied_action_idx,
                                          std::vector<int> &current_state,
                                          Fact goal) {
     Action action = this->actions[applied_action_idx];
-    int stack_level;
-    Fact fact_to_remove;
 
     std::vector<StackFrame> &stack = this->map_astack[goal];
     std::vector<QueueFrame> &queue = this->map_fqueue[goal];
 
-    // find the last occurrence of the added facts on the stack
-    bool first_time = true;
-    for (int i = 0; i < action.n_effects; i++) {
-        Fact f{action.effects[i].var_affected, action.effects[i].to_value};
-        auto it = std::find_if(
-            stack.begin(), stack.end(),
-            [&](const StackFrame &frame) { return frame.from == f; });
+    int stack_level = stack.size() - 1;
+    Fact fact_to_remove = stack.back().from;
+    int idx = 0;
 
-        if (it != stack.end()) {
-            int index = stack.size() - std::distance(it, stack.end());
-            if (first_time) {
-                stack_level = index;
-                fact_to_remove = f;
-                first_time = false;
-            } else {
-                stack_level = std::min(stack_level, index);
-                fact_to_remove = f;
+    if (stack_level != -1) {  // the stack is not empty
+        // find the last occurrence among the added facts on the stack
+        for (int i = 0; i < action.n_effects; ++i) {
+            Fact f{action.effects[i].var_affected, action.effects[i].to_value};
+
+            for (size_t j = 0; j < stack.size(); ++j) {
+                if (stack[j].from == f && j < (size_t)stack_level) {
+                    stack_level = j;
+                    fact_to_remove = f;
+                    break;  // no need to look further for this fact
+                }
             }
         }
-    }
 
-    // remove all the elements above them in the stack and in the queue
-    int layer = stack.size() - 1;
-    while (layer >= stack_level) {
-        StackFrame sf = stack.back();
-        this->visited_actions[goal][sf.action_idx] = false;
-        stack.pop_back();
-
-        while (queue.back().level >= layer) {
-            QueueFrame qf = queue.back();
-            queue.pop_back();
-            this->visited_facts[goal][FIND_FACT_INDEX(qf.fact)] = false;
+        // remove all the elements above in the stack and in the queue
+        // unmark visited actions above stack_level
+        for (size_t i = stack_level; i < stack.size(); ++i) {
+            this->visited_actions[goal][stack[i].action_idx] = false;
         }
-        layer--;
+
+        // unmark visited facts with level >= stack_level
+        auto queue_cutoff = std::find_if(
+            queue.begin(), queue.end(),
+            [&](const QueueFrame &qf) { return qf.level >= stack_level; });
+
+        for (auto it = queue_cutoff; it != queue.end(); ++it) {
+            this->visited_facts[goal][FIND_FACT_INDEX(it->fact)] = false;
+        }
+
+        // erase elements to be recomputed
+        stack.erase(stack.begin() + stack_level, stack.end());
+        queue.erase(queue_cutoff, queue.end());
+
+        // find first fact not computed in the queue
+        idx = std::distance(queue.begin(),
+                            std::find_if(queue.begin(), queue.end(),
+                                         [&](const QueueFrame &frame) {
+                                             return frame.fact ==
+                                                    stack.back().from;
+                                         }));
     }
 
     // add the new layers
@@ -643,16 +651,8 @@ void PlanningTask::update_goal_callstack(int applied_action_idx,
         fact_costs[idx] = 0;
     }
 
-    int idx =
-        std::distance(queue.begin(), std::find_if(queue.begin(), queue.end(),
-                                                  [&](const QueueFrame &frame) {
-                                                      return frame.fact ==
-                                                             fact_to_remove;
-                                                  })) -
-        1;
-    //  create the sequence of actions to compute costs
-    do {
-        idx++;
+    // recompute layers
+    for (; idx < queue.size(); idx++) {
         Fact current = queue[idx].fact;  // get the oldest fact in the queue
         int level = queue[idx].level;
 
@@ -678,7 +678,7 @@ void PlanningTask::update_goal_callstack(int applied_action_idx,
                 queue.push_back({action.preconds[j], (int)stack.size() - 1});
             }
         }
-    } while (idx < queue.size());
+    }
 }
 
 int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact,
