@@ -149,20 +149,17 @@ class PlanningTask {
     void apply_action(int idx, std::vector<int> &current_state);
     std::vector<int> get_min_h_cost_actions_idx(std::vector<int> &actions_idx);
     int h_add(std::vector<int> &current_state, Fact &fact,
-              std::set<int> &visited, std::unordered_map<int, int> &cache);
+              std::unordered_set<int> &visited,
+              std::unordered_map<int, int> &cache);
     int h_max(std::vector<int> &current_state, Fact &fact,
               std::unordered_set<int> &visited,
               std::unordered_map<int, int> &cache);
     int compute_heuristic(std::vector<int> &current_state, int heuristic);
-    int h_add_optimized(std::vector<int> &current_state);
-    int h_max_optimized(std::vector<int> &current_state);
     void remove_satisfied_actions(std::vector<int> &current_state,
                                   std::vector<int> &possible_actions_idx);
     void print_action_h_costs(std::vector<int> &actions_idx);
     bool check_integrity();
     void create_structs();
-    void set_action_utility(Fact fact, std::set<int> &visited_actions,
-                            std::vector<int> &current_state);
     void reset_actions_metadata();
     int iterative_h_max(std::vector<int> &current_state, Fact fact);
     void create_callstack();

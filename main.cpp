@@ -80,11 +80,8 @@ int main(int argc, char** argv) {
         case 1:
             std::cout << "greedy" << std::endl;
             break;
-        case 2:
-            std::cout << "hadd" << std::endl;
-            break;
-        case 3:
-            std::cout << "hmax_prof" << std::endl;
+        case 4:
+            std::cout << "hadd_rec" << std::endl;
             break;
         case 5:
             std::cout << "hmax_rec" << std::endl;
