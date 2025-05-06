@@ -511,10 +511,8 @@ void PlanningTask::create_callstack() {
         std::vector<bool> visited_actions(this->n_actions, false);
         std::vector<bool> visited_facts(this->facts.size(), false);
 
-        int idx = -1;
         // create the sequence of actions to compute costs
-        do {
-            idx++;
+        for (int idx = 0; idx < queue.size(); idx++) {
             Fact current = queue[idx].fact;  // get the oldest fact in the queue
             int level = queue[idx].level;
 
@@ -541,7 +539,7 @@ void PlanningTask::create_callstack() {
                         {action.preconds[j], (int)stack.size() - 1});
                 }
             }
-        } while (idx < queue.size());
+        }
 
         this->visited_actions[goal] = visited_actions;
         this->visited_facts[goal] = visited_facts;
