@@ -684,10 +684,10 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
 
     while (!goal_reached(current_state)) {
         apply_axioms(current_state);
-        reset_actions_metadata();
 
         // calculate heuristic costs
         if (heuristic == 4 || heuristic == 5 || heuristic == 6) {
+            reset_actions_metadata();
             int total = compute_heuristic(current_state, heuristic);
             if (total < estimated_cost) {
                 estimated_cost = total;
