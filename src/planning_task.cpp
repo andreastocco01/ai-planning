@@ -594,11 +594,11 @@ void PlanningTask::update_goal_callstack(int applied_action_idx,
     std::vector<StackFrame> &stack = this->map_astack[goal];
     std::vector<QueueFrame> &queue = this->map_fqueue[goal];
 
-    int stack_level = stack.size() - 1;
-    Fact fact_to_remove = stack.back().from;
     int idx = 0;
 
-    if (stack_level != -1) {  // the stack is not empty
+    if (!stack.empty()) {  // the stack is not empty
+        int stack_level = stack.size();
+        Fact fact_to_remove;
         // find the last occurrence among the added facts on the stack
         for (int i = 0; i < action.n_effects; ++i) {
             Fact f{action.effects[i].var_affected, action.effects[i].to_value};
@@ -613,31 +613,33 @@ void PlanningTask::update_goal_callstack(int applied_action_idx,
         }
 
         // remove all the elements above in the stack and in the queue
-        // unmark visited actions above stack_level
-        for (size_t i = stack_level; i < stack.size(); ++i) {
-            this->visited_actions[goal][stack[i].action_idx] = false;
+        if (stack_level < stack.size()) {
+            // unmark visited actions above stack_level
+            for (size_t i = stack_level; i < stack.size(); ++i) {
+                this->visited_actions[goal][stack[i].action_idx] = false;
+            }
+
+            // unmark visited facts with level >= stack_level
+            auto queue_cutoff = std::find_if(
+                queue.begin(), queue.end(),
+                [&](const QueueFrame &qf) { return qf.level >= stack_level; });
+
+            for (auto it = queue_cutoff; it != queue.end(); ++it) {
+                this->visited_facts[goal][FIND_FACT_INDEX(it->fact)] = false;
+            }
+
+            // erase elements to be recomputed
+            stack.erase(stack.begin() + stack_level, stack.end());
+            queue.erase(queue_cutoff, queue.end());
+
+            // find first fact not computed in the queue
+            idx = std::distance(queue.begin(),
+                                std::find_if(queue.begin(), queue.end(),
+                                             [&](const QueueFrame &frame) {
+                                                 return frame.fact ==
+                                                        stack.back().from;
+                                             }));
         }
-
-        // unmark visited facts with level >= stack_level
-        auto queue_cutoff = std::find_if(
-            queue.begin(), queue.end(),
-            [&](const QueueFrame &qf) { return qf.level >= stack_level; });
-
-        for (auto it = queue_cutoff; it != queue.end(); ++it) {
-            this->visited_facts[goal][FIND_FACT_INDEX(it->fact)] = false;
-        }
-
-        // erase elements to be recomputed
-        stack.erase(stack.begin() + stack_level, stack.end());
-        queue.erase(queue_cutoff, queue.end());
-
-        // find first fact not computed in the queue
-        idx = std::distance(queue.begin(),
-                            std::find_if(queue.begin(), queue.end(),
-                                         [&](const QueueFrame &frame) {
-                                             return frame.fact ==
-                                                    stack.back().from;
-                                         }));
     }
 
     // add the new layers
