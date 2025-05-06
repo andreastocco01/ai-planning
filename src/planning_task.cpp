@@ -505,8 +505,8 @@ void PlanningTask::create_callstack() {
             fact_costs[idx] = 0;
         }
 
-        std::vector<QueueFrame> queue;
-        std::vector<StackFrame> stack;
+        std::vector<QueueFrame> &queue = this->map_fqueue[goal];
+        std::vector<StackFrame> &stack = this->map_astack[goal];
         queue.push_back({goal, -1});
         std::vector<bool> visited_actions(this->n_actions, false);
         std::vector<bool> visited_facts(this->facts.size(), false);
@@ -543,9 +543,6 @@ void PlanningTask::create_callstack() {
             }
         } while (idx < queue.size());
 
-        this->map_fqueue[goal] = queue;
-        this->map_astack[goal] = stack;
-
         this->visited_actions[goal] = visited_actions;
         this->visited_facts[goal] = visited_facts;
     }
@@ -562,12 +559,10 @@ int PlanningTask::iterative_h_max(std::vector<int> &current_state, Fact fact) {
         fact_costs[idx] = 0;
     }
 
-    std::stack<StackFrame, std::vector<StackFrame>> astack(
-        this->map_astack[fact]);
-    // actually compute the costs
-    while (!astack.empty()) {
-        StackFrame entry = astack.top();  // get the last inserted action
-        astack.pop();
+    std::vector<StackFrame> &astack =
+        this->map_astack[fact];  // actually compute the costs
+    for (int i = astack.size() - 1; i >= 0; i--) {
+        StackFrame entry = astack[i];  // get the last inserted action
 
         Action &action = this->actions[entry.action_idx];
 
@@ -593,6 +588,8 @@ void PlanningTask::update_goal_callstack(int applied_action_idx,
 
     std::vector<StackFrame> &stack = this->map_astack[goal];
     std::vector<QueueFrame> &queue = this->map_fqueue[goal];
+    std::vector<bool> &visited_actions = this->visited_actions[goal];
+    std::vector<bool> &visited_facts = this->visited_facts[goal];
 
     int idx = 0;
 
@@ -616,7 +613,7 @@ void PlanningTask::update_goal_callstack(int applied_action_idx,
         if (stack_level < stack.size()) {
             // unmark visited actions above stack_level
             for (size_t i = stack_level; i < stack.size(); ++i) {
-                this->visited_actions[goal][stack[i].action_idx] = false;
+                visited_actions[stack[i].action_idx] = false;
             }
 
             // unmark visited facts with level >= stack_level
@@ -625,7 +622,7 @@ void PlanningTask::update_goal_callstack(int applied_action_idx,
                 [&](const QueueFrame &qf) { return qf.level >= stack_level; });
 
             for (auto it = queue_cutoff; it != queue.end(); ++it) {
-                this->visited_facts[goal][FIND_FACT_INDEX(it->fact)] = false;
+                visited_facts[FIND_FACT_INDEX(it->fact)] = false;
             }
 
             // erase elements to be recomputed
@@ -664,18 +661,18 @@ void PlanningTask::update_goal_callstack(int applied_action_idx,
         std::vector<int> actions = this->map_effect_actions[current];
         for (int i = 0; i < actions.size(); i++) {
             if (this->actions[actions[i]].is_used ||
-                this->visited_actions[goal][actions[i]])
+                visited_actions[actions[i]])
                 continue;
 
-            this->visited_actions[goal][actions[i]] = true;
+            visited_actions[actions[i]] = true;
             // push the pair (action, fact) onto the stack
             stack.push_back({actions[i], current, level});
             Action action = this->actions[actions[i]];
             for (int j = 0; j < action.n_preconds; j++) {
                 int fact_idx = FIND_FACT_INDEX(action.preconds[j]);
-                if (this->visited_facts[goal][fact_idx]) continue;
+                if (visited_facts[fact_idx]) continue;
 
-                this->visited_facts[goal][fact_idx] = true;
+                visited_facts[fact_idx] = true;
                 // push the precondition to the end of the fact queue
                 queue.push_back({action.preconds[j], (int)stack.size() - 1});
             }
