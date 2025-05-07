@@ -606,6 +606,9 @@ int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact,
                 current_state, this->actions[idx].preconds[j], visited, cache);
         }
 
+        if (this->actions[idx].h_cost < 0)  // overflow
+            this->actions[idx].h_cost = std::numeric_limits<int>::max();
+
         min_h_cost = std::min(min_h_cost, this->actions[idx].h_cost);
     }
 
@@ -630,6 +633,8 @@ int PlanningTask::compute_heuristic(std::vector<int> &current_state,
             std::unordered_set<int> visited;
             total += h_add(current_state, this->goal_state[i], visited, cache);
         }
+        if (total < 0)  // overflow
+            total = std::numeric_limits<int>::max();
     } else if (heuristic == 5) {
         for (int i = 0; i < this->n_goals; i++) {
             std::unordered_set<int> visited;
