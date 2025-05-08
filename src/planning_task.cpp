@@ -335,6 +335,62 @@ void print_array_stack(std::vector<StackFrame> arr) {
     std::cout << std::endl;
 }
 
+int PlanningTask::h_max_optimized(std::vector<int> &current_state) {
+    PriorityQueue<int> pq(this->facts.size());
+    int inf = std::numeric_limits<int>::max();
+    std::vector<int> fact_costs(this->facts.size(), inf);
+
+    // Initialize current state facts
+    for (int i = 0; i < current_state.size(); i++) {
+        Fact f{i, current_state[i]};
+        int idx = FIND_FACT_INDEX(f);
+        fact_costs[idx] = 0;
+        pq.push(idx, 0);
+    }
+
+    // Main loop
+    while (!pq.isEmpty()) {
+        int fact_idx = pq.top();
+        pq.pop();
+        Fact f = this->facts[fact_idx];
+        std::vector<int> actions_idx = this->map_precond_actions[f];
+        // Add actions with no preconditions
+        actions_idx.insert(actions_idx.end(), this->actions_no_preconds.begin(),
+                           this->actions_no_preconds.end());
+        for (int a_idx : actions_idx) {
+            Action &action = this->actions[a_idx];
+            if (action.is_used) continue;  // skip actions already used
+            int max_pre = 0;
+            for (const Fact &pre : action.preconds) {
+                int pre_idx = FIND_FACT_INDEX(pre);
+                max_pre = std::max(max_pre, fact_costs[pre_idx]);
+            }
+            if (max_pre == inf) continue;
+            int new_cost =
+                this->metric == 1 ? (max_pre + action.cost) : (max_pre + 1);
+            action.h_cost = new_cost;
+            for (const Effect &eff : action.effects) {
+                Fact eff_fact{eff.var_affected, eff.to_value};
+                int eff_idx = FIND_FACT_INDEX(eff_fact);
+                if (new_cost < fact_costs[eff_idx]) {
+                    fact_costs[eff_idx] = new_cost;
+                    if (pq.has(eff_idx))
+                        pq.change(eff_idx, new_cost);
+                    else
+                        pq.push(eff_idx, new_cost);
+                }
+            }
+        }
+    }
+
+    // Compute h_max for goals
+    int h_max = 0;
+    for (const Fact &goal : this->goal_state) {
+        h_max = std::max(h_max, fact_costs[FIND_FACT_INDEX(goal)]);
+    }
+    return h_max;
+}
+
 void PlanningTask::create_callstack() {
     for (int i = 0; i < this->n_goals; i++) {
         Fact goal = this->goal_state[i];
@@ -628,7 +684,9 @@ int PlanningTask::compute_heuristic(std::vector<int> &current_state,
     int total = 0;
     std::unordered_map<int, int> cache;  // Cache to store heuristic values
 
-    if (heuristic == 4) {
+    if (heuristic == 2) {
+        total = h_max_optimized(current_state);
+    } else if (heuristic == 4) {
         for (int i = 0; i < this->n_goals; i++) {
             std::unordered_set<int> visited;
             total += h_add(current_state, this->goal_state[i], visited, cache);
@@ -691,7 +749,8 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
         apply_axioms(current_state);
 
         // calculate heuristic costs
-        if (heuristic == 4 || heuristic == 5 || heuristic == 6) {
+        if (heuristic == 2 || heuristic == 4 || heuristic == 5 ||
+            heuristic == 6) {
             reset_actions_metadata();
             int total = compute_heuristic(current_state, heuristic);
             if (total < estimated_cost) {
