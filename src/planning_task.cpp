@@ -584,9 +584,9 @@ int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact,
     int fact_idx = FIND_FACT_INDEX(fact);
 
     // **Check Cache**
-    /*if (cache.find(fact_idx) != cache.end()) {
+    if (cache.find(fact_idx) != cache.end()) {
         return cache[fact_idx];  // Return stored result
-    }*/
+    }
 
     if (current_state[fact.var_idx] == fact.var_val ||
         visited.find(fact_idx) != visited.end()) {
@@ -622,7 +622,7 @@ int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact,
     }
 
     // **Store Computed Result in Cache**
-    // cache[fact_idx] = min_h_cost;
+    cache[fact_idx] = min_h_cost;
     return min_h_cost;
 }
 
@@ -652,6 +652,7 @@ int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact,
     int min_h_cost = std::numeric_limits<int>::max();
 
     for (int idx : actions_idx) {
+        if (this->actions[idx].is_used) continue;
         if (this->metric == 1)
             this->actions[idx].h_cost = this->actions[idx].cost;
         else
