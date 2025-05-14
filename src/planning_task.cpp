@@ -469,8 +469,12 @@ int PlanningTask::iterative_h_max(std::vector<int> &current_state, Fact fact) {
             max_pre = std::max(max_pre,
                                fact_costs[FIND_FACT_INDEX(action.preconds[j])]);
         }
-        action.h_cost =
-            this->metric == 1 ? (action.cost + max_pre) : (1 + max_pre);
+
+        if (max_pre == inf)
+            action.h_cost = inf;
+        else
+            action.h_cost =
+                this->metric == 1 ? (action.cost + max_pre) : (1 + max_pre);
 
         int fact_idx = FIND_FACT_INDEX(entry.from);
         fact_costs[fact_idx] = std::min(fact_costs[fact_idx], action.h_cost);
