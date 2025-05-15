@@ -781,6 +781,50 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
             break;
         }
 
+        // apply each possible action
+        // re-compute hmax
+        // add to h_cost the result of hmax
+        if (heuristic == 5) {
+            std::vector<int> costs;
+            for (int i = 0; i < possible_actions_idx.size(); i++)
+                costs.push_back(this->actions[possible_actions_idx[i]].h_cost);
+
+            // simulate action application
+            for (int k = 0; k < possible_actions_idx.size(); k++) {
+                std::vector<int> new_state = current_state;
+                int idx = possible_actions_idx[k];
+                for (int i = 0; i < this->actions[idx].n_effects; i++) {
+                    Effect effect = this->actions[idx].effects[i];
+                    int j;
+                    for (j = 0; j < effect.n_effect_conds; j++) {
+                        Fact effect_cond = effect.effect_conds[j];
+                        if (new_state[effect_cond.var_idx] !=
+                                effect_cond.var_val &&
+                            effect_cond.var_val != -1)
+                            break;
+                    }
+                    if (j <
+                        effect.n_effect_conds)  // the effect cannot be applied
+                        continue;
+                    int var = effect.var_affected;
+                    if ((new_state[var] == effect.from_value ||
+                         effect.from_value == -1) &&
+                        check_mutex_groups(var, effect.to_value, new_state)) {
+                        new_state[var] = effect.to_value;
+                    }
+                }
+
+                reset_actions_metadata();
+                int total = compute_heuristic(new_state, heuristic);
+                costs[k] = total + costs[k] < 0
+                               ? std::numeric_limits<int>::max()
+                               : total + costs[k];
+            }
+
+            for (int i = 0; i < possible_actions_idx.size(); i++)
+                this->actions[possible_actions_idx[i]].h_cost = costs[i];
+        }
+
         // get min h cost actions
         int action_to_apply_idx;
         if (heuristic == 0) {  // random
