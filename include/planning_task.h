@@ -165,6 +165,8 @@ class PlanningTask {
     void update_goal_callstack(int applied_action_idx,
                                std::vector<int> &current_state, Fact f);
     int h_max_optimized(std::vector<int> &current_state);
+    void idea(Fact fact, std::set<int> &visited,
+              std::vector<int> &current_state, int cumulative_cost);
 };
 
 #endif

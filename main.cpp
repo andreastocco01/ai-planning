@@ -83,6 +83,9 @@ int main(int argc, char** argv) {
         case 2:
             std::cout << "hmax_prof" << std::endl;
             break;
+        case 3:
+            std::cout << "idea" << std::endl;
+            break;
         case 4:
             std::cout << "hadd_rec" << std::endl;
             break;

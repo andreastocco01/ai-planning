@@ -714,6 +714,32 @@ int PlanningTask::compute_heuristic(std::vector<int> &current_state,
     return total;
 }
 
+void PlanningTask::idea(Fact fact, std::set<int> &visited,
+                        std::vector<int> &current_state, int cumulative_cost) {
+    int fact_idx = FIND_FACT_INDEX(fact);
+    if (current_state[fact.var_idx] == fact.var_val ||
+        visited.find(fact_idx) != visited.end()) {
+        return;  // Base case
+    }
+
+    visited.insert(fact_idx);
+
+    // Get all the actions having "fact" as outcome
+    std::vector<int> actions_idx = this->map_effect_actions[fact];
+
+    for (int idx : actions_idx) {
+        int new_cost = this->actions[idx].cost + cumulative_cost;
+        if (new_cost < this->actions[idx].h_cost)
+            this->actions[idx].h_cost = new_cost;
+
+        // Recursively check preconditions
+        for (int j = 0; j < this->actions[idx].n_preconds; j++) {
+            idea(this->actions[idx].preconds[j], visited, current_state,
+                 this->actions[idx].h_cost);
+        }
+    }
+}
+
 int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
     int pid;
     if (time_limit != -1) {
@@ -762,6 +788,14 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
                 estimated_cost = total;
                 std::cout << "New estimated cost to reach the goal state: "
                           << estimated_cost << std::endl;
+            }
+        }
+
+        if (heuristic == 3) {
+            reset_actions_metadata();
+            for (int i = 0; i < this->n_goals; i++) {
+                std::set<int> visited_actions;
+                idea(this->goal_state[i], visited_actions, current_state, 0);
             }
         }
 
