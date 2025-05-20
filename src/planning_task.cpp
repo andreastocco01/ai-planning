@@ -729,8 +729,9 @@ void PlanningTask::idea(Fact fact, std::set<int> &visited,
 
     for (int idx : actions_idx) {
         int new_cost = this->actions[idx].cost + cumulative_cost;
-        if (new_cost < this->actions[idx].h_cost)
-            this->actions[idx].h_cost = new_cost;
+        if (new_cost >= this->actions[idx].h_cost) continue;
+
+        this->actions[idx].h_cost = new_cost;
 
         // Recursively check preconditions
         for (int j = 0; j < this->actions[idx].n_preconds; j++) {
