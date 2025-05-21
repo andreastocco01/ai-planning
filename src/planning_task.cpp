@@ -728,7 +728,9 @@ void PlanningTask::idea(Fact fact, std::set<int> &visited,
     std::vector<int> actions_idx = this->map_effect_actions[fact];
 
     for (int idx : actions_idx) {
-        int new_cost = this->actions[idx].cost + cumulative_cost;
+        int new_cost = (this->metric == 1)
+                           ? this->actions[idx].cost + cumulative_cost
+                           : 1 + cumulative_cost;
         if (new_cost >= this->actions[idx].h_cost) continue;
 
         this->actions[idx].h_cost = new_cost;
