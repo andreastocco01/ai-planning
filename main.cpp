@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
     }
 
     if (!(from_file_flag && alg_flag && seed_flag && debug_flag) || alg < 0 ||
-        alg > 6) {
+        alg > 7) {
         print_usage(argv[0]);
         return 1;
     }
@@ -94,6 +94,9 @@ int main(int argc, char** argv) {
             break;
         case 6:
             std::cout << "hmax_it" << std::endl;
+            break;
+        case 7:
+            std::cout << "backward_cost" << std::endl;
             break;
     }
 

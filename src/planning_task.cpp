@@ -714,6 +714,51 @@ int PlanningTask::compute_heuristic(std::vector<int> &current_state,
     return total;
 }
 
+void PlanningTask::backward_cost_propagation(std::vector<int> &current_state) {
+    PriorityQueue<int> pq(this->facts.size());
+    int inf = std::numeric_limits<int>::max();
+    std::vector<int> fact_costs(this->facts.size(), inf);
+
+    // Initialize goal state facts
+    for (int i = 0; i < this->goal_state.size(); i++) {
+        int idx = FIND_FACT_INDEX(this->goal_state[i]);
+        fact_costs[idx] = 0;
+        pq.push(idx, 0);
+    }
+
+    while (!pq.isEmpty()) {
+        int fact_idx = pq.top();
+        pq.pop();
+        Fact f = this->facts[fact_idx];
+
+        if (current_state[f.var_idx] == f.var_val) continue;
+        std::vector<int> actions = this->map_effect_actions[f];
+
+        for (int i = 0; i < actions.size(); i++) {
+            Action &current_action = this->actions[actions[i]];
+            int new_cost = (this->metric == 1)
+                               ? current_action.cost + fact_costs[fact_idx]
+                               : 1 + fact_costs[fact_idx];
+
+            if (current_action.is_used || new_cost >= current_action.h_cost)
+                continue;
+            current_action.h_cost = new_cost;  // h_cost = min(cost(effects))
+
+            for (int j = 0; j < current_action.n_preconds; j++) {
+                Fact pre = current_action.preconds[j];
+                int pre_idx = FIND_FACT_INDEX(pre);
+                if (new_cost < fact_costs[pre_idx]) {
+                    fact_costs[pre_idx] = new_cost;
+                    if (pq.has(pre_idx))
+                        pq.change(pre_idx, new_cost);
+                    else
+                        pq.push(pre_idx, new_cost);
+                }
+            }
+        }
+    }
+}
+
 void PlanningTask::idea(Fact fact, std::set<int> &visited,
                         std::vector<int> &current_state, int cumulative_cost) {
     int fact_idx = FIND_FACT_INDEX(fact);
@@ -728,6 +773,7 @@ void PlanningTask::idea(Fact fact, std::set<int> &visited,
     std::vector<int> actions_idx = this->map_effect_actions[fact];
 
     for (int idx : actions_idx) {
+        if (this->actions[idx].is_used) continue;
         int new_cost = (this->metric == 1)
                            ? this->actions[idx].cost + cumulative_cost
                            : 1 + cumulative_cost;
@@ -800,6 +846,11 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
                 std::set<int> visited_actions;
                 idea(this->goal_state[i], visited_actions, current_state, 0);
             }
+        }
+
+        if (heuristic == 7) {
+            reset_actions_metadata();
+            backward_cost_propagation(current_state);
         }
 
         // get possible actions
