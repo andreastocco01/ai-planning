@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
     }
 
     if (!(from_file_flag && alg_flag && seed_flag && debug_flag) || alg < 0 ||
-        alg > 7) {
+        alg > 6) {
         print_usage(argv[0]);
         return 1;
     }
@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
             std::cout << "hmax_prof" << std::endl;
             break;
         case 3:
-            std::cout << "idea" << std::endl;
+            std::cout << "backward_cost_propagation" << std::endl;
             break;
         case 4:
             std::cout << "hadd_rec" << std::endl;
@@ -94,9 +94,6 @@ int main(int argc, char** argv) {
             break;
         case 6:
             std::cout << "hmax_it" << std::endl;
-            break;
-        case 7:
-            std::cout << "backward_cost" << std::endl;
             break;
     }
 
