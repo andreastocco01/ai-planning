@@ -131,6 +131,10 @@ std::vector<int> PlanningTask::get_possible_actions_idx(
             actions_idx.push_back(i);
         }
     }
+    std::sort(
+        actions_idx.begin(), actions_idx.end(), [this](int idx_a, int idx_b) {
+            return this->actions[idx_a].h_cost < this->actions[idx_b].h_cost;
+        });
     return actions_idx;
 }
 
@@ -841,6 +845,14 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
         std::vector<int> possible_actions_idx =
             get_possible_actions_idx(current_state, true);
 
+        // if the first action has infinite cost, the problem is
+        // infeasible (beacuse possible_actions_idx is sorted)
+        if (heuristic > 0 && this->actions[possible_actions_idx[0]].h_cost ==
+                                 std::numeric_limits<int>::max()) {
+            no_solution = true;
+            break;
+        }
+
         /*std::cout << "POSSIBLE ACTIONS: ";
         PlanningTaskUtils::print_planning_task_state(possible_actions_idx);
         print_action_h_costs(possible_actions_idx);*/
@@ -897,32 +909,25 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
                 this->actions[possible_actions_idx[i]].h_cost = costs[i];
         }
 
-        // get min h cost actions
         int action_to_apply_idx;
-        if (heuristic == 0) {  // random
-            action_to_apply_idx =
-                possible_actions_idx[PlanningTaskUtils::get_random_number(
-                    0, possible_actions_idx.size())];
-        } else {
-            std::vector<int> min_h_cost_actions_idx =
-                get_min_h_cost_actions_idx(possible_actions_idx);
+        int idx = 0;
+        int n_applied_effects = 0;
 
-            if (min_h_cost_actions_idx.empty()) {
-                no_solution = true;
-                break;
+        while (idx < possible_actions_idx.size() && !n_applied_effects) {
+            if (heuristic == 0) {
+                action_to_apply_idx =
+                    possible_actions_idx[PlanningTaskUtils::get_random_number(
+                        0, possible_actions_idx.size())];
+            } else {
+                action_to_apply_idx = possible_actions_idx[idx];
+                idx++;
             }
-            action_to_apply_idx =
-                min_h_cost_actions_idx[PlanningTaskUtils::get_random_number(
-                    0, min_h_cost_actions_idx.size())];
+
+            n_applied_effects =
+                apply_action(action_to_apply_idx, current_state);
         }
 
         // std::cout << "APPLIED ACTION: " << action_to_apply_idx << std::endl;
-        // apply action
-        while (!apply_action(action_to_apply_idx, current_state)) {
-            action_to_apply_idx =
-                possible_actions_idx[PlanningTaskUtils::get_random_number(
-                    0, possible_actions_idx.size())];
-        }
 
         if (heuristic == 6)
             for (int i = 0; i < this->n_goals; i++)
