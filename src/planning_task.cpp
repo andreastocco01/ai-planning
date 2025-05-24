@@ -186,31 +186,6 @@ void PlanningTask::print_solution() {
     std::cout << "Cost: " << this->solution_cost << std::endl;
 }
 
-std::vector<int> PlanningTask::get_min_h_cost_actions_idx(
-    std::vector<int> &actions_idx) {
-    if (actions_idx.empty()) return {};
-
-    std::vector<int> res;
-    int min_cost = std::numeric_limits<int>::max();
-
-    for (int idx : actions_idx) {
-        int cost = this->actions[idx].h_cost;
-        if (cost < min_cost) {
-            min_cost = cost;
-            res.clear();  // New minimum found, discard previous candidates
-            res.push_back(idx);
-        } else if (cost == min_cost) {
-            res.push_back(idx);
-        }
-    }
-
-    if (min_cost ==
-        std::numeric_limits<int>::max())  // all the actions are unreachable
-        res.clear();
-
-    return res;
-}
-
 void PlanningTask::print_action_h_costs(std::vector<int> &actions_idx) {
     std::cout << "################################## H COSTS" << std::endl;
     for (int i = 0; i < actions_idx.size(); i++) {

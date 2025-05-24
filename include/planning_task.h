@@ -147,7 +147,6 @@ class PlanningTask {
     std::vector<int> get_possible_actions_idx(std::vector<int> &current_state,
                                               bool check_usage);
     int apply_action(int idx, std::vector<int> &current_state);
-    std::vector<int> get_min_h_cost_actions_idx(std::vector<int> &actions_idx);
     int h_add(std::vector<int> &current_state, Fact &fact,
               std::unordered_set<int> &visited,
               std::unordered_map<int, int> &cache);
