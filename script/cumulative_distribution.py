@@ -42,67 +42,73 @@ def get_alg_points(alg_primal_gaps):
 
 
 # Define directories
-output_base_dir = '../out'
-random_alg_dir = output_base_dir + '/random/'
-greedy_alg_dir = output_base_dir + '/greedy/'
-hadd_alg_dir = output_base_dir + '/hadd/'
-hmax_alg_dir = output_base_dir + '/hmax/'
+output_base_dir = '../out_full/'
+alg1_dir = output_base_dir + 'random/'
+alg2_dir = output_base_dir + 'greedy/'
+alg3_dir = output_base_dir + 'hmax_rec/'
+alg4_dir = '../out_backprop/backprop/'
 
 # Collect test instances
 test_instances = [
     filename for filename in listdir('../DeletefreeSAS')
 ]
 
-primal_gaps = [[] for _ in range(4)]  # [0]: random, [1]: greedy, [2]: hadd, [3]: hmax
+primal_gaps = [[] for _ in range(4)]
+n_iter = 1
 
 for instance in test_instances:
     instance_base_name = instance.split('.')[0]  # Remove .sas extension
 
     # Get matching files for each algorithm
-    random_alg_files = [file for file in listdir(random_alg_dir) if re.search(instance_base_name, file)]
-    greedy_alg_files = [file for file in listdir(greedy_alg_dir) if re.search(instance_base_name, file)]
-    hadd_alg_files = [file for file in listdir(hadd_alg_dir) if re.search(instance_base_name, file)]
-    hmax_alg_files = [file for file in listdir(hmax_alg_dir) if re.search(instance_base_name, file)]
+    alg1_files = [file for file in listdir(alg1_dir) if re.search(instance_base_name, file)]
+    alg2_files = [file for file in listdir(alg2_dir) if re.search(instance_base_name, file)]
+    alg3_files = [file for file in listdir(alg3_dir) if re.search(instance_base_name, file)]
+    alg4_files = [file for file in listdir(alg4_dir) if re.search(instance_base_name, file)]
 
     # Extract costs
     instance_costs = [
-        extract_instance_costs(random_alg_files, random_alg_dir),
-        extract_instance_costs(greedy_alg_files, greedy_alg_dir),
-        extract_instance_costs(hadd_alg_files, hadd_alg_dir),
-        extract_instance_costs(hmax_alg_files, hmax_alg_dir),
+        extract_instance_costs(alg1_files, alg1_dir),
+        extract_instance_costs(alg2_files, alg2_dir),
+        extract_instance_costs(alg3_files, alg3_dir),
+        extract_instance_costs(alg4_files, alg4_dir),
     ]
 
-    # Find best known cost (excluding -1 values)
-    valid_costs = [cost for sublist in instance_costs for cost in sublist if cost != -1]
-    best_known = min(valid_costs) if valid_costs else -1  # If no valid solution, keep -1
-
-    # print(f'Instance: {instance}, Best known cost: {best_known}')
+    # Find best known cost
+    with open("best_known.txt", "r") as f:
+        for line in f:
+            if instance in line:
+                best_known = int(line.strip()[-1])
 
     # Compute primal gaps
     for alg_index, sublist in enumerate(instance_costs):
         for cost in sublist:
             primal_gaps[alg_index].append(compute_primal_gap(cost, best_known))
 
-# Compute cumulative distributions for each algorithm
-random_points = get_alg_points(primal_gaps[0])
-greedy_points = get_alg_points(primal_gaps[1])
-hadd_points = get_alg_points(primal_gaps[2])
-hmax_points = get_alg_points(primal_gaps[3])
+    if n_iter % 100 == 0:
+        print(f'{n_iter}/{len(test_instances)}')
+    n_iter += 1
 
-print('random_points = ', random_points)
-print('greedy_points = ', greedy_points)
-print('hadd_points = ', hadd_points)
-print('hmax_points = ', hmax_points)
+# Compute cumulative distributions for each algorithm
+alg1_points = get_alg_points(primal_gaps[0])
+alg2_points = get_alg_points(primal_gaps[1])
+alg3_points = get_alg_points(primal_gaps[2])
+alg4_points = get_alg_points(primal_gaps[3])
+
+print('alg1_points = ', alg1_points)
+print('alg2_points = ', alg2_points)
+print('alg3_points = ', alg3_points)
+print('alg4_points = ', alg4_points)
+
 
 # Define x-axis values (thresholds from 0.0 to 1.0)
 x_values = np.arange(0.0, 1.1, 0.1)
 
 # Plot results
 plt.figure(figsize=(8, 6))
-plt.plot(x_values, random_points, marker='o', linestyle='-', label='Random')
-plt.plot(x_values, greedy_points, marker='s', linestyle='-', label='Greedy')
-plt.plot(x_values, hadd_points, marker='^', linestyle='-', label='HADD')
-plt.plot(x_values, hmax_points, marker='d', linestyle='-', label='HMAX')
+plt.plot(x_values, alg1_points, marker='o', linestyle='-', label='random')
+plt.plot(x_values, alg2_points, marker='s', linestyle='-', label='greedy')
+plt.plot(x_values, alg3_points, marker='^', linestyle='-', label='hmax_rec')
+plt.plot(x_values, alg4_points, marker='d', linestyle='-', label='backprop')
 
 # Labels and Title
 plt.xlabel("Primal Gap Threshold (0.0 to 1.0)")

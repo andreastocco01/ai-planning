@@ -40,3 +40,4 @@ axiom_mutex_test.sas
 /script/logs*
 /script/tasks.txt
 /script/timeout*
+/script/best_known.txt

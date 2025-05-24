@@ -27,7 +27,7 @@ alg2_dir = output_base_dir + 'greedy/'
 alg3_dir = output_base_dir + 'hmax_rec/'
 alg4_dir = output_base_dir + 'hmax_it/'
 alg5_dir = '../out_lookahead/hmax_rec/'
-alg6_dir = '../out_idea/idea/'
+alg6_dir = '../out_backprop/backprop/'
 
 # Collect test instances
 test_instances = [
@@ -35,6 +35,7 @@ test_instances = [
 ]
 
 f = open("best_known.txt", "w")
+n_iter = 1
 
 for instance in test_instances:
     instance_base_name = instance.split('.')[0]  # Remove .sas extension
@@ -62,5 +63,8 @@ for instance in test_instances:
     best_known = min(valid_costs) if valid_costs else -1  # If no valid solution, keep -1
 
     f.write(f'Instance: {instance}, Best known cost: {best_known}\n')
+    if n_iter % 100 == 0:
+        print(f'{n_iter}/{len(test_instances)}')
+    n_iter += 1
 
 f.close()
