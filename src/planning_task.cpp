@@ -134,9 +134,8 @@ std::vector<int> PlanningTask::get_possible_actions_idx(
     return actions_idx;
 }
 
-void PlanningTask::apply_action(int idx, std::vector<int> &current_state) {
-    int count_applied_effects =
-        0;  // count applied effects during this iteration
+int PlanningTask::apply_action(int idx, std::vector<int> &current_state) {
+    int n_applied_effects = 0;  // count applied effects during this iteration
     for (int i = 0; i < this->actions[idx].n_effects; i++) {
         Effect effect = this->actions[idx].effects[i];
         int j;
@@ -146,19 +145,22 @@ void PlanningTask::apply_action(int idx, std::vector<int> &current_state) {
                 effect_cond.var_val != -1)
                 break;
         }
-        if (j < effect.n_effect_conds)  // the effect cannot be applied
+        if (j < effect.n_effect_conds) {  // the effect cannot be applied
+            this->pending_effects.push_back(effect);
             continue;
+        }
         int var = effect.var_affected;
         if ((current_state[var] == effect.from_value ||
              effect.from_value == -1) &&
             check_mutex_groups(var, effect.to_value, current_state)) {
             current_state[var] = effect.to_value;
-            count_applied_effects++;
+            n_applied_effects++;
+        } else {
+            this->pending_effects.push_back(effect);
         }
     }
 
-    if (count_applied_effects > 0 &&
-        this->actions[idx].applied_effects == 0) {  // first time
+    if (n_applied_effects) {  // at least one effect was applied
         IndexAction indexAction;
         indexAction.idx = idx;
         indexAction.action = this->actions[idx];
@@ -167,16 +169,9 @@ void PlanningTask::apply_action(int idx, std::vector<int> &current_state) {
             this->solution_cost += this->actions[idx].cost;
         else
             this->solution_cost += 1;
-    }
-
-    this->actions[idx].applied_effects +=
-        count_applied_effects;  // add to the total number of applied effects
-                                // the effects applied during this iteration
-    if (this->actions[idx].applied_effects ==
-        this->actions[idx]
-            .n_effects) {  // all the effects were applied in some iteration
         this->actions[idx].is_used = true;
     }
+    return n_applied_effects;
 }
 
 void PlanningTask::print_solution() {
@@ -759,6 +754,31 @@ void PlanningTask::backward_cost_propagation(std::vector<int> &current_state) {
     }
 }
 
+int PlanningTask::apply_pending_effects(std::vector<int> &current_state) {
+    int n_applied_effects = 0;
+    for (int i = this->pending_effects.size() - 1; i >= 0; i--) {
+        Effect effect = this->pending_effects[i];
+        int j;
+        for (j = 0; j < effect.n_effect_conds; j++) {
+            Fact effect_cond = effect.effect_conds[j];
+            if (current_state[effect_cond.var_idx] != effect_cond.var_val &&
+                effect_cond.var_val != -1)
+                break;
+        }
+        if (j < effect.n_effect_conds)  // the effect cannot be applied
+            continue;
+        int var = effect.var_affected;
+        if ((current_state[var] == effect.from_value ||
+             effect.from_value == -1) &&
+            check_mutex_groups(var, effect.to_value, current_state)) {
+            current_state[var] = effect.to_value;
+            this->pending_effects.erase(this->pending_effects.begin() + i);
+            n_applied_effects++;
+        }
+    }
+    return n_applied_effects;
+}
+
 int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
     int pid;
     if (time_limit != -1) {
@@ -797,6 +817,8 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
 
     while (!goal_reached(current_state)) {
         apply_axioms(current_state);
+        if (int n = apply_pending_effects(current_state))
+            std::cout << "Applied " << n << " pending effects" << std::endl;
 
         // calculate heuristic costs
         if (heuristic == 2 || heuristic == 4 || heuristic == 5 ||
@@ -896,7 +918,11 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
 
         // std::cout << "APPLIED ACTION: " << action_to_apply_idx << std::endl;
         // apply action
-        apply_action(action_to_apply_idx, current_state);
+        while (!apply_action(action_to_apply_idx, current_state)) {
+            action_to_apply_idx =
+                possible_actions_idx[PlanningTaskUtils::get_random_number(
+                    0, possible_actions_idx.size())];
+        }
 
         if (heuristic == 6)
             for (int i = 0; i < this->n_goals; i++)

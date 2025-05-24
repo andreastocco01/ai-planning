@@ -123,6 +123,8 @@ class PlanningTask {
     std::unordered_map<Fact, std::vector<bool>, FactHasher> visited_actions;
     std::unordered_map<Fact, std::vector<bool>, FactHasher> visited_facts;
 
+    std::vector<Effect> pending_effects;
+
     std::vector<IndexAction> solution;
     int solution_cost;
 
@@ -145,7 +147,7 @@ class PlanningTask {
     int get_max_axiom_layer();
     std::vector<int> get_possible_actions_idx(std::vector<int> &current_state,
                                               bool check_usage);
-    void apply_action(int idx, std::vector<int> &current_state);
+    int apply_action(int idx, std::vector<int> &current_state);
     std::vector<int> get_min_h_cost_actions_idx(std::vector<int> &actions_idx);
     int h_add(std::vector<int> &current_state, Fact &fact,
               std::unordered_set<int> &visited,
@@ -166,6 +168,7 @@ class PlanningTask {
                                std::vector<int> &current_state, Fact f);
     int h_max_optimized(std::vector<int> &current_state);
     void backward_cost_propagation(std::vector<int> &current_state);
+    int apply_pending_effects(std::vector<int> &current_state);
 };
 
 #endif
