@@ -66,8 +66,7 @@ class Action {
     int cost;
 
     bool is_used;  // this flag is 1 if the action is used in the plan
-    int applied_effects;
-    int h_cost;  // the heuristic cost of the action
+    int h_cost;    // the heuristic cost of the action
 };
 
 class Axiom {

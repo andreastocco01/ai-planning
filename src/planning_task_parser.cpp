@@ -214,7 +214,6 @@ std::vector<Action> PlanningTaskParser::get_actions(std::ifstream &file) {
         getline(file, line);
         action.cost = std::stoi(line);
         action.is_used = false;
-        action.applied_effects = 0;
         action.h_cost = std::numeric_limits<int>::max();
         actions.push_back(action);
 
