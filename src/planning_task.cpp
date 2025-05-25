@@ -822,8 +822,9 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
 
         // if the first action has infinite cost, the problem is
         // infeasible (beacuse possible_actions_idx is sorted)
-        if (heuristic > 0 && this->actions[possible_actions_idx[0]].h_cost ==
-                                 std::numeric_limits<int>::max()) {
+        if (possible_actions_idx.empty() ||
+            (heuristic > 0 && this->actions[possible_actions_idx[0]].h_cost ==
+                                  std::numeric_limits<int>::max())) {
             no_solution = true;
             break;
         }
@@ -885,21 +886,27 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
         }
 
         int action_to_apply_idx;
-        int idx = 0;
         int n_applied_effects = 0;
 
-        while (idx < possible_actions_idx.size() && !n_applied_effects) {
+        while (!n_applied_effects) {
+            int idx;
             if (heuristic == 0) {
-                action_to_apply_idx =
-                    possible_actions_idx[PlanningTaskUtils::get_random_number(
-                        0, possible_actions_idx.size())];
+                idx = PlanningTaskUtils::get_random_number(
+                    0, possible_actions_idx.size());
             } else {
-                action_to_apply_idx = possible_actions_idx[idx];
-                idx++;
+                int i = 0;
+                int min_cost = this->actions[possible_actions_idx[0]].h_cost;
+                while (i < possible_actions_idx.size() &&
+                       this->actions[possible_actions_idx[i]].h_cost ==
+                           min_cost)
+                    i++;
+                idx = PlanningTaskUtils::get_random_number(0, i);
             }
 
+            action_to_apply_idx = possible_actions_idx[idx];
             n_applied_effects =
                 apply_action(action_to_apply_idx, current_state);
+            possible_actions_idx.erase(possible_actions_idx.begin() + idx);
         }
 
         // std::cout << "APPLIED ACTION: " << action_to_apply_idx << std::endl;
