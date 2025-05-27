@@ -688,7 +688,8 @@ int PlanningTask::compute_heuristic(std::vector<int> &current_state,
     return total;
 }
 
-void PlanningTask::backward_cost_propagation(std::vector<int> &current_state) {
+void PlanningTask::backward_cost_propagation(std::vector<int> &current_state,
+                                             int heuristic) {
     PriorityQueue<int> pq(this->facts.size());
     int inf = std::numeric_limits<int>::max();
     std::vector<int> fact_costs(this->facts.size(), inf);
@@ -710,14 +711,33 @@ void PlanningTask::backward_cost_propagation(std::vector<int> &current_state) {
 
         for (int i = 0; i < actions.size(); i++) {
             Action &current_action = this->actions[actions[i]];
-            int new_cost = (this->metric == 1)
-                               ? current_action.cost + fact_costs[fact_idx]
-                               : 1 + fact_costs[fact_idx];
 
-            if (current_action.is_used || new_cost >= current_action.h_cost)
-                continue;
-            current_action.h_cost = new_cost;  // h_cost = min(cost(effects))
+            if (current_action.is_used) continue;
+            int new_cost;
+            if (heuristic == 7) {
+                int max_cost = fact_costs[fact_idx];
+                for (int j = 0; j < current_action.n_effects; j++) {
+                    Fact eff{current_action.effects[j].var_affected,
+                             current_action.effects[j].to_value};
+                    if (fact_costs[FIND_FACT_INDEX(eff)] != inf)
+                        max_cost = std::max(max_cost,
+                                            fact_costs[FIND_FACT_INDEX(eff)]);
+                }
+                new_cost = this->metric == 1 ? current_action.cost + max_cost
+                                             : 1 + max_cost;
+            } else if (heuristic == 8) {
+                int sum = 0;
+                for (int j = 0; j < current_action.n_effects; j++) {
+                    Fact eff{current_action.effects[j].var_affected,
+                             current_action.effects[j].to_value};
+                    if (fact_costs[FIND_FACT_INDEX(eff)] != inf)
+                        sum += fact_costs[FIND_FACT_INDEX(eff)];
+                }
+                new_cost =
+                    this->metric == 1 ? current_action.cost + sum : 1 + sum;
+            }
 
+            current_action.h_cost = new_cost;
             for (int j = 0; j < current_action.n_preconds; j++) {
                 Fact pre = current_action.preconds[j];
                 int pre_idx = FIND_FACT_INDEX(pre);
@@ -811,9 +831,9 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
             }
         }
 
-        if (heuristic == 3) {
+        if (heuristic == 7 || heuristic == 8) {
             reset_actions_metadata();
-            backward_cost_propagation(current_state);
+            backward_cost_propagation(current_state, heuristic);
         }
 
         // get possible actions

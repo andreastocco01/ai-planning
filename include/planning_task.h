@@ -165,7 +165,8 @@ class PlanningTask {
     void update_goal_callstack(int applied_action_idx,
                                std::vector<int> &current_state, Fact f);
     int h_max_optimized(std::vector<int> &current_state);
-    void backward_cost_propagation(std::vector<int> &current_state);
+    void backward_cost_propagation(std::vector<int> &current_state,
+                                   int heuristic);
     int apply_pending_effects(std::vector<int> &current_state);
 };
 
