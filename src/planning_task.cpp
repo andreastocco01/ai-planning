@@ -549,6 +549,8 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
 
             for (int i = 0; i < possible_actions_idx.size(); i++)
                 this->actions[possible_actions_idx[i]].h_cost = costs[i];
+            possible_actions_idx = get_possible_actions_idx(
+                current_state, true);  // get sorted actions
         }
 
         int action_to_apply_idx;
