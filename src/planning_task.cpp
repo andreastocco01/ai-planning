@@ -261,301 +261,6 @@ void PlanningTask::remove_satisfied_actions(
     }
 }
 
-void print_queue(std::queue<QueueFrame> q) {
-    while (!q.empty()) {
-        QueueFrame frame = q.front();
-        std::cout << "([" << frame.fact.var_idx << ", " << frame.fact.var_val
-                  << "], " << frame.level << ")"
-                  << " ";
-        q.pop();
-    }
-    std::cout << std::endl;
-}
-
-void print_stack(std::stack<StackFrame> s) {
-    int level = s.size() - 1;
-    while (!s.empty()) {
-        StackFrame frame = s.top();
-        std::cout << level-- << ": "
-                  << "(" << frame.action_idx << ", [" << frame.from.var_idx
-                  << ", " << frame.from.var_val << "], " << frame.level << ")"
-                  << std::endl;
-        s.pop();
-    }
-    std::cout << std::endl;
-}
-
-void print_array_queue(std::vector<QueueFrame> arr) {
-    while (!arr.empty()) {
-        QueueFrame frame = arr.front();
-        std::cout << "([" << frame.fact.var_idx << ", " << frame.fact.var_val
-                  << "], " << frame.level << ")"
-                  << " ";
-        arr.erase(arr.begin());
-    }
-    std::cout << std::endl;
-}
-
-void print_array_stack(std::vector<StackFrame> arr) {
-    int level = arr.size() - 1;
-    while (!arr.empty()) {
-        StackFrame frame = arr.back();
-        std::cout << level-- << ": "
-                  << "(" << frame.action_idx << ", [" << frame.from.var_idx
-                  << ", " << frame.from.var_val << "], " << frame.level << ")"
-                  << std::endl;
-        arr.pop_back();
-    }
-    std::cout << std::endl;
-}
-
-int PlanningTask::h_max_optimized(std::vector<int> &current_state) {
-    PriorityQueue<int> pq(this->facts.size());
-    int inf = std::numeric_limits<int>::max();
-    std::vector<int> fact_costs(this->facts.size(), inf);
-
-    // Initialize current state facts
-    for (int i = 0; i < current_state.size(); i++) {
-        Fact f{i, current_state[i]};
-        int idx = FIND_FACT_INDEX(f);
-        fact_costs[idx] = 0;
-        pq.push(idx, 0);
-    }
-
-    // Main loop
-    while (!pq.isEmpty()) {
-        int fact_idx = pq.top();
-        pq.pop();
-        Fact f = this->facts[fact_idx];
-        std::vector<int> actions_idx = this->map_precond_actions[f];
-        // Add actions with no preconditions
-        actions_idx.insert(actions_idx.end(), this->actions_no_preconds.begin(),
-                           this->actions_no_preconds.end());
-        for (int a_idx : actions_idx) {
-            Action &action = this->actions[a_idx];
-            if (action.is_used) continue;  // skip actions already used
-            int max_pre = 0;
-            for (const Fact &pre : action.preconds) {
-                int pre_idx = FIND_FACT_INDEX(pre);
-                max_pre = std::max(max_pre, fact_costs[pre_idx]);
-            }
-            if (max_pre == inf) continue;
-            int new_cost =
-                this->metric == 1 ? (max_pre + action.cost) : (max_pre + 1);
-            action.h_cost = new_cost;
-            for (const Effect &eff : action.effects) {
-                Fact eff_fact{eff.var_affected, eff.to_value};
-                int eff_idx = FIND_FACT_INDEX(eff_fact);
-                if (new_cost < fact_costs[eff_idx]) {
-                    fact_costs[eff_idx] = new_cost;
-                    if (pq.has(eff_idx))
-                        pq.change(eff_idx, new_cost);
-                    else
-                        pq.push(eff_idx, new_cost);
-                }
-            }
-        }
-    }
-
-    // Compute h_max for goals
-    int h_max = 0;
-    for (const Fact &goal : this->goal_state) {
-        h_max = std::max(h_max, fact_costs[FIND_FACT_INDEX(goal)]);
-    }
-    return h_max;
-}
-
-void PlanningTask::create_callstack() {
-    for (int i = 0; i < this->n_goals; i++) {
-        Fact goal = this->goal_state[i];
-
-        int inf = std::numeric_limits<int>::max();
-        std::vector<int> fact_costs(this->facts.size(), inf);
-
-        // Initialize current state facts
-        for (int i = 0; i < this->initial_state.size(); i++) {
-            Fact f{i, this->initial_state[i]};
-            int idx = FIND_FACT_INDEX(f);
-            fact_costs[idx] = 0;
-        }
-
-        std::vector<QueueFrame> &queue = this->map_fqueue[goal];
-        std::vector<StackFrame> &stack = this->map_astack[goal];
-        queue.push_back({goal, -1});
-        std::vector<bool> visited_actions(this->n_actions, false);
-        std::vector<bool> visited_facts(this->facts.size(), false);
-
-        // create the sequence of actions to compute costs
-        for (int idx = 0; idx < queue.size(); idx++) {
-            Fact current = queue[idx].fact;  // get the oldest fact in the queue
-            int level = queue[idx].level;
-
-            if (fact_costs[FIND_FACT_INDEX(current)] == 0) continue;
-
-            // get the actions having the popped fact as effect
-            std::vector<int> actions = this->map_effect_actions[current];
-            for (int i = 0; i < actions.size(); i++) {
-                if (this->actions[actions[i]].is_used ||
-                    visited_actions[actions[i]])
-                    continue;
-
-                visited_actions[actions[i]] = true;
-                // push the pair (action, fact) onto the stack
-                stack.push_back({actions[i], current, level});
-                Action action = this->actions[actions[i]];
-                for (int j = 0; j < action.n_preconds; j++) {
-                    int fact_idx = FIND_FACT_INDEX(action.preconds[j]);
-                    if (visited_facts[fact_idx]) continue;
-
-                    visited_facts[fact_idx] = true;
-                    // push the precondition to the end of the fact queue
-                    queue.push_back(
-                        {action.preconds[j], (int)stack.size() - 1});
-                }
-            }
-        }
-
-        this->visited_actions[goal] = visited_actions;
-        this->visited_facts[goal] = visited_facts;
-    }
-}
-
-int PlanningTask::iterative_h_max(std::vector<int> &current_state, Fact fact) {
-    int inf = std::numeric_limits<int>::max();
-    std::vector<int> fact_costs(this->facts.size(), inf);
-
-    // Initialize current state facts
-    for (int i = 0; i < current_state.size(); i++) {
-        Fact f{i, current_state[i]};
-        int idx = FIND_FACT_INDEX(f);
-        fact_costs[idx] = 0;
-    }
-
-    std::vector<StackFrame> &astack =
-        this->map_astack[fact];  // actually compute the costs
-    for (int i = astack.size() - 1; i >= 0; i--) {
-        StackFrame entry = astack[i];  // get the last inserted action
-
-        Action &action = this->actions[entry.action_idx];
-
-        int max_pre = 0;
-        for (int j = 0; j < action.n_preconds; j++) {
-            max_pre = std::max(max_pre,
-                               fact_costs[FIND_FACT_INDEX(action.preconds[j])]);
-        }
-
-        if (max_pre == inf)
-            action.h_cost = inf;
-        else
-            action.h_cost =
-                this->metric == 1 ? (action.cost + max_pre) : (1 + max_pre);
-
-        int fact_idx = FIND_FACT_INDEX(entry.from);
-        fact_costs[fact_idx] = std::min(fact_costs[fact_idx], action.h_cost);
-    }
-
-    return fact_costs[FIND_FACT_INDEX(fact)];
-}
-
-void PlanningTask::update_goal_callstack(int applied_action_idx,
-                                         std::vector<int> &current_state,
-                                         Fact goal) {
-    Action action = this->actions[applied_action_idx];
-
-    std::vector<StackFrame> &stack = this->map_astack[goal];
-    std::vector<QueueFrame> &queue = this->map_fqueue[goal];
-    std::vector<bool> &visited_actions = this->visited_actions[goal];
-    std::vector<bool> &visited_facts = this->visited_facts[goal];
-
-    int idx = 0;
-
-    if (!stack.empty()) {  // the stack is not empty
-        int stack_level = stack.size();
-        Fact fact_to_remove;
-        // find the last occurrence among the added facts on the stack
-        for (int i = 0; i < action.n_effects; ++i) {
-            Fact f{action.effects[i].var_affected, action.effects[i].to_value};
-
-            for (size_t j = 0; j < stack.size(); ++j) {
-                if (stack[j].from == f && j < (size_t)stack_level) {
-                    stack_level = j;
-                    fact_to_remove = f;
-                    break;  // no need to look further for this fact
-                }
-            }
-        }
-
-        // remove all the elements above in the stack and in the queue
-        if (stack_level < stack.size()) {
-            // unmark visited actions above stack_level
-            for (size_t i = stack_level; i < stack.size(); ++i) {
-                visited_actions[stack[i].action_idx] = false;
-            }
-
-            // unmark visited facts with level >= stack_level
-            auto queue_cutoff = std::find_if(
-                queue.begin(), queue.end(),
-                [&](const QueueFrame &qf) { return qf.level >= stack_level; });
-
-            for (auto it = queue_cutoff; it != queue.end(); ++it) {
-                visited_facts[FIND_FACT_INDEX(it->fact)] = false;
-            }
-
-            // erase elements to be recomputed
-            stack.erase(stack.begin() + stack_level, stack.end());
-            queue.erase(queue_cutoff, queue.end());
-
-            // find first fact not computed in the queue
-            idx = std::distance(queue.begin(),
-                                std::find_if(queue.begin(), queue.end(),
-                                             [&](const QueueFrame &frame) {
-                                                 return frame.fact ==
-                                                        stack.back().from;
-                                             }));
-        }
-    }
-
-    // add the new layers
-    int inf = std::numeric_limits<int>::max();
-    std::vector<int> fact_costs(this->facts.size(), inf);
-
-    // Initialize current state facts
-    for (int i = 0; i < current_state.size(); i++) {
-        Fact f{i, current_state[i]};
-        int idx = FIND_FACT_INDEX(f);
-        fact_costs[idx] = 0;
-    }
-
-    // recompute layers
-    for (; idx < queue.size(); idx++) {
-        Fact current = queue[idx].fact;  // get the oldest fact in the queue
-        int level = queue[idx].level;
-
-        if (fact_costs[FIND_FACT_INDEX(current)] == 0) continue;
-
-        // get the actions having the popped fact as effect
-        std::vector<int> actions = this->map_effect_actions[current];
-        for (int i = 0; i < actions.size(); i++) {
-            if (this->actions[actions[i]].is_used ||
-                visited_actions[actions[i]])
-                continue;
-
-            visited_actions[actions[i]] = true;
-            // push the pair (action, fact) onto the stack
-            stack.push_back({actions[i], current, level});
-            Action action = this->actions[actions[i]];
-            for (int j = 0; j < action.n_preconds; j++) {
-                int fact_idx = FIND_FACT_INDEX(action.preconds[j]);
-                if (visited_facts[fact_idx]) continue;
-
-                visited_facts[fact_idx] = true;
-                // push the precondition to the end of the fact queue
-                queue.push_back({action.preconds[j], (int)stack.size() - 1});
-            }
-        }
-    }
-}
-
 int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact,
                         std::unordered_set<int> &visited,
                         std::unordered_map<int, int> &cache) {
@@ -604,54 +309,6 @@ int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact,
     return min_h_cost;
 }
 
-int PlanningTask::h_add(std::vector<int> &current_state, Fact &fact,
-                        std::unordered_set<int> &visited,
-                        std::unordered_map<int, int> &cache) {
-    int fact_idx = FIND_FACT_INDEX(fact);
-
-    // **Check Cache**
-    if (cache.find(fact_idx) != cache.end()) {
-        return cache[fact_idx];  // Return stored result
-    }
-
-    if (current_state[fact.var_idx] == fact.var_val ||
-        visited.find(fact_idx) != visited.end()) {
-        return 0;  // Base case
-    }
-
-    visited.insert(fact_idx);
-
-    // get all the actions having "fact" as outcome
-    std::vector<int> actions_idx = this->map_effect_actions[fact];
-
-    if (actions_idx.empty())  // the fact is unreachable
-        return std::numeric_limits<int>::max();
-
-    int min_h_cost = std::numeric_limits<int>::max();
-
-    for (int idx : actions_idx) {
-        if (this->actions[idx].is_used) continue;
-        if (this->metric == 1)
-            this->actions[idx].h_cost = this->actions[idx].cost;
-        else
-            this->actions[idx].h_cost = 1;
-
-        for (int j = 0; j < this->actions[idx].n_preconds; j++) {
-            this->actions[idx].h_cost += h_add(
-                current_state, this->actions[idx].preconds[j], visited, cache);
-        }
-
-        if (this->actions[idx].h_cost < 0)  // overflow
-            this->actions[idx].h_cost = std::numeric_limits<int>::max();
-
-        min_h_cost = std::min(min_h_cost, this->actions[idx].h_cost);
-    }
-
-    // **Store Computed Result in Cache**
-    cache[fact_idx] = min_h_cost;
-    return min_h_cost;
-}
-
 void PlanningTask::reset_actions_metadata() {
     for (int i = 0; i < this->n_actions; i++) {
         this->actions[i].h_cost = std::numeric_limits<int>::max();
@@ -663,25 +320,11 @@ int PlanningTask::compute_heuristic(std::vector<int> &current_state,
     int total = 0;
     std::unordered_map<int, int> cache;  // Cache to store heuristic values
 
-    if (heuristic == 2) {
-        total = h_max_optimized(current_state);
-    } else if (heuristic == 4) {
-        for (int i = 0; i < this->n_goals; i++) {
-            std::unordered_set<int> visited;
-            total += h_add(current_state, this->goal_state[i], visited, cache);
-        }
-        if (total < 0)  // overflow
-            total = std::numeric_limits<int>::max();
-    } else if (heuristic == 5) {
+    if (heuristic == 2 || heuristic == 3) {
         for (int i = 0; i < this->n_goals; i++) {
             std::unordered_set<int> visited;
             total = std::max(total, h_max(current_state, this->goal_state[i],
                                           visited, cache));
-        }
-    } else if (heuristic == 6) {
-        for (int i = 0; i < this->n_goals; i++) {
-            total = std::max(
-                total, iterative_h_max(current_state, this->goal_state[i]));
         }
     }
 
@@ -714,7 +357,13 @@ void PlanningTask::backward_cost_propagation(std::vector<int> &current_state,
 
             if (current_action.is_used) continue;
             int new_cost;
-            if (heuristic == 7) {
+            if (heuristic == 4) {
+                new_cost = (this->metric == 1)
+                               ? current_action.cost + fact_costs[fact_idx]
+                               : 1 + fact_costs[fact_idx];
+
+                if (new_cost >= current_action.h_cost) continue;
+            } else if (heuristic == 5) {
                 int max_cost = fact_costs[fact_idx];
                 for (int j = 0; j < current_action.n_effects; j++) {
                     Fact eff{current_action.effects[j].var_affected,
@@ -725,7 +374,7 @@ void PlanningTask::backward_cost_propagation(std::vector<int> &current_state,
                 }
                 new_cost = this->metric == 1 ? current_action.cost + max_cost
                                              : 1 + max_cost;
-            } else if (heuristic == 8) {
+            } else if (heuristic == 6) {
                 int sum = 0;
                 for (int j = 0; j < current_action.n_effects; j++) {
                     Fact eff{current_action.effects[j].var_affected,
@@ -810,8 +459,6 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
     create_structs();
     std::cout << "Done" << std::endl;
 
-    if (heuristic == 6) create_callstack();
-
     bool no_solution = false;
 
     while (!goal_reached(current_state)) {
@@ -820,18 +467,17 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
             std::cout << "Applied " << n << " pending effects" << std::endl;
 
         // calculate heuristic costs
-        if (heuristic == 2 || heuristic == 4 || heuristic == 5 ||
-            heuristic == 6) {
+        if (heuristic == 2 || heuristic == 3) {
             reset_actions_metadata();
             int total = compute_heuristic(current_state, heuristic);
             if (total < estimated_cost) {
                 estimated_cost = total;
-                std::cout << "New estimated cost to reach the goal state: "
-                          << estimated_cost << std::endl;
+                std::cout << "New estimated cost: " << estimated_cost
+                          << std::endl;
             }
         }
 
-        if (heuristic == 7 || heuristic == 8) {
+        if (heuristic == 4 || heuristic == 5 || heuristic == 6) {
             reset_actions_metadata();
             backward_cost_propagation(current_state, heuristic);
         }
@@ -864,7 +510,7 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
         // apply each possible action
         // re-compute hmax
         // add to h_cost the result of hmax
-        if (heuristic == 5) {
+        if (heuristic == 3) {
             std::vector<int> costs;
             for (int i = 0; i < possible_actions_idx.size(); i++)
                 costs.push_back(this->actions[possible_actions_idx[i]].h_cost);
@@ -930,11 +576,6 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
         }
 
         // std::cout << "APPLIED ACTION: " << action_to_apply_idx << std::endl;
-
-        if (heuristic == 6)
-            for (int i = 0; i < this->n_goals; i++)
-                update_goal_callstack(action_to_apply_idx, current_state,
-                                      this->goal_state[i]);
     }
 
     if (time_limit != -1) {

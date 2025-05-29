@@ -111,18 +111,6 @@ class PlanningTask {
     std::vector<Action> actions;
     int n_axioms;
     std::vector<Axiom> axioms;
-    std::unordered_map<Fact, std::vector<int>, FactHasher> map_precond_actions;
-    std::unordered_map<Fact, std::vector<int>, FactHasher> map_effect_actions;
-    std::vector<Fact> facts;  // mapping index -> Fact
-    std::unordered_map<Fact, int, FactHasher> fact_to_index;
-    std::vector<int> actions_no_preconds;
-
-    std::unordered_map<Fact, std::vector<QueueFrame>, FactHasher> map_fqueue;
-    std::unordered_map<Fact, std::vector<StackFrame>, FactHasher> map_astack;
-    std::unordered_map<Fact, std::vector<bool>, FactHasher> visited_actions;
-    std::unordered_map<Fact, std::vector<bool>, FactHasher> visited_facts;
-
-    std::vector<Effect> pending_effects;
 
     std::vector<IndexAction> solution;
     int solution_cost;
@@ -138,6 +126,13 @@ class PlanningTask {
     int solve(int seed, int heuristic, bool debug, int time_limit);
 
    private:
+    std::unordered_map<Fact, std::vector<int>, FactHasher> map_precond_actions;
+    std::unordered_map<Fact, std::vector<int>, FactHasher> map_effect_actions;
+    std::vector<Fact> facts;  // mapping index -> Fact
+    std::unordered_map<Fact, int, FactHasher> fact_to_index;
+    std::vector<int> actions_no_preconds;
+    std::vector<Effect> pending_effects;
+
     bool goal_reached(std::vector<int> &current_state);
     void apply_axioms(std::vector<int> &current_state);
     bool check_axiom_cond(Axiom axiom, std::vector<int> &current_state);
@@ -147,9 +142,6 @@ class PlanningTask {
     std::vector<int> get_possible_actions_idx(std::vector<int> &current_state,
                                               bool check_usage);
     int apply_action(int idx, std::vector<int> &current_state);
-    int h_add(std::vector<int> &current_state, Fact &fact,
-              std::unordered_set<int> &visited,
-              std::unordered_map<int, int> &cache);
     int h_max(std::vector<int> &current_state, Fact &fact,
               std::unordered_set<int> &visited,
               std::unordered_map<int, int> &cache);
@@ -160,11 +152,6 @@ class PlanningTask {
     bool check_integrity();
     void create_structs();
     void reset_actions_metadata();
-    int iterative_h_max(std::vector<int> &current_state, Fact fact);
-    void create_callstack();
-    void update_goal_callstack(int applied_action_idx,
-                               std::vector<int> &current_state, Fact f);
-    int h_max_optimized(std::vector<int> &current_state);
     void backward_cost_propagation(std::vector<int> &current_state,
                                    int heuristic);
     int apply_pending_effects(std::vector<int> &current_state);
