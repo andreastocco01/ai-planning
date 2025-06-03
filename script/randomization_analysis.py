@@ -1,6 +1,5 @@
 from os import listdir
 import re
-import numpy as np
 import matplotlib.pyplot as plt
 
 def extract_instance_costs(file_list, directory):
@@ -29,7 +28,7 @@ test_instances = [
     filename for filename in listdir('../DeletefreeSAS')
 ]
 
-n_iter = 0
+n_iter = 1
 min_points = []
 avg_points = []
 for instance in test_instances:
@@ -44,37 +43,24 @@ for instance in test_instances:
     ]
 
     # Find best known cost (excluding -1 values)
-    valid_costs = [cost for sublist in instance_costs for cost in sublist if cost != -1]
+    valid_costs = [cost for sublist in instance_costs for cost in sublist if cost > 0]
     if valid_costs:
         best_known = min(valid_costs)
         avg = sum(valid_costs) / len(valid_costs)
 
         min_points.append(best_known)
         avg_points.append(avg)
-    else:
-        n_iter += 1
-        continue
 
     if n_iter % 100 == 0:
         print(f'{n_iter}/{len(test_instances)}')
     n_iter += 1
 
-print(f'min points: {min_points}')
-print(f'avg points: {avg_points}')
-
-# Define x-axis values (thresholds from 0.0 to 1.0)
-x_values = range(1, len(min_points))
-
-# Plot results
-plt.figure(figsize=(8, 6))
-plt.plot(x_values, min_points, marker='o', linestyle='-', label='min')
-plt.plot(x_values, avg_points, marker='s', linestyle='-', label='avg')
-
-# Labels and Title
-plt.xlabel("Instance")
-plt.title("Randomization analysis")
-
-# Grid and Legend
-plt.grid(True, linestyle="--", alpha=0.6)
+plt.figure(figsize=(10, 6))
+plt.scatter(avg_points, min_points, alpha=0.5, label='Min vs Avg Cost')
+plt.plot([min(min_points), max(avg_points)], [min(min_points), max(avg_points)], 'r--', label='y = x (Min = Avg)')
+plt.xlabel("Average Cost Across Seeds")
+plt.ylabel("Minimum Cost Across Seeds")
+plt.title("Effectiveness of Randomization (Per Instance)")
 plt.legend()
+plt.grid(True)
 plt.show()
