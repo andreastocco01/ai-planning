@@ -38,12 +38,10 @@ for instance in test_instances:
     alg_files = [file for file in listdir(alg_dir) if re.search(instance_base_name, file)]
 
     # Extract costs
-    instance_costs = [
-        extract_instance_costs(alg_files, alg_dir),
-    ]
+    instance_costs = extract_instance_costs(alg_files, alg_dir)
 
     # Find best known cost (excluding -1 values)
-    valid_costs = [cost for sublist in instance_costs for cost in sublist if cost > 0]
+    valid_costs = [cost for cost in instance_costs if cost != -1]
     if valid_costs:
         best_known = min(valid_costs)
         avg = sum(valid_costs) / len(valid_costs)
@@ -55,12 +53,20 @@ for instance in test_instances:
         print(f'{n_iter}/{len(test_instances)}')
     n_iter += 1
 
+print("min_points = ", min_points)
+print("avg_points = ", avg_points)
+
 plt.figure(figsize=(10, 6))
-plt.scatter(avg_points, min_points, alpha=0.5, label='Min vs Avg Cost')
-plt.plot([min(min_points), max(avg_points)], [min(min_points), max(avg_points)], 'r--', label='y = x (Min = Avg)')
-plt.xlabel("Average Cost Across Seeds")
-plt.ylabel("Minimum Cost Across Seeds")
-plt.title("Effectiveness of Randomization (Per Instance)")
+plt.scatter(min_points, avg_points, alpha=0.5)
+plt.plot([min(min_points), max(min_points)], [min(min_points), max(min_points)], 'r--', label='y = x')
+
+plt.xscale('log')
+plt.yscale('log')
+
+plt.xlabel('Best Cost (min across seeds)')
+plt.ylabel('Average Cost (avg across seeds)')
+plt.title('Best vs Average Cost (Log Scale)')
 plt.legend()
-plt.grid(True)
+plt.grid(True, which='both', ls='--')
+plt.tight_layout()
 plt.show()
