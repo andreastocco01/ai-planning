@@ -57,8 +57,8 @@ print("min_points = ", min_points)
 print("avg_points = ", avg_points)
 
 plt.figure(figsize=(10, 6))
-plt.scatter(min_points, avg_points, alpha=0.5)
-plt.plot([min(min_points), max(min_points)], [min(min_points), max(min_points)], 'r--', label='y = x')
+plt.scatter(min_points, avg_points, alpha=0.2)
+plt.plot([min(min_points), max(min_points)], [min(min_points), max(min_points)], 'r--', label='avg = min')
 
 plt.xscale('log')
 plt.yscale('log')
