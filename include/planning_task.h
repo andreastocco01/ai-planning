@@ -155,6 +155,8 @@ class PlanningTask {
     void backward_cost_propagation(std::vector<int> &current_state,
                                    int heuristic);
     int apply_pending_effects(std::vector<int> &current_state);
+    void look_ahead(std::vector<int> &current_state,
+                    std::vector<int> &possible_actions_idx, int heuristic);
 };
 
 #endif
