@@ -8,13 +8,19 @@
 void print_usage(std::string executable) {
     std::cerr << "Usage: " << executable
               << " --from-file <file_name> --alg <alg_code> --seed <int> "
-                 "[--time-limit <int>] --debug <bool>"
+                 "[--time-limit <int>] --debug <bool> [--start <float>] [--end "
+                 "<float>]"
               << std::endl;
-    std::cerr << "Supported alg_code are:" << std::endl
+    std::cerr << std::endl
+              << "Supported alg_code are:" << std::endl
               << "0: random" << std::endl
               << "1: greedy" << std::endl
-              << "2: h_add" << std::endl
-              << "3: h_max" << std::endl;
+              << "2: greedy + pruning" << std::endl
+              << "3: h_max + lookahead" << std::endl
+              << "4: backward cost propagation (min)" << std::endl
+              << "5: backward cost propagation (max)" << std::endl
+              << "6: backward cost propagation (sum)" << std::endl
+              << "7: re-apply alg 4" << std::endl;
 }
 
 void compute_next_state(PlanningTask& pt, int action_idx,
@@ -44,7 +50,7 @@ void compute_next_state(PlanningTask& pt, int action_idx,
 
 void merge_solutions(int start, int end, PlanningTask& original,
                      PlanningTask& sub) {
-    for (int i = start; i >= 0; i--) {
+    for (int i = start - 1; i >= 0; i--) {
         sub.solution.insert(sub.solution.begin(), original.solution[i]);
         sub.solution_cost +=
             (sub.metric == 1) ? original.actions[original.solution[i].idx].cost
@@ -69,9 +75,9 @@ PlanningTask create_subproblem(PlanningTask& orig, int start, int end) {
     // new initial_state = state after applying action at start
     int i = 0;
     for (; i < end; i++) {
+        if (i == start) sub.initial_state = current_state;
         int idx = orig.solution[i].idx;
         compute_next_state(sub, idx, current_state);
-        if (i == start) sub.initial_state = current_state;
     }
 
     // new goal_state = state up to end
@@ -100,6 +106,8 @@ int main(int argc, char** argv) {
     int seed;
     int time_limit;
     int debug;
+    float p_start = -1;
+    float p_end = 2;
     for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "--from-file") {
@@ -122,6 +130,12 @@ int main(int argc, char** argv) {
             debug_flag = true;
             debug = std::stoi(argv[++i]);
         }
+        if (arg == "--start") {
+            p_start = std::stof(argv[++i]);
+        }
+        if (arg == "--end") {
+            p_end = std::stof(argv[++i]);
+        }
     }
 
     if (!(from_file_flag && alg_flag && seed_flag && debug_flag) || alg < 0 ||
@@ -131,6 +145,12 @@ int main(int argc, char** argv) {
     }
 
     if (!time_limit_flag) time_limit = -1;
+    if (alg == 7 && (p_start < 0 || p_end > 1 || p_start >= p_end)) {
+        print_usage(argv[0]);
+        std::cerr << std::endl
+                  << "For alg 7: 0 <= start < end <= 1" << std::endl;
+        return 1;
+    }
 
     PlanningTaskParser parser;
     PlanningTask pt = parser.parse_from_file(file_name);
@@ -163,7 +183,7 @@ int main(int argc, char** argv) {
             std::cout << "backward cost propagation (sum)" << std::endl;
             break;
         case 7:
-            std::cout << "re-apply alg 6" << std::endl;
+            std::cout << "re-apply alg 4" << std::endl;
             break;
     }
 
@@ -175,8 +195,8 @@ int main(int argc, char** argv) {
     }
 
     if (alg == 7 && !res) {
-        int start = pt.solution.size() * 0.2;
-        int end = pt.solution.size() * 0.8;
+        int start = pt.solution.size() * p_start;
+        int end = pt.solution.size() * p_end;
         if (start >= end) {
             std::cout << "Degenerate subproblem: start >= end" << std::endl;
             return 1;

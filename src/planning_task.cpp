@@ -374,7 +374,7 @@ void PlanningTask::backward_cost_propagation(std::vector<int> &current_state,
 
             if (current_action.is_used) continue;
             int new_cost;
-            if (heuristic == 4) {
+            if (heuristic == 4 || heuristic == 7) {
                 new_cost = (this->metric == 1)
                                ? current_action.cost + fact_costs[fact_idx]
                                : 1 + fact_costs[fact_idx];
@@ -391,7 +391,7 @@ void PlanningTask::backward_cost_propagation(std::vector<int> &current_state,
                 }
                 new_cost = this->metric == 1 ? current_action.cost + max_cost
                                              : 1 + max_cost;
-            } else if (heuristic == 6 || heuristic == 7) {
+            } else if (heuristic == 6) {
                 int sum = 0;
                 for (int j = 0; j < current_action.n_effects; j++) {
                     Fact eff{current_action.effects[j].var_affected,
