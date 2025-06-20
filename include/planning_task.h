@@ -114,6 +114,7 @@ class PlanningTask {
 
     std::vector<IndexAction> solution;
     int solution_cost;
+    std::vector<Effect> pending_effects;
 
     PlanningTask(int metric, int n_vars, std::vector<Variable> &vars,
                  int n_mutex, std::vector<MutexGroup> &mutexes,
@@ -122,7 +123,11 @@ class PlanningTask {
                  std::vector<Action> &actions, int n_axioms,
                  std::vector<Axiom> &axioms);
 
+    // Copy constructor
+    PlanningTask(const PlanningTask &other);
+
     void print_solution();
+    bool check_integrity();
     int solve(int seed, int heuristic, bool debug, int time_limit);
 
    private:
@@ -131,7 +136,6 @@ class PlanningTask {
     std::vector<Fact> facts;  // mapping index -> Fact
     std::unordered_map<Fact, int, FactHasher> fact_to_index;
     std::vector<int> actions_no_preconds;
-    std::vector<Effect> pending_effects;
 
     bool goal_reached(std::vector<int> &current_state);
     void apply_axioms(std::vector<int> &current_state);
@@ -149,7 +153,6 @@ class PlanningTask {
     void remove_satisfied_actions(std::vector<int> &current_state,
                                   std::vector<int> &possible_actions_idx);
     void print_action_h_costs(std::vector<int> &actions_idx);
-    bool check_integrity();
     void create_structs();
     void reset_actions_metadata();
     void backward_cost_propagation(std::vector<int> &current_state,

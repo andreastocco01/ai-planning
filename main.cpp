@@ -17,6 +17,73 @@ void print_usage(std::string executable) {
               << "3: h_max" << std::endl;
 }
 
+void compute_next_state(PlanningTask& pt, int action_idx,
+                        std::vector<int>& current_state) {
+    for (int i = 0; i < pt.actions[action_idx].n_effects; i++) {
+        Effect effect = pt.actions[action_idx].effects[i];
+        int j;
+        for (j = 0; j < effect.n_effect_conds; j++) {
+            Fact effect_cond = effect.effect_conds[j];
+            if (current_state[effect_cond.var_idx] != effect_cond.var_val &&
+                effect_cond.var_val != -1)
+                break;
+        }
+        if (j < effect.n_effect_conds) {  // the effect cannot be applied
+            pt.pending_effects.push_back(effect);
+            continue;
+        }
+        int var = effect.var_affected;
+        if (current_state[var] == effect.from_value ||
+            effect.from_value == -1) {
+            current_state[var] = effect.to_value;
+        } else {
+            pt.pending_effects.push_back(effect);
+        }
+    }
+}
+
+void merge_solutions(int start, int end, PlanningTask& original,
+                     PlanningTask& sub) {
+    for (int i = start; i >= 0; i--) {
+        sub.solution.insert(sub.solution.begin(), original.solution[i]);
+        sub.solution_cost +=
+            (sub.metric == 1) ? original.actions[original.solution[i].idx].cost
+                              : 1;
+        sub.actions[original.solution[i].idx].is_used =
+            true;  // mark them as used
+    }
+    for (int i = end; i < original.solution.size(); i++) {
+        sub.solution.push_back(original.solution[i]);
+        sub.solution_cost +=
+            (sub.metric == 1) ? original.actions[original.solution[i].idx].cost
+                              : 1;
+        sub.actions[original.solution[i].idx].is_used =
+            true;  // mark them as used
+    }
+}
+
+PlanningTask create_subproblem(PlanningTask& orig, int start, int end) {
+    PlanningTask sub(orig);
+    std::vector<int> current_state = orig.initial_state;
+
+    // new initial_state = state after applying action at start
+    int i = 0;
+    for (; i < end; i++) {
+        int idx = orig.solution[i].idx;
+        compute_next_state(sub, idx, current_state);
+        if (i == start) sub.initial_state = current_state;
+    }
+
+    // new goal_state = state up to end
+    for (int k = 0; k < current_state.size(); k++) {
+        if (current_state[k] != sub.initial_state[k]) {
+            sub.goal_state.push_back({k, current_state[k]});
+        }
+    }
+    sub.n_goals = sub.goal_state.size();
+    return sub;
+}
+
 int main(int argc, char** argv) {
     if (argc < 9) {
         print_usage(argv[0]);
@@ -58,7 +125,7 @@ int main(int argc, char** argv) {
     }
 
     if (!(from_file_flag && alg_flag && seed_flag && debug_flag) || alg < 0 ||
-        alg > 6) {
+        alg > 7) {
         print_usage(argv[0]);
         return 1;
     }
@@ -95,13 +162,50 @@ int main(int argc, char** argv) {
         case 6:
             std::cout << "backward cost propagation (sum)" << std::endl;
             break;
+        case 7:
+            std::cout << "re-apply alg 6" << std::endl;
+            break;
     }
 
-    if (!pt.solve(seed, alg, debug, time_limit)) {
+    int res;
+    if (!(res = pt.solve(seed, alg, debug, time_limit))) {
         std::cout << std::endl
                   << "############### Solution ###############" << std::endl;
         pt.print_solution();
     }
 
+    if (alg == 7 && !res) {
+        int start = pt.solution.size() * 0.2;
+        int end = pt.solution.size() * 0.8;
+        if (start >= end) {
+            std::cout << "Degenerate subproblem: start >= end" << std::endl;
+            return 1;
+        }
+
+        PlanningTask sub = create_subproblem(pt, start, end);
+
+        if (!sub.solve(seed, alg, debug, time_limit)) {
+            std::cout << std::endl
+                      << "############### Sub-Problem Solution ###############"
+                      << std::endl;
+            sub.print_solution();
+
+            // merge sub-solution with the original one
+            merge_solutions(start, end, pt, sub);
+            std::cout << std::endl
+                      << "############### Final Solution ###############"
+                      << std::endl;
+            sub.print_solution();
+
+            if (debug) {
+                sub.initial_state = pt.initial_state;
+                sub.goal_state = pt.goal_state;
+                if (sub.check_integrity())
+                    std::cout << "Integrity check passed!" << std::endl;
+                else
+                    std::cout << "Integrity check NOT passed!" << std::endl;
+            }
+        }
+    }
     return 0;
 }

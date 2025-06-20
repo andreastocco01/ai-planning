@@ -44,6 +44,23 @@ PlanningTask::PlanningTask(int metric, int n_vars, std::vector<Variable> &vars,
     this->solution_cost = 0;
 }
 
+PlanningTask::PlanningTask(const PlanningTask &other) {
+    this->metric = other.metric;
+    this->n_vars = other.n_vars;
+    this->vars = other.vars, this->n_mutex = other.n_mutex;
+    this->mutexes = other.mutexes;
+    this->n_actions = other.n_actions;
+    this->actions = other.actions;
+    reset_actions_metadata();
+    for (int i = 0; i < this->n_actions; i++) {
+        this->actions[i].is_used = false;
+    }
+    this->n_axioms = other.n_axioms;
+    this->axioms = other.axioms;
+
+    this->solution_cost = 0;
+}
+
 /*
     check if the current state is a goal state
 */
@@ -131,7 +148,7 @@ std::vector<int> PlanningTask::get_possible_actions_idx(
             actions_idx.push_back(i);
         }
     }
-    std::sort(
+    std::stable_sort(
         actions_idx.begin(), actions_idx.end(), [this](int idx_a, int idx_b) {
             return this->actions[idx_a].h_cost < this->actions[idx_b].h_cost;
         });
@@ -374,7 +391,7 @@ void PlanningTask::backward_cost_propagation(std::vector<int> &current_state,
                 }
                 new_cost = this->metric == 1 ? current_action.cost + max_cost
                                              : 1 + max_cost;
-            } else if (heuristic == 6) {
+            } else if (heuristic == 6 || heuristic == 7) {
                 int sum = 0;
                 for (int j = 0; j < current_action.n_effects; j++) {
                     Fact eff{current_action.effects[j].var_affected,
@@ -522,7 +539,8 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
             }
         }
 
-        if (heuristic == 4 || heuristic == 5 || heuristic == 6) {
+        if (heuristic == 4 || heuristic == 5 || heuristic == 6 ||
+            heuristic == 7) {
             reset_actions_metadata();
             backward_cost_propagation(current_state, heuristic);
         }
