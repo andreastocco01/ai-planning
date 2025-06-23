@@ -624,6 +624,7 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
 
 bool PlanningTask::check_integrity() {
     std::vector<int> current_state = this->initial_state;
+    int cost = 0;
     for (int k = 0; k < this->solution.size(); k++) {
         IndexAction indexAction = this->solution[k];
         std::vector<int> actions_idx =
@@ -653,6 +654,8 @@ bool PlanningTask::check_integrity() {
                 current_state[var] = effect.to_value;
             }
         }
+        cost += this->actions[indexAction.idx].cost;
     }
-    return true;
+    if (cost == this->solution_cost) return true;
+    return false;
 }
