@@ -1,7 +1,7 @@
 from os import listdir
 
 files = [file for file in listdir('../DeletefreeSAS/')]
-algs = ['7']
+algs = ['0', '1', '2', '3', '4', '5', '6']
 seeds = range(42, 52)
 
 with open('tasks.txt', 'w') as out:
