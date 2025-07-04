@@ -605,12 +605,7 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
         kill(pid, SIGTERM);
     }
 
-    if (no_solution) {
-        std::cout << "Solution does not exist!" << std::endl;
-        return -1;
-    } else {
-        std::cout << "Solution found!" << std::endl;
-    }
+    if (no_solution) return -1;
 
     if (debug) {
         if (check_integrity())

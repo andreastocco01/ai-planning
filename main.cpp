@@ -1,3 +1,4 @@
+#include <csignal>
 #include <iostream>
 #include <string>
 
@@ -8,7 +9,7 @@
 void print_usage(std::string executable) {
     std::cerr << "Usage: " << executable
               << " --from-file <file_name> --alg <alg_code> --seed <int> "
-                 "[--time-limit <int>] --debug <bool> [--start <float>] [--end "
+                 "[--timelimit <int>] --debug <bool> [--start <float>] [--end "
                  "<float>]"
               << std::endl;
     std::cerr << std::endl
@@ -90,7 +91,21 @@ PlanningTask create_subproblem(PlanningTask& orig, int start, int end) {
     return sub;
 }
 
+PlanningTask pt, sub;
+bool solving_sub = false;
+
+void signal_handler(int signum) {
+    std::cout << "Timelimit reached" << std::endl;
+    if (solving_sub) {  // a solution for the original problem was found
+        std::cout << std::endl
+                  << "############### Solution ###############" << std::endl;
+        pt.print_solution();
+    }
+    exit(signum);
+}
+
 int main(int argc, char** argv) {
+    signal(SIGTERM, signal_handler);
     if (argc < 9) {
         print_usage(argv[0]);
         return 1;
@@ -122,7 +137,7 @@ int main(int argc, char** argv) {
             seed_flag = true;
             seed = std::stoi(argv[++i]);
         }
-        if (arg == "--time-limit") {
+        if (arg == "--timelimit") {
             time_limit_flag = true;
             time_limit = std::stoi(argv[++i]);
         }
@@ -153,7 +168,7 @@ int main(int argc, char** argv) {
     }
 
     PlanningTaskParser parser;
-    PlanningTask pt = parser.parse_from_file(file_name);
+    pt = parser.parse_from_file(file_name);
     std::cout << "File " << file_name << " parsed!" << std::endl << std::endl;
     std::cout << "############ File structure #############" << std::endl;
     PlanningTaskUtils::print_structure(pt);
@@ -187,11 +202,18 @@ int main(int argc, char** argv) {
             break;
     }
 
-    int res;
-    if (!(res = pt.solve(seed, alg, debug, time_limit))) {
-        std::cout << std::endl
-                  << "############### Solution ###############" << std::endl;
-        pt.print_solution();
+    std::cout << "Solving..." << std::endl;
+    int res = pt.solve(seed, alg, debug, time_limit);
+    if (!res) {
+        std::cout << "Solution found!" << std::endl;
+        if (alg < 7) {
+            std::cout << std::endl
+                      << "############### Solution ###############"
+                      << std::endl;
+            pt.print_solution();
+        }
+    } else {
+        std::cout << "Solution does not exist!" << std::endl;
     }
 
     if (alg == 7 && !res) {
@@ -202,20 +224,32 @@ int main(int argc, char** argv) {
             return 1;
         }
 
-        PlanningTask sub = create_subproblem(pt, start, end);
+        std::cout << std::endl << "Solving subproblem..." << std::endl;
+        sub = create_subproblem(pt, start, end);
+        solving_sub = true;
 
         if (!sub.solve(seed, alg, debug, time_limit)) {
-            std::cout << std::endl
+            /*std::cout << std::endl
                       << "############### Sub-Problem Solution ###############"
                       << std::endl;
-            sub.print_solution();
+            sub.print_solution();*/
 
             // merge sub-solution with the original one
             merge_solutions(start, end, pt, sub);
-            std::cout << std::endl
-                      << "############### Final Solution ###############"
-                      << std::endl;
-            sub.print_solution();
+            if (sub.solution_cost < pt.solution_cost) {
+                std::cout << "Improved solution found!" << std::endl;
+                std::cout << std::endl
+                          << "############### Solution ###############"
+                          << std::endl;
+                sub.print_solution();
+            } else {
+                std::cout << "No improvements. Returning original solution"
+                          << std::endl;
+                std::cout << std::endl
+                          << "############### Solution ###############"
+                          << std::endl;
+                pt.print_solution();
+            }
 
             if (debug) {
                 sub.initial_state = pt.initial_state;

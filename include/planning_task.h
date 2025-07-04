@@ -116,6 +116,8 @@ class PlanningTask {
     int solution_cost;
     std::vector<Effect> pending_effects;
 
+    PlanningTask() {}
+
     PlanningTask(int metric, int n_vars, std::vector<Variable> &vars,
                  int n_mutex, std::vector<MutexGroup> &mutexes,
                  std::vector<int> &initial_state, int n_goals,
