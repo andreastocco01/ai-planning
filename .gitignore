@@ -41,3 +41,17 @@ axiom_mutex_test.sas
 /script/tasks.txt
 /script/timeout*
 /script/best_known.txt
+
+# Latex
+*.aux
+*.bbl
+*.blg
+main-blx.bib
+*.lof
+*.log
+*.lot
+*.out
+main.run.xml
+main.toc
+pdfa.xmpi
+main.pdf
