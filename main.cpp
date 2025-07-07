@@ -220,13 +220,19 @@ int main(int argc, char** argv) {
         int start = pt.solution.size() * p_start;
         int end = pt.solution.size() * p_end;
         if (start >= end) {
-            std::cout << "Degenerate subproblem: start >= end" << std::endl;
+            std::cout << std::endl
+                      << "Degenerate subproblem: start >= end" << std::endl;
+            std::cout << "Returning original solution" << std::endl;
+            std::cout << std::endl
+                      << "############### Solution ###############"
+                      << std::endl;
+            pt.print_solution();
             return 1;
         }
 
         std::cout << std::endl << "Solving subproblem..." << std::endl;
-        sub = create_subproblem(pt, start, end);
         solving_sub = true;
+        sub = create_subproblem(pt, start, end);
 
         if (!sub.solve(seed, alg, debug, time_limit)) {
             /*std::cout << std::endl
