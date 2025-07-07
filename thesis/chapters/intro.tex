@@ -1,0 +1,30 @@
+\chapter{Introduction}
+\label{ch:intro}
+\textit{Automated Planning} (or AI Planning) is a core subfield of Artificial Intelligence.
+A planning problem, in general terms, can be defined as the task of finding a sequence
+of actions that leads from a given initial state to a desired goal state.
+While multiple formal models exist for defining planning problems, this thesis
+focuses on the \textit{$SAS^+$ Formalism} defined in Definition \ref{def:sas+}
+
+\begin{definition}[$\text{SAS}^+$ Planning Task]
+	\label{def:sas+}
+	A $\text{SAS}^+$ Planning Task is a 5-tuple $\Pi = \langle V, s_0, s_*, A \rangle$ with
+	the following components:
+	\begin{itemize}
+		\item \(V\): finite set of state variables \(v\),
+		      each with finite domain \textit{dom(v)}
+		\item \(s_0\): variable assignment defining the initial state
+		\item \(s_*\): partial variable assignment defining the goal
+		\item \(A\): finite set of actions (or operators),
+		      where each action $a \in A$ has the following components:
+		      \begin{itemize}
+			      \item Preconditions \textit{pre(a)}: partial variable assignment
+			      \item Effects \textit{eff(a)}: partial variable assignment
+			      \item Cost \textit{cost(a)}: non-negative real number
+		      \end{itemize}
+	\end{itemize}
+\end{definition}
+
+For an action $a \in A$ to be applicable, all of its preconditions
+\textit{pre(a)} must be satisfied in the current state. Once applied, its effects
+\textit{eff(a)} are used to update the current state accordingly.

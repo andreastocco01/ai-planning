@@ -39,6 +39,10 @@
 \date{GG/MM/AAAA}
 \newcommand{\supervisor}{Prof. Domenico Salvagnin}
 
+\usepackage{amsthm}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
 \begin{document}
 \pagenumbering{Roman}
 \pagestyle{empty} % per le prime pagine, non mostrare il numero di pagina
@@ -57,7 +61,6 @@
 
 \pagestyle{plain} % comincia a mostrare il numero di pagina
 
-
 \tableofcontents
 \cleardoublepage
 
@@ -69,7 +72,7 @@
 
 \pagenumbering{arabic}
 
-\input{chapters/test}
+\input{chapters/intro}
 \cleardoublepage
 
 \printbibliography[heading=bibintoc]
