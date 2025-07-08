@@ -28,3 +28,18 @@ focuses on the \textit{$SAS^+$ Formalism} defined in Definition \ref{def:sas+}
 For an action $a \in A$ to be applicable, all of its preconditions
 \textit{pre(a)} must be satisfied in the current state. Once applied, its effects
 \textit{eff(a)} are used to update the current state accordingly.
+In the simplified problems we consider—referred to as \textit{Delete-Free}—actions do not have any negative effects.
+This means that once a fact becomes true in a state, it remains true in all subsequent states.
+The solutions to planning problems are called \textit{plans}, and they are formally defined in Definition \ref{def:plan}
+
+\begin{definition}[Plan]
+	\label{def:plan}
+	A plan for a planning problem is a sequence of actions occurring as labels on a path
+	from the initial state to a goal state.
+	The cost of a plan $\langle a_1, a_2, \dots, a_n \rangle$ is $\sum_{i = 1}^n cost(a_i)$.
+	A plan is optimal if it has minimal cost.
+\end{definition}
+
+There are optimal planners, such as \textit{Fast-Downward}, that are guaranteed to find the optimal solution of a given problem.
+In contrast, this thesis focuses on \textit{heuristic} algorithms which—by definition— do not
+guarantee optimality, but are designed to efficiently find near-optimal solutions in significantly less time.
