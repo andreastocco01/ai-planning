@@ -4,11 +4,11 @@
 A planning problem, in general terms, can be defined as the task of finding a sequence
 of actions that leads from a given initial state to a desired goal state.
 While multiple formal models exist for defining planning problems, this thesis
-focuses on the \textit{$SAS^+$ Formalism} defined in Definition \ref{def:sas+}
+focuses on the \textit{$SAS^+$ formalism} defined in Definition \ref{def:sas+}
 
 \begin{definition}[$\text{SAS}^+$ Planning Task]
 	\label{def:sas+}
-	A $\text{SAS}^+$ Planning Task is a 5-tuple $\Pi = \langle V, s_0, s_*, A \rangle$ with
+	A $\text{SAS}^+$ planning task is a 5-tuple $\Pi = \langle V, s_0, s_*, A \rangle$ with
 	the following components:
 	\begin{itemize}
 		\item \(V\): finite set of state variables \(v\),
@@ -28,7 +28,7 @@ focuses on the \textit{$SAS^+$ Formalism} defined in Definition \ref{def:sas+}
 For an action $a \in A$ to be applicable, all of its preconditions
 \textit{pre(a)} must be satisfied in the current state. Once applied, its effects
 \textit{eff(a)} are used to update the current state accordingly.
-In the simplified problems we consider—referred to as \textit{Delete-Free}—actions do not have any negative effects.
+In the simplified class of problems considered in this thesis—referred to as \textit{Delete-Free}—actions do not have any negative effects.
 This means that once a fact becomes true in a state, it remains true in all subsequent states.
 The solutions to planning problems are called \textit{plans}, and they are formally defined in Definition \ref{def:plan}
 
@@ -40,8 +40,8 @@ The solutions to planning problems are called \textit{plans}, and they are forma
 	A plan is optimal if it has minimal cost.
 \end{definition}
 
-There are optimal planners, such as \textit{Fast-Downward}, that are guaranteed to find the optimal solution of a given problem.
-In contrast, this thesis focuses on \textit{heuristic} algorithms which—by definition— do not
-guarantee optimality, but are designed to efficiently find near-optimal solutions in significantly less time.
+There exist optimal planners, such as \textit{Fast-Downward}, that are guaranteed to find the optimal solution to a given problem.
+In contrast, this thesis focuses on \textit{heuristic} algorithms which—by design— do not
+guarantee optimality, but aim to efficiently find near-optimal solutions in significantly less time.
 
 TODO
