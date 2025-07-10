@@ -1,0 +1,74 @@
+\chapter{Proposed Approaches}
+\label{ch:heuristics}
+Heuristics are algorithms to determine a near-optimal solution to a problem. In certain scenarios,
+exact methods aren't able to provide the optimal solution in a reasonable amount of time or they can't find it
+at all. In contrast, a heuristic is generally capable of offering a solution that is more or less close to
+the optimal one.
+While there is no assurance regarding the optimality of the provided solution, it may still be considered
+acceptable in some instances.
+This chapter focuses on explaining the algorithms developed, while the following one presents their evaluation.
+
+\section{Random}
+This is the simplest algorithm implemented, and it is used as baseline for the evaluation.
+Algorithm \ref{alg:random} shows the pseudocode for it
+
+\begin{algorithm}
+	\caption{Get Possible Actions}
+	\label{alg:getPossibleActions}
+	\hspace*{0.5em} \textbf{Output}: $possibleActions$
+	\begin{algorithmic}[1]
+		\Procedure{getPossibleActions}{$currentState, planningTask$}
+		\State $possibleActions \gets [\ ]$
+		\ForAll{$action \in planningTask.actions$}
+		\For{$i \gets 0$ to $\Call{size}{action.preconditions}$}
+		\If {$action.preconditions[i] \notin currentState$}
+		\State $break$
+		\EndIf
+		\EndFor
+		\If {$i == \Call{size}{action.preconditions}$}
+		\State \Call{append}{$possibleActions$, $action$}
+		\EndIf
+		\EndFor
+		\State \textbf{return} $possibleActions$
+		\EndProcedure
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+	\caption{Apply}
+	\label{alg:apply}
+	\hspace*{0.5em} \textbf{Output}: $newState$
+	\begin{algorithmic}[1]
+		\Procedure{apply}{$currentState, actionToApply$}
+		\State $newState \gets \Call{copy}{currentState}$
+		\ForAll{$fact \in actionToApply.effects$}
+		\If{$fact \notin newState$}
+		\State \Call{add}{$newState$, $fact$}
+		\EndIf
+		\EndFor
+		\State \textbf{return} $newState$
+		\EndProcedure
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+	\caption{Random}
+	\label{alg:random}
+	\hspace*{0.5em} \textbf{Output}: $solution$
+	\begin{algorithmic}[1]
+		\Procedure{random}{$planningTask$}
+		\State $currentState \gets planningTask.initialState$
+		\State $solution \gets [\ ]$ \Comment{Initialize empty solution}
+		\While {$currentState \neq planningTask.goalState$}
+		\State $possibleActions \gets \Call{getPossibleActions}{currentState, planningTask}$
+		\If {$\Call{empty}{possibleActions}$}
+		\State \textbf{return} $failure$ \Comment{Infeasible problem}
+		\EndIf
+		\State $actionToApply \gets \Call{randomChoice}{possibleActions}$
+		\State $currentState \gets \Call{apply}{currentState, actionToApply}$
+		\State \Call{append}{$solution$, $actionToApply$}
+		\EndWhile
+		\State \textbf{return} $solution$
+		\EndProcedure
+	\end{algorithmic}
+\end{algorithm}
