@@ -6,11 +6,11 @@ at all. In contrast, a heuristic is generally capable of offering a solution tha
 the optimal one.
 While there is no assurance regarding the optimality of the provided solution, it may still be considered
 acceptable in some instances.
-This chapter focuses on explaining the algorithms developed, while the following one presents their evaluation.
-
-\section{Random}
-This is the simplest algorithm implemented, and it is used as baseline for the evaluation.
-Algorithm \ref{alg:random} shows the pseudocode for it
+This chapter focuses on explaining the algorithms developed, while the following one presents their evaluation.\\
+Before diving into the topic, it is important to understand some of the functions used by all the algorithms.
+An action, in order to be eligible for application, must have all its preconditions satisfied in the current state.
+If even one precondition is not satisfied, the entire action cannot be applied.
+Algorithm \ref{alg:getPossibleActions} shows the pseudocode for this function
 
 \begin{algorithm}
 	\caption{Get Possible Actions}
@@ -34,6 +34,11 @@ Algorithm \ref{alg:random} shows the pseudocode for it
 	\end{algorithmic}
 \end{algorithm}
 
+It scans all the actions in the planning task, and for each one, it scans all its preconditions.
+If at least one precondition is not satisfied, the action will not be returned.
+Additionally, applying an action means adding its effects to the current state.
+The pseudocode for this function is shown in Algorithm \ref{alg:apply}.
+
 \begin{algorithm}
 	\caption{Apply}
 	\label{alg:apply}
@@ -43,13 +48,20 @@ Algorithm \ref{alg:random} shows the pseudocode for it
 		\State $newState \gets \Call{copy}{currentState}$
 		\ForAll{$fact \in actionToApply.effects$}
 		\If{$fact \notin newState$}
-		\State \Call{add}{$newState$, $fact$}
+		\State $newState \gets newState \cup \{fact\}$
 		\EndIf
 		\EndFor
 		\State \textbf{return} $newState$
 		\EndProcedure
 	\end{algorithmic}
 \end{algorithm}
+
+\section{Random}
+This is the simplest algorithm implemented, and it is used as a baseline for the evaluation.
+At each iteration, it applies a random action from the applicable ones.
+It is not a sophisticated or informed solution but this strategy can be useful
+in some cases because, by chance, a good plan may be found.
+Algorithm \ref{alg:random} shows the pseudocode for it.
 
 \begin{algorithm}
 	\caption{Random}
@@ -72,3 +84,15 @@ Algorithm \ref{alg:random} shows the pseudocode for it
 		\EndProcedure
 	\end{algorithmic}
 \end{algorithm}
+
+It is important to notice that if \textit{posissibleActions} is empty, then
+a solution to the planning task cannot exist. As said in Chapter \ref{ch:intro},
+the problems are Delete-Free—once a fact becomes true in the current state, it remains
+true until the end.
+Therefore, if there are no actions to apply, it does not mean that the algorithm has reached
+a dead end that could be avoided by applying different actions in a different order.
+Rather, it indicates that no sequence of actions can lead to the goal state, and therefore no plan exists.
+The natural evolution of this approach is to avoid choosing randomly the next action to apply and, instead, use
+a strategy to select the action that is more likely to lead to a better plan.
+
+\section{Greedy}
