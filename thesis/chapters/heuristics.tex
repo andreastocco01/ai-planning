@@ -96,3 +96,27 @@ The natural evolution of this approach is to avoid choosing randomly the next ac
 a strategy to select the action that is more likely to lead to a better plan.
 
 \section{Greedy}
+A greedy algorithm is a heuristic that attempts to find an optimal solution by selecting the locally
+best possible choice at each iteration. For instance, in our case, the next action to apply will
+always be the one with the minimum cost. In the case of a tie, a random action among those with the same cost
+will be chosen.
+Algorithm \ref{alg:greedy} shows the pseudocode for this algorithm. The omitted parts are identical to those in Algorithm \ref{alg:random}.
+
+\begin{algorithm}
+	\caption{Greedy}
+	\label{alg:greedy}
+	\hspace*{0.5em} \textbf{Output}: $solution$
+	\begin{algorithmic}[1]
+		\Procedure{greedy}{$planningTask$}
+		\State \dots
+		\State $possibleActions \gets \Call{getPossibleActions}{currentState, planningTask}$
+		\If {$\Call{empty}{possibleActions}$}
+		\State \textbf{return} $failure$
+		\EndIf
+		\State $actionToApply \gets \Call{minimumCostAction}{possibleActions}$
+		\State \dots
+		\EndProcedure
+	\end{algorithmic}
+\end{algorithm}
+
+Instead of randomly choosing the next action to apply, here the action with minimum cost is always selected.
