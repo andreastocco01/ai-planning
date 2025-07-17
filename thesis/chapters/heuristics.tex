@@ -10,7 +10,7 @@ This chapter focuses on explaining the algorithms developed, while the following
 Before diving into the topic, it is important to understand some of the functions used by all the algorithms.
 An action, in order to be eligible for application, must have all its preconditions satisfied in the current state.
 If even one precondition is not satisfied, the entire action cannot be applied.
-Algorithm \ref{alg:getPossibleActions} shows the pseudocode for this function
+Algorithm \ref{alg:getPossibleActions} shows the pseudocode for this function.
 
 \begin{algorithm}
 	\caption{Get Possible Actions}
@@ -120,3 +120,65 @@ Algorithm \ref{alg:greedy} shows the pseudocode for this algorithm. The omitted 
 \end{algorithm}
 
 Instead of randomly choosing the next action to apply, here the action with minimum cost is always selected.
+
+\section{Revised Max Heuristic}
+The max heuristic is one of the most well-known delete-relaxation heuristics in the literature.
+It is an \textit{admissible} heuristic, meaning that it never overestimates the cost of reaching the goal.
+It assigns an heuristic cost to each action based on Equation \ref{eq:hmax} and \ref{eq:cost}
+
+\begin{equation}
+	\label{eq:hmax}
+	h_{max}\left(p;s\right) \coloneqq \begin{cases}
+		0                                                                & \text{if $p \in s$} \\
+		\text{min}_{a \in O\left(p\right)}\left[h\left(a;s\right)\right] & \text{otherwise}
+	\end{cases}
+\end{equation}
+
+where $h_{max}\left(p;s\right)$ stands for an estimate of the cost of achieving the fact \textit{p} from
+the current state \textit{s}, $O\left(p\right)$ is the set of actions $\{a \in A \mid p \in \textit{eff(a)}\}$, and
+
+\begin{equation}
+	\label{eq:cost}
+	h\left(a;s\right) \coloneqq cost(a) + \text{max}_{q \in pre\left(a\right)} \left[h(q, s)\right]
+\end{equation}
+
+stands for the cost of achieving the preconditions of an action \textit{a} and applying it.\\
+The idea behind the use of this heuristic is similar to that of the greedy approach.
+While in the greedy approach the action with the minimum actual cost is chosen, in this case,
+the action with the minimum heuristic cost is selected at each iteration.
+This thesis presents an implementation of the max heuristic that goes a step further.
+By definition, any action applicable in the current state has a heuristic cost equal to
+its own cost, since all its preconditions are satisfied—regardless of whether the action is
+actually useful for reaching the goal state or not.
+The implemented version performs a technique called \textit{pruning}, which consists of assigning
+an infinite cost to useless actions—indicating that these actions are not helpful in finding a good plan.
+When selecting a new action to apply, the useless actions are assigned an infinite cost (and are therefore discarded),
+while the remaining actions retain their correct heuristic cost.
+The pseudocode for this algorithm is presented in Algorithm \ref{alg:hmax}.
+
+\begin{algorithm}
+	\caption{Max Heuristic}
+	\label{alg:hmax}
+	\hspace*{0.5em} \textbf{Output}: $minHcost$
+	\begin{algorithmic}[1]
+		\Procedure{hmax}{$currentState, fact$}
+		\If {$fact \in currentState$}
+		\State \textbf{return} 0 \Comment{Base case}
+		\EndIf
+		\State $actions \gets \{a \in A \mid fact \in \textit{eff(a)}\}$ \Comment{Get all the actions having \textit{fact} as effect}
+		\If {$\Call{empty}{actions}$}
+		\State \textbf{return} $+\infty$ \Comment{The fact is unreachable}
+		\EndIf
+		\State $minHcost \gets +\infty$
+		\ForAll{$action\in actions$}
+		\State $maxCost \gets 0$
+		\ForAll {$pre \in action.preconditions$}
+		\State $maxCost \gets \Call{max}{maxCost, \Call{hmax}{currentState, pre}}$
+		\EndFor
+		\State $action.hCost \gets action.cost + maxCost$
+		\State $minHcost \gets \Call{min}{minHcost, action.hCost}$
+		\EndFor
+		\State \textbf{return} $minHcost$
+		\EndProcedure
+	\end{algorithmic}
+\end{algorithm}

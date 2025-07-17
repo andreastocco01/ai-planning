@@ -24,6 +24,7 @@
 \usepackage{mathtools}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\MakeRobust{\Call} % to use nested \Call
 
 \usepackage[english]{babel}
 \selectlanguage{english}
@@ -53,13 +54,13 @@
 \input{chapters/titlepage}
 \cleardoublepage
 
+\input{chapters/dedication}
+\cleardoublepage
+
 % NOTA: l'ambiente \abstract rimuove il numero della pagina e resetta il contatore delle pagine.
 \begin{abstract}
 	\input{chapters/abstract}
 \end{abstract}
-\cleardoublepage
-
-\input{chapters/dedication}
 \cleardoublepage
 
 \pagestyle{plain} % comincia a mostrare il numero di pagina
@@ -71,6 +72,9 @@
 \cleardoublepage % per assicurarsi che la numerazione araba cominci col primo capitolo
 
 \listoftables
+\cleardoublepage
+
+\listofalgorithms
 \cleardoublepage
 
 \pagenumbering{arabic}
