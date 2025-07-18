@@ -61,7 +61,7 @@ Algorithm \ref{alg:random} shows the pseudocode for it.
 
 It is important to notice that if \textit{posissibleActions} is empty, then
 a solution to the planning task cannot exist. As said in Chapter \ref{ch:intro},
-the problems are Delete-Free—once a fact becomes true in the current state, it remains
+the problems are Delete-Free|once a fact becomes true in the current state, it remains
 true until the end.
 Therefore, if there are no actions to apply, it does not mean that the algorithm has reached
 a dead end that could be avoided by applying different actions in a different order.
@@ -122,10 +122,10 @@ While in the greedy approach the action with the minimum actual cost is chosen, 
 the action with the minimum heuristic cost is selected at each iteration.
 This thesis presents an implementation of the max heuristic that goes a step further.
 By definition, any action applicable in the current state has a heuristic cost equal to
-its own cost, since all its preconditions are satisfied—regardless of whether the action is
+its own cost, since all its preconditions are satisfied|regardless of whether the action is
 actually useful for reaching the goal state or not.
 The implemented version performs a technique called \textit{pruning}, which consists of assigning
-an infinite cost to useless actions—indicating that these actions are not helpful in finding a good plan.
+an infinite cost to useless actions|indicating that these actions are not helpful in finding a good plan.
 When selecting a new action to apply, the useless actions are assigned an infinite cost (and are therefore discarded),
 while the remaining actions retain their correct heuristic cost.
 The pseudocode for this algorithm is presented in Algorithm \ref{alg:hmax} and \ref{alg:greedyhmax}.
@@ -164,8 +164,9 @@ The pseudocode for this algorithm is presented in Algorithm \ref{alg:hmax} and \
 	\begin{algorithmic}[1]
 		\Procedure{greedyHmax}{$planningTask$}
 		\State \dots
+		\State $estimatedCost \gets 0$
 		\ForAll {$goal \in planningTask.goalState$}
-		\State \Call{hmax}{currentState, goal}
+		\State $estimatedCost \gets \Call{max}{estimatedCost, \Call{hmax}{currentState, goal}}$
 		\EndFor
 		\State $possibleActions \gets \{a \in A \mid pre(a) \subseteq currentState\}$
 		\If {$\Call{empty}{possibleActions}$}
@@ -188,5 +189,17 @@ Therefore, this algorithm can be seen as a Greedy + Pruning approach: it selects
 while discarding useless actions.
 To observe the true behavior of the proposed algorithm, it should ideally be used within the context of the \verb|A*| algorithm,
 a well-known search strategy that combines actual cost from the start with a heuristic estimate to the goal.
-\verb|A*| selects actions based on the sum of these two values, leading to optimal solutions when an admissible heuristic (like \verb|HMAX|) is used.
+Specifically, \verb|A*| selects actions by minimizing the function $f(n) = g(n) + h(n)$, where $g(n)$ is the cost
+required to reach node $n$, and $h(n)$ is the estimated cost to reach the goal state from $n$.
+\verb|A*| selects actions based on the sum of these two values, leading to optimal solutions when an admissible heuristic, such as \verb|HMAX|, is used.
 However, since \verb|A*| was not implemented in this thesis, an alternative approach was used to evaluate the algorithm's actual performance.
+
+\section{Max Heuristic + Lookahead}
+As mentioned in the previous section, the presented algorithm can be considered a Greedy + Pruning approach,
+since the full potential of the heuristic cannot be exploited|the heuristic cost of the applicable actions is always equal
+to the actions' actual cost.
+To evaluate its performance, a new version of the heuristic is proposed.
+Instead of selecting the action with the minimum cost, the algorithm tries each possible action,
+recomputes the \verb|HMAX| value for each resulting state, and finally applies the action that leads to the state with the lowest
+new heuristic value.
+The pseudocode for this approach is shown in Algorithm \ref{alg:lookahed}.
