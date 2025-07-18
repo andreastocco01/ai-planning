@@ -10,32 +10,6 @@ This chapter focuses on explaining the algorithms developed, while the following
 Before diving into the topic, it is important to understand some of the functions used by all the algorithms.
 An action, in order to be eligible for application, must have all its preconditions satisfied in the current state.
 If even one precondition is not satisfied, the entire action cannot be applied.
-Algorithm \ref{alg:getPossibleActions} shows the pseudocode for this function.
-
-\begin{algorithm}
-	\caption{Get Possible Actions}
-	\label{alg:getPossibleActions}
-	\hspace*{0.5em} \textbf{Output}: $possibleActions$
-	\begin{algorithmic}[1]
-		\Procedure{getPossibleActions}{$currentState, planningTask$}
-		\State $possibleActions \gets [\ ]$
-		\ForAll{$action \in planningTask.actions$}
-		\For{$i \gets 0$ to $\Call{size}{action.preconditions}$}
-		\If {$action.preconditions[i] \notin currentState$}
-		\State $break$
-		\EndIf
-		\EndFor
-		\If {$i == \Call{size}{action.preconditions}$}
-		\State \Call{append}{$possibleActions$, $action$}
-		\EndIf
-		\EndFor
-		\State \textbf{return} $possibleActions$
-		\EndProcedure
-	\end{algorithmic}
-\end{algorithm}
-
-It scans all the actions in the planning task, and for each one, it scans all its preconditions.
-If at least one precondition is not satisfied, the action will not be returned.
 Additionally, applying an action means adding its effects to the current state.
 The pseudocode for this function is shown in Algorithm \ref{alg:apply}.
 
@@ -71,8 +45,8 @@ Algorithm \ref{alg:random} shows the pseudocode for it.
 		\Procedure{random}{$planningTask$}
 		\State $currentState \gets planningTask.initialState$
 		\State $solution \gets [\ ]$ \Comment{Initialize empty solution}
-		\While {$currentState \neq planningTask.goalState$}
-		\State $possibleActions \gets \Call{getPossibleActions}{currentState, planningTask}$
+		\While {$currentState \not\subseteq planningTask.goalState$}
+		\State $possibleActions \gets \{a \in A \mid pre(a) \subseteq currentState\}$
 		\If {$\Call{empty}{possibleActions}$}
 		\State \textbf{return} $failure$ \Comment{Infeasible problem}
 		\EndIf
@@ -109,7 +83,7 @@ Algorithm \ref{alg:greedy} shows the pseudocode for this algorithm. The omitted 
 	\begin{algorithmic}[1]
 		\Procedure{greedy}{$planningTask$}
 		\State \dots
-		\State $possibleActions \gets \Call{getPossibleActions}{currentState, planningTask}$
+		\State $possibleActions \gets \{a \in A \mid pre(a) \subseteq currentState\}$
 		\If {$\Call{empty}{possibleActions}$}
 		\State \textbf{return} $failure$
 		\EndIf
@@ -154,7 +128,7 @@ The implemented version performs a technique called \textit{pruning}, which cons
 an infinite cost to useless actions—indicating that these actions are not helpful in finding a good plan.
 When selecting a new action to apply, the useless actions are assigned an infinite cost (and are therefore discarded),
 while the remaining actions retain their correct heuristic cost.
-The pseudocode for this algorithm is presented in Algorithm \ref{alg:hmax}.
+The pseudocode for this algorithm is presented in Algorithm \ref{alg:hmax} and \ref{alg:greedyhmax}.
 
 \begin{algorithm}
 	\caption{Max Heuristic}
@@ -182,3 +156,37 @@ The pseudocode for this algorithm is presented in Algorithm \ref{alg:hmax}.
 		\EndProcedure
 	\end{algorithmic}
 \end{algorithm}
+
+\begin{algorithm}
+	\caption{Greedy Search with Max Heuristic}
+	\label{alg:greedyhmax}
+	\hspace*{0.5em} \textbf{Output}: $solution$
+	\begin{algorithmic}[1]
+		\Procedure{greedyHmax}{$planningTask$}
+		\State \dots
+		\ForAll {$goal \in planningTask.goalState$}
+		\State \Call{hmax}{currentState, goal}
+		\EndFor
+		\State $possibleActions \gets \{a \in A \mid pre(a) \subseteq currentState\}$
+		\If {$\Call{empty}{possibleActions}$}
+		\State \textbf{return} $failure$
+		\EndIf
+		\State $actionToApply \gets \Call{minimumHcostAction}{possibleActions}$
+		\State \dots
+		\EndProcedure
+	\end{algorithmic}
+\end{algorithm}
+
+Starting from each fact in the goal state, \verb|HMAX| is called to perform a backward cost propagation.
+In this way, all useless actions are implicitly ignored and retain their original cost,
+which remains set to $+\infty$.
+When selecting the next action to apply, any action with an infinite cost will be ignored,
+and the one with the lowest heuristic cost among the remaining options will be chosen.
+As previously mentioned, any action that can be applied from
+the current state will always have a heuristic cost equal to its actual cost.
+Therefore, this algorithm can be seen as a Greedy + Pruning approach: it selects the next action based on the action's cost,
+while discarding useless actions.
+To observe the true behavior of the proposed algorithm, it should ideally be used within the context of the \verb|A*| algorithm,
+a well-known search strategy that combines actual cost from the start with a heuristic estimate to the goal.
+\verb|A*| selects actions based on the sum of these two values, leading to optimal solutions when an admissible heuristic (like \verb|HMAX|) is used.
+However, since \verb|A*| was not implemented in this thesis, an alternative approach was used to evaluate the algorithm's actual performance.
