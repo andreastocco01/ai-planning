@@ -202,4 +202,50 @@ To evaluate its performance, a new version of the heuristic is proposed.
 Instead of selecting the action with the minimum cost, the algorithm tries each possible action,
 recomputes the \verb|HMAX| value for each resulting state, and finally applies the action that leads to the state with the lowest
 new heuristic value.
-The pseudocode for this approach is shown in Algorithm \ref{alg:lookahed}.
+The pseudocode for this approach is shown in Algorithm \ref{alg:lookahead} and \ref{alg:hmaxlookahead}.
+
+\begin{algorithm}
+	\caption{Lookahead}
+	\label{alg:lookahead}
+	\hspace*{0.5em} \textbf{Output}: $actionToApply$
+	\begin{algorithmic}[1]
+		\Procedure{lookahead}{$currentState, possibleActions$}
+		\ForAll{$action\in possibleActions$}
+		\State $newState \gets \Call{apply}{currentState, action}$
+		\State $estimatedCost \gets 0$
+		\ForAll {$goal \in planningTask.goalState$}
+		\State $estimatedCost \gets \Call{max}{estimatedCost, \Call{hmax}{newState, goal}}$
+		\EndFor
+		\State $action.hCost \gets action.hCost + estimatedCost$
+		\EndFor
+		\State $actionToApply \gets \Call{minimumHcostAction}{possibleActions}$
+		\State \textbf{return} $actionToApply$
+		\EndProcedure
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+	\caption{Max Heuristic with Lookahead}
+	\label{alg:hmaxlookahead}
+	\hspace*{0.5em} \textbf{Output}: $solution$
+	\begin{algorithmic}[1]
+		\Procedure{hmaxLookahead}{$planningTask$}
+		\State \dots
+		\State $estimatedCost \gets 0$
+		\ForAll {$goal \in planningTask.goalState$}
+		\State $estimatedCost \gets \Call{max}{estimatedCost, \Call{hmax}{currentState, goal}}$
+		\EndFor
+		\State $possibleActions \gets \{a \in A \mid pre(a) \subseteq currentState\}$
+		\If {$\Call{empty}{possibleActions}$}
+		\State \textbf{return} $failure$
+		\EndIf
+		\State $actionToApply \gets \Call{lookahead}{currentState, possibleActions}$
+		\State \dots
+		\EndProcedure
+	\end{algorithmic}
+\end{algorithm}
+
+The algorithm "looks ahead" at the heuristic cost of the state resulting from each possible action,
+and then applies only the action that appears to be the most convenient.
+
+\section{Novel Heuristic}
