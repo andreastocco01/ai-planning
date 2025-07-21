@@ -283,7 +283,7 @@ The actual implementation of this algorithm uses a \textit{priority queue} to en
 efficient and iterative computation. The pseudocode is presented in Algorithm \ref{alg:sp}.
 
 \begin{algorithm}
-	\caption{Shortest Path}
+	\caption{Shortest Path Heuristic}
 	\label{alg:sp}
 	\hspace*{0.5em} \textbf{Output}:
 	\begin{algorithmic}[1]
@@ -328,3 +328,4 @@ The heuristic cost of each action having the removed fact as an effect is then u
 and all of its preconditions are subsequently inserted into the queue.
 In this way, all useful actions will be assigned a cost equal to the shortest path to reach a fact in
 the goal state, while useless actions will retain an infinite cost.
+The usage of this algorithm is analogous to what was presented in Algorithm \ref{alg:greedyhmax}.
