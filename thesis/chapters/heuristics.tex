@@ -96,6 +96,7 @@ Algorithm \ref{alg:greedy} shows the pseudocode for this algorithm. The omitted 
 Instead of randomly choosing the next action to apply, here the action with minimum cost is always selected.
 
 \section{Revised Max Heuristic}
+\label{sec:hmax}
 The max heuristic is one of the most well-known delete-relaxation heuristics in the literature.
 It is an \textit{admissible} heuristic, meaning that it never overestimates the cost of reaching the goal.
 It assigns an heuristic cost to each action based on Equation \ref{eq:hmax} and \ref{eq:cost}
@@ -249,3 +250,81 @@ The algorithm "looks ahead" at the heuristic cost of the state resulting from ea
 and then applies only the action that appears to be the most convenient.
 
 \section{Novel Heuristic}
+In this section, a completely new approach is introduced. As discussed in Section \ref{sec:hmax},
+the modified version of the max heuristic ultimately behaves like a Greedy + Pruning algorithm, limiting its effectiveness.
+Here, we aim to use the same backward propagation mechanism, but with a different heuristic cost assigned to each action.
+The core idea is to assign each action a cost that estimates its actual distance to the goal.
+Specifically, the cost assigned to an action corresponds to the cost of the \textit{shortest path} to reach a fact in the goal state.
+The mathematical formalism is presented in Equations \ref{eq:sp} and \ref{eq:spcost}:
+
+\begin{equation}
+	\label{eq:sp}
+	h_{sp}\left(p;s_*\right) \coloneqq \begin{cases}
+		0                                                                    & \text{if $p \in s_*$} \\
+		\text{min}_{a \in O\left(p\right)}\left[h_a\left(a;s_*\right)\right] & \text{otherwise}
+	\end{cases}
+\end{equation}
+
+Here, $h_{sp}\left(p;s_*\right)$ denotes the estimated cost of achieving a fact in the goal state $s_*$, starting from
+fact \textit{p}. The set $O\left(p\right)$ represents the actions that produce \textit{p} as an effect,
+that is, $O\left(p\right) = \{a \in A \mid p \in \textit{eff(a)}\}$. The function $h_a\left(a;s_*\right)$ is
+defined as follows:
+
+\begin{equation}
+	\label{eq:spcost}
+	h_a\left(a;s_*\right) \coloneqq cost(a) + \text{min}_{q \in \textit{eff}\left(a\right)} \left[h_{sp}\left(q;s_*\right)\right]
+\end{equation}
+
+This espression estimates the cost of achieving a fact in the goal state $s_*$ by applying
+action \textit{a}. The heuristic cost of an action is defined as its own cost plus the minimum estimated cost among its effects.
+In this way, each action is assigned a heuristic cost corresponding to the cost of the shortest path to reach
+a fact in the goal state.
+The actual implementation of this algorithm uses a \textit{priority queue} to ensure an
+efficient and iterative computation. The pseudocode is presented in Algorithm \ref{alg:sp}.
+
+\begin{algorithm}
+	\caption{Shortest Path}
+	\label{alg:sp}
+	\hspace*{0.5em} \textbf{Output}:
+	\begin{algorithmic}[1]
+		\Procedure{shortestPath}{$currentState, goalState$}
+		\State $factCosts \gets \{+\infty, \dots, +\infty\}$ \Comment{Initialize facts' cost to $+\infty$}
+		\State $pq\gets \{\}$ \Comment{Empty priority queue}
+		\ForAll {$goal \in goalState$}
+		\State $factCosts[goal] \gets 0$
+		\State $\Call{push}{pq, goal, 0}$
+		\EndFor
+		\While {$!\Call{empty}{pq}$}
+		\State $fact \gets \Call{pop}{pq}$ \Comment{Get the fact having minimum cost}
+		\If {$fact \in currentState$}
+		\State \textbf{continue} \Comment{Do not propagate the cost}
+		\EndIf
+		\State $actions \gets \{a \in A \mid fact \in \textit{eff}\left(a\right)\}$
+		\ForAll {$action \in actions$}
+		\State $newCost \gets action.cost + factCosts[fact]$
+		\If {$newCost >= action.hCost$}
+		\State \textbf{continue}
+		\EndIf
+		\State $action.hCost = newCost$
+		\ForAll {$pre \in action.preconditions$}
+		\If {$newCost < factCosts[pre]$}
+		\State $factCosts[pre] \gets newCost$
+		\If {$\Call{has}{pq, pre}$}
+		\State $\Call{change}{pq, pre, newCost}$
+		\Else
+		\State $\Call{push}{pq, pre, newCost}$
+		\EndIf
+		\EndIf
+		\EndFor
+		\EndFor
+		\EndWhile
+		\EndProcedure
+	\end{algorithmic}
+\end{algorithm}
+
+The priority queue internally maintains the facts ordered by increasing cost.
+Each time a fact is removed from the queue, it is the one with the minimum heuristic cost.
+The heuristic cost of each action having the removed fact as an effect is then updated accordingly,
+and all of its preconditions are subsequently inserted into the queue.
+In this way, all useful actions will be assigned a cost equal to the shortest path to reach a fact in
+the goal state, while useless actions will retain an infinite cost.
