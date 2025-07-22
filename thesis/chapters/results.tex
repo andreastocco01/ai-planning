@@ -1,0 +1,46 @@
+\chapter{Results}
+\label{ch:results}
+This chapter presents an evaluation of the algorithms introduced in Chapter \ref{ch:heuristics}.
+To assess their performance, a cumulative distribution plot was used.
+This type of plot shows the percentage of instances for which an algorithm found a plan with a
+primal gap below the threshold indicated on the x-axis.
+The best algorithm is the one whose curve lies above all the others.
+The plots presented in the following sections will help illustrate this concept.
+As described in Chapter \ref{ch:methodology}, each algorithm was run on every instance in the
+testbed 10 times, each with a different random seed.
+There are 3,104 instances, so each algorithm was executed a total of 31,040 times.
+To limit execution time, each run was given a time limit of 60 seconds. The instances
+come from different domains; some are very large in terms of number of actions, while others are
+relatively small.
+Additionally, since some algorithms are more efficient than others, not all the instances
+were solved by every algorithm. Table \ref{tab:timelimit} shows, for each algorithm,
+the number of instances it was able to solve within the time limit.
+
+\begin{table}[h!]
+	\centering
+	\begin{tabular}{|l|r|}
+		\hline
+		\textbf{Heuristic}        & \textbf{Not found per timelimit} \\
+		\hline
+		Random                    & 1123                             \\
+		Greedy                    & 1076                             \\
+		Greedy + Pruning          & 1714                             \\
+		Max Heuristic + Lookahead & 9199                             \\
+		Shortest Path             & 851                              \\
+		\hline
+	\end{tabular}
+	\caption{Number of instances not solved within the time limit (out of 31,040 total instances).}
+	\label{tab:timelimit}
+\end{table}
+
+By simply examining this table, we can identify the most effective algorithms.
+The Lookahead process is computationally expensive, resulting in approximately one-third of the instances not being solved.
+In contrast, the efficient implementation of the Shortest Path heuristic appears to be the most capable,
+solving the highest number of instances.
+
+\section{Random vs Greedy vs Greedy + Pruning vs Shortest Path}
+This section presents an evaluation of four planning strategies, ranging from uninformed to increasingly informed approaches:
+Random, Greedy, Greedy + Pruning, and Shortest Path.
+Random and Greedy exhibit similar efficiency, as both are able to solve a large number of instances. Greedy + Pruning is
+slightly slower but employs a strategy with the potential to yield higher-quality solutions. Ultimately, the Shortest Path approach
+solves the highest number of instances. The next step is to evaluate the quality of the solutions produced by each strategy.
