@@ -108,3 +108,25 @@ with max heuristic can be an effective strategy when paired with a lookahead mec
 Although Lookahead remains a slow algorithm, these results suggest that the revised version of the max heuristic|enhanced
 with a pruning mechanism|has the potential to produce high-quality solutions if used within a more powerful search strategy
 like \verb|A*|.
+
+\section{Different Versions of Backward Propagation}
+As explained in Section \ref{sec:shortestpath}, the core idea behind the algorithm is to back-propagate the estimated cost
+of reaching the goal state from its constituent facts to those in the current state. Previously, an algorithm was introduced
+that propagates the minimum cost among an action's effects—effectively computing the shortest path to the goal.
+With minimal modification, alternative strategies can be explored, such as propagating the \textit{maximum effect cost} or the
+\textit{sum of all effect costs} to preceding actions. These variations are evaluated in Figure \ref{fig:backprop} to determine which
+propagation strategy yields better results.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\textwidth]{images/algs456.png}
+	\caption{Cumulative distribution plot for different backpropagation strategies}
+	\label{fig:backprop}
+\end{figure}
+
+Back-propagating the maximum cost among an action’s effects can be interpreted as assigning the action a cost based on
+the worst-case path to the goal state. Conversely, back-propagating the sum of the effects' costs reflects a perspective
+where all possible outcomes of the action contribute to estimating the distance to the goal. Each approach offers a different
+trade-off between pessimism and comprehensiveness in cost estimation.
+The Shortest Path heuristic continues to deliver the best performance overall. In contrast, both the max-cost and sum-cost
+backpropagation strategies exhibit similar behavior, with only marginal differences between them.
