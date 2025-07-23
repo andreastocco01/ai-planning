@@ -130,3 +130,22 @@ where all possible outcomes of the action contribute to estimating the distance 
 trade-off between pessimism and comprehensiveness in cost estimation.
 The Shortest Path heuristic continues to deliver the best performance overall. In contrast, both the max-cost and sum-cost
 backpropagation strategies exhibit similar behavior, with only marginal differences between them.
+
+\section{Randomization Analysis}
+All the presented algorithms share a common trait: when multiple actions have the same minimum heuristic cost,
+the next action is selected at random among them.
+This section analyzes the impact of random tie-breaking on the quality of the returned plans. As mentioned earlier,
+each algorithm was executed on every instance using 10 different random seeds. Varying the seed affects the algorithm’s
+behavior only in cases where multiple actions share the same heuristic cost, influencing which action is selected among them.
+Figure \ref{fig:rand_rand} presents the analysis of the impact of randomization on the random strategy.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\textwidth]{images/randomization_random.png}
+	\caption{Effect of random seed on the outcome variability of the Random approach.}
+	\label{fig:rand_rand}
+\end{figure}
+
+It is a \textit{logarithmic plot}: it uses a logarithmic scale on both axis to display data with a wide range of value.
+Each point represents one instance in the testbed, and its coordinates correspond to the minimum and maximum plan costs found
+by the algorithm across different random seeds.
