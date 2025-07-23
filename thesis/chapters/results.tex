@@ -34,13 +34,35 @@ the number of instances it was able to solve within the time limit.
 \end{table}
 
 By simply examining this table, we can identify the most effective algorithms.
-The Lookahead process is computationally expensive, resulting in approximately one-third of the instances not being solved.
-In contrast, the efficient implementation of the Shortest Path heuristic appears to be the most capable,
+The lookahead process is computationally expensive, resulting in approximately one-third of the instances not being solved.
+In contrast, the efficient implementation of the shortest path heuristic appears to be the most capable,
 solving the highest number of instances.
 
 \section{Random vs Greedy vs Greedy + Pruning vs Shortest Path}
 This section presents an evaluation of four planning strategies, ranging from uninformed to increasingly informed approaches:
-Random, Greedy, Greedy + Pruning, and Shortest Path.
-Random and Greedy exhibit similar efficiency, as both are able to solve a large number of instances. Greedy + Pruning is
-slightly slower but employs a strategy with the potential to yield higher-quality solutions. Ultimately, the Shortest Path approach
+random, greedy, greedy + pruning, and shortest path.
+Random and greedy exhibit similar efficiency, as both are able to solve a large number of instances. Greedy + pruning is
+slightly slower but employs a strategy with the potential to yield higher-quality solutions. Ultimately, the shortest path approach
 solves the highest number of instances. The next step is to evaluate the quality of the solutions produced by each strategy.
+Figure \ref{fig:rgps} presents the cumulative distribution plot for the evaluated algorithms.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\textwidth]{images/algs0124.png}
+	\caption{Cumulative distribution plot for Random, Greedy, Greedy + Pruning, and Shortest Path strategies.}
+	\label{fig:rgps}
+\end{figure}
+
+For instance, to better interpret the plot, consider the greedy strategy: the point on its curve corresponding to
+a primal gap threshold of 60\% is close to 20\%. This indicates that it achieves a solution with a primal gap less than
+or equal to 60\% in approximately 20\% of the problem instances.
+Conversely, the shortest path strategy found the best known solution (i.e., a primal gap of 0\%) in approximately
+25\% of the instances.
+Now that the plot has been properly explained, it is possible to identify the most effective heuristic.
+The curve that remains above all the others represents the best-performing strategy, as it indicates that the corresponding
+algorithm consistently found solutions within the primal gap thresholds for a larger number of instances.
+As expected, random and greedy stategies typically do not produce high-quality plans. Pruning the useless actions appears to be
+an effective strategy, as it allows the planner to discard actions that are known to be unhelpful whenever multiple
+options with the same cost are available.
+Shortest Path builds on pruning by also estimating the distance to the goal for each action, resulting in a more
+informed and effective selection of actions to include in the plan.

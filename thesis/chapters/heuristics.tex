@@ -94,6 +94,8 @@ Algorithm \ref{alg:greedy} shows the pseudocode for this algorithm. The omitted 
 \end{algorithm}
 
 Instead of randomly choosing the next action to apply, here the action with minimum cost is always selected.
+For this and all subsequent algorithms, if multiple eligible actions share the same minimum (heuristic) cost,
+one of them is selected at random.
 
 \section{Revised Max Heuristic}
 \label{sec:hmax}
@@ -186,7 +188,7 @@ When selecting the next action to apply, any action with an infinite cost will b
 and the one with the lowest heuristic cost among the remaining options will be chosen.
 As previously mentioned, any action that can be applied from
 the current state will always have a heuristic cost equal to its actual cost.
-Therefore, this algorithm can be seen as a Greedy + Pruning approach: it selects the next action based on the action's cost,
+Therefore, this algorithm can be seen as a greedy + pruning approach: it selects the next action based on the action's cost,
 while discarding useless actions.
 To observe the true behavior of the proposed algorithm, it should ideally be used within the context of the \verb|A*| algorithm,
 a well-known search strategy that combines actual cost from the start with a heuristic estimate to the goal.
@@ -196,7 +198,7 @@ required to reach node $n$, and $h(n)$ is the estimated cost to reach the goal s
 However, since \verb|A*| was not implemented in this thesis, an alternative approach was used to evaluate the algorithm's actual performance.
 
 \section{Max Heuristic + Lookahead}
-As mentioned in the previous section, the presented algorithm can be considered a Greedy + Pruning approach,
+As mentioned in the previous section, the presented algorithm can be considered a greedy + pruning approach,
 since the full potential of the heuristic cannot be exploited|the heuristic cost of the applicable actions is always equal
 to the actions' actual cost.
 To evaluate its performance, a new version of the heuristic is proposed.
@@ -251,7 +253,7 @@ and then applies only the action that appears to be the most convenient.
 
 \section{Novel Heuristic}
 In this section, a completely new approach is introduced. As discussed in Section \ref{sec:hmax},
-the modified version of the max heuristic ultimately behaves like a Greedy + Pruning algorithm, limiting its effectiveness.
+the modified version of the max heuristic ultimately behaves like a greedy + pruning algorithm, limiting its effectiveness.
 Here, we aim to use the same backward propagation mechanism, but with a different heuristic cost assigned to each action.
 The core idea is to assign each action a cost that estimates its actual distance to the goal.
 Specifically, the cost assigned to an action corresponds to the cost of the \textit{shortest path} to reach a fact in the goal state.
