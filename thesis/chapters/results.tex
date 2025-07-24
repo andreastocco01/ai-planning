@@ -187,3 +187,31 @@ across different random seeds. The shortest path approach stands out as the most
 combining a pruning mechanism with an action-level estimate of the distance to the goal state.\\
 In conclusion, the shortest path heuristic proves to be the most effective in all aspects: it solves the largest number of instances,
 yields the best performance in cumulative distribution plots, and demonstrates the highest stability with respect to random seed variation.
+
+\section{Iterative Refinement via Shortest Path Reapplication}
+In the context of Mixed Integer Programming (MIP), there is a technique known as local branching \cite{fischetti2003local},
+which involves first finding a feasible solution using a fast heuristic or metaheuristic approach, and then refining this solution by solving,
+to optimality, a subproblem of the original MIP using a solver as a ``black box''.
+This approach could also be applied to planning. However, at the time of writing, the most well-known optimal planner, Fast Downward,
+does not provide an API that would allow it to be used as a black-box component. To refine the solution found by the shortest path heuristic,
+the proposed idea is to reapply the algorithm to a subproblem and then replace the corresponding segment of the original solution with the new one.
+The hope is that solving a smaller, focused subproblem may yield a higher-quality solution than addressing the full problem in its entirety.
+Given an initial plan, the initial and goal states for the subproblem are derived from intermediate states along the original plan.
+In the experiment, these subproblem boundaries were positioned at different segments of the original solution.
+For each instance, the shortest path algorithm was reapplied to three different segments of the original plan: the first 30\% of actions,
+the central 40\%, and the final 30\%.
+The original segments of the solution were replaced with the newly generated ones, and the total plan cost was then recomputed.
+If the new cost is better than the initial one, the new solution is returned; otherwise, the initial solution is retained as the final plan.
+Figure \ref{fig:reapply} compares the cumulative distribution of the original shortest path
+strategy with the three variants where the algorithm was reapplied to different segments of the plan.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\textwidth]{images/sp_full.png}
+	\caption{Comparison of cumulative distributions for Shortest Path reapplied to different plan segments.}
+	\label{fig:reapply}
+\end{figure}
+
+Unfortunately, the four curves overlap almost perfectly, indicating that this strategy does not provide any improvement.
+In every case, the new plan has the same cost as the initial one. Therefore, reapplying the heuristic to a subproblem does not appear
+to be a promising approach.
