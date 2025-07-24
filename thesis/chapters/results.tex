@@ -149,3 +149,41 @@ Figure \ref{fig:rand_rand} presents the analysis of the impact of randomization 
 It is a \textit{logarithmic plot}: it uses a logarithmic scale on both axis to display data with a wide range of value.
 Each point represents one instance in the testbed, and its coordinates correspond to the minimum and maximum plan costs found
 by the algorithm across different random seeds.
+Some instances exhibit a large discrepancy between the minimum and maximum plan costs. In fact, certain points show a minimum
+cost of around 10 and a maximum close to 1000, indicating a fluctuation of two orders of magnitude.
+Selecting the next action at random is highly dependent on the chosen random seed.
+Figure \ref{fig:rand_greedy} shows the same plot for the greedy approach.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\textwidth]{images/randomization_greedy.png}
+	\caption{Effect of random seed on the outcome variability of the Greedy approach.}
+	\label{fig:rand_greedy}
+\end{figure}
+
+In this case, the variability in the algorithm's output is more stable than in the previous one. While the greedy strategy still
+exhibits instances with large discrepancies between minimum and maximum costs, both the frequency and the magnitude of these
+differences are slightly reduced.
+The overall trend emerging from this analysis is that the more informative the heuristic, the more stable its results become.
+This behavior is particularly evident in Figures~\ref{fig:rand_pruning} and~\ref{fig:rand_sp}.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\textwidth]{images/randomization_pruning.png}
+	\caption{Effect of random seed on the outcome variability of the Greedy + Pruning approach.}
+	\label{fig:rand_pruning}
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\textwidth]{images/randomization_sp.png}
+	\caption{Effect of random seed on the outcome variability of the Shortest Path approach.}
+	\label{fig:rand_sp}
+\end{figure}
+
+The improvement is especially noticeable in the plot for the shortest path heuristic. Most points lie close to the red line,
+which represents the ideal case where the minimum and maximum plan costs are equal. This indicates a high degree of consistency
+across different random seeds. The shortest path approach stands out as the most informative among the heuristics presented,
+combining a pruning mechanism with an action-level estimate of the distance to the goal state.\\
+In conclusion, the shortest path heuristic proves to be the most effective in all aspects: it solves the largest number of instances,
+yields the best performance in cumulative distribution plots, and demonstrates the highest stability with respect to random seed variation.
