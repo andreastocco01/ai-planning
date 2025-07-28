@@ -686,8 +686,6 @@ int PlanningTask::dfs(int max_depth) {
         DfsNode node = stack.top();
         stack.pop();
 
-        if (node.path.size() > max_depth) continue;
-
         if (goal_reached(node.state)) {
             if (node.cost < best_path_cost) {
                 best_path_cost = node.cost;
@@ -695,6 +693,8 @@ int PlanningTask::dfs(int max_depth) {
             }
             continue;
         }
+
+        if (node.path.size() > max_depth) continue;
 
         std::string key = encode(node.state);
         if (visited.count(key)) continue;
