@@ -84,17 +84,12 @@ class IndexAction {
     Action action;
 };
 
-class QueueFrame {
-   public:
-    Fact fact;
-    int level;
-};
-
-class StackFrame {
+class DfsNode {
    public:
     int action_idx;
-    Fact from;
-    int level;
+    std::vector<int> state;
+    std::vector<int> path;
+    int cost;
 };
 
 class PlanningTask {
@@ -131,6 +126,7 @@ class PlanningTask {
     void print_solution();
     bool check_integrity();
     int solve(int seed, int heuristic, bool debug, int time_limit);
+    int dfs(int max_depth);
 
    private:
     std::unordered_map<Fact, std::vector<int>, FactHasher> map_precond_actions;
@@ -162,6 +158,7 @@ class PlanningTask {
     int apply_pending_effects(std::vector<int> &current_state);
     void look_ahead(std::vector<int> &current_state,
                     std::vector<int> &possible_actions_idx, int heuristic);
+    int compute_next_state(int idx, std::vector<int> &current_state);
 };
 
 #endif

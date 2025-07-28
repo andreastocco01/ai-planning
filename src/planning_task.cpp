@@ -155,7 +155,7 @@ std::vector<int> PlanningTask::get_possible_actions_idx(
     return actions_idx;
 }
 
-int PlanningTask::apply_action(int idx, std::vector<int> &current_state) {
+int PlanningTask::compute_next_state(int idx, std::vector<int> &current_state) {
     int n_applied_effects = 0;  // count applied effects during this iteration
     for (int i = 0; i < this->actions[idx].n_effects; i++) {
         Effect effect = this->actions[idx].effects[i];
@@ -180,8 +180,13 @@ int PlanningTask::apply_action(int idx, std::vector<int> &current_state) {
             this->pending_effects.push_back(effect);
         }
     }
+    return n_applied_effects;
+}
 
-    if (n_applied_effects) {  // at least one effect was applied
+int PlanningTask::apply_action(int idx, std::vector<int> &current_state) {
+    int n_applied_effects = compute_next_state(idx, current_state);
+    if (n_applied_effects) {  // at least one effect was
+                              // applied
         IndexAction indexAction;
         indexAction.idx = idx;
         indexAction.action = this->actions[idx];
@@ -197,8 +202,8 @@ int PlanningTask::apply_action(int idx, std::vector<int> &current_state) {
 
 void PlanningTask::print_solution() {
     for (int i = 0; i < this->solution.size(); i++) {
-        std::cout << this->solution[i].idx
-                  << ": " + this->solution[i].action.name << std::endl;
+        std::cout << this->solution[i].idx << ": "
+                  << this->solution[i].action.name << std::endl;
     }
     std::cout << "Cost: " << this->solution_cost << std::endl;
 }
@@ -374,7 +379,7 @@ void PlanningTask::backward_cost_propagation(std::vector<int> &current_state,
 
             if (current_action.is_used) continue;
             int new_cost;
-            if (heuristic == 4 || heuristic == 7) {
+            if (heuristic == 4) {
                 new_cost = (this->metric == 1)
                                ? current_action.cost + fact_costs[fact_idx]
                                : 1 + fact_costs[fact_idx];
@@ -539,8 +544,7 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
             }
         }
 
-        if (heuristic == 4 || heuristic == 5 || heuristic == 6 ||
-            heuristic == 7) {
+        if (heuristic == 4 || heuristic == 5 || heuristic == 6) {
             reset_actions_metadata();
             backward_cost_propagation(current_state, heuristic);
         }
@@ -653,4 +657,70 @@ bool PlanningTask::check_integrity() {
     }
     if (cost == this->solution_cost) return true;
     return false;
+}
+
+std::string encode(const std::vector<int> &state) {
+    std::string key;
+    for (int v : state) {
+        key += std::to_string(v) + ",";
+    }
+    return key;
+}
+
+int PlanningTask::dfs(int max_depth) {
+    std::stack<DfsNode> stack;
+    std::vector<int> best_path;
+    int best_path_cost = std::numeric_limits<int>::max();
+    std::set<std::string> visited;
+
+    for (int action_idx : get_possible_actions_idx(this->initial_state, true)) {
+        std::vector<int> new_state = this->initial_state;
+        compute_next_state(action_idx, new_state);
+        stack.push({action_idx,
+                    new_state,
+                    {action_idx},
+                    (this->metric == 1) ? this->actions[action_idx].cost : 1});
+    }
+
+    while (!stack.empty()) {
+        DfsNode node = stack.top();
+        stack.pop();
+
+        if (node.path.size() > max_depth) continue;
+
+        if (goal_reached(node.state)) {
+            if (node.cost < best_path_cost) {
+                best_path_cost = node.cost;
+                best_path = node.path;
+            }
+            continue;
+        }
+
+        std::string key = encode(node.state);
+        if (visited.count(key)) continue;
+        visited.insert(key);
+
+        std::vector<int> successors =
+            get_possible_actions_idx(node.state, true);
+        for (int action_idx : successors) {
+            std::vector<int> new_state = node.state;
+            compute_next_state(action_idx, new_state);
+
+            std::vector<int> new_path = node.path;
+            new_path.push_back(action_idx);
+
+            int new_cost =
+                node.cost +
+                ((this->metric == 1) ? this->actions[action_idx].cost : 1);
+
+            stack.push({action_idx, new_state, new_path, new_cost});
+        }
+    }
+
+    this->solution_cost = best_path_cost;
+    for (int idx : best_path) {
+        this->solution.push_back({idx, this->actions[idx]});
+    }
+
+    return 0;
 }

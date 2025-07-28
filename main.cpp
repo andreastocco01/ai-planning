@@ -154,16 +154,17 @@ int main(int argc, char** argv) {
     }
 
     if (!(from_file_flag && alg_flag && seed_flag && debug_flag) || alg < 0 ||
-        alg > 7) {
+        alg > 8) {
         print_usage(argv[0]);
         return 1;
     }
 
     if (!time_limit_flag) time_limit = -1;
-    if (alg == 7 && (p_start < 0 || p_end > 1 || p_start >= p_end)) {
+    if ((alg == 7 || alg == 8) &&
+        (p_start < 0 || p_end > 1 || p_start >= p_end)) {
         print_usage(argv[0]);
         std::cerr << std::endl
-                  << "For alg 7: 0 <= start < end <= 1" << std::endl;
+                  << "For alg 7 and 8: 0 <= start < end <= 1" << std::endl;
         return 1;
     }
 
@@ -198,12 +199,16 @@ int main(int argc, char** argv) {
             std::cout << "backward cost propagation (sum)" << std::endl;
             break;
         case 7:
-            std::cout << "re-apply alg 4" << std::endl;
+            std::cout << "reapply backward cost propagation (min)" << std::endl;
+            break;
+        case 8:
+            std::cout << "backward cost propagation (min) + dfs" << std::endl;
             break;
     }
 
     std::cout << "Solving..." << std::endl;
-    int res = pt.solve(seed, alg, debug, time_limit);
+    int res = (alg == 7 || alg == 8) ? pt.solve(seed, 4, debug, time_limit)
+                                     : pt.solve(seed, alg, debug, time_limit);
     if (!res) {
         std::cout << "Solution found!" << std::endl;
         if (alg < 7) {
@@ -216,7 +221,7 @@ int main(int argc, char** argv) {
         std::cout << "Solution does not exist!" << std::endl;
     }
 
-    if (alg == 7 && !res) {
+    if ((alg == 7 || alg == 8) && !res) {
         int start = pt.solution.size() * p_start;
         int end = pt.solution.size() * p_end;
         if (start >= end) {
@@ -234,11 +239,17 @@ int main(int argc, char** argv) {
         solving_sub = true;
         sub = create_subproblem(pt, start, end);
 
-        if (!sub.solve(seed, alg, debug, time_limit)) {
-            /*std::cout << std::endl
+        int res_sub;
+        if (alg == 7)
+            res_sub = sub.solve(seed, 4, debug, time_limit);
+        else
+            res_sub = sub.dfs(end - start);
+
+        if (!res_sub) {
+            std::cout << std::endl
                       << "############### Sub-Problem Solution ###############"
                       << std::endl;
-            sub.print_solution();*/
+            sub.print_solution();
 
             // merge sub-solution with the original one
             merge_solutions(start, end, pt, sub);
