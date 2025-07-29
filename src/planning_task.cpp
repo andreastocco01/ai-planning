@@ -667,11 +667,11 @@ std::string encode(const std::vector<int> &state) {
     return key;
 }
 
-int PlanningTask::dfs(int max_depth) {
+int PlanningTask::dfs(int max_cost) {
     std::stack<DfsNode> stack;
     std::vector<int> best_path;
     int best_path_cost = std::numeric_limits<int>::max();
-    std::set<std::string> visited;
+    std::unordered_map<std::string, int> visited;
 
     for (int action_idx : get_possible_actions_idx(this->initial_state, true)) {
         std::vector<int> new_state = this->initial_state;
@@ -689,16 +689,17 @@ int PlanningTask::dfs(int max_depth) {
         if (goal_reached(node.state)) {
             if (node.cost < best_path_cost) {
                 best_path_cost = node.cost;
+                std::cout << "New cost found: " << best_path_cost << std::endl;
                 best_path = node.path;
             }
             continue;
         }
 
-        if (node.path.size() > max_depth) continue;
+        if (node.cost > max_cost) continue;
 
         std::string key = encode(node.state);
-        if (visited.count(key)) continue;
-        visited.insert(key);
+        if (visited.count(key) && visited[key] <= node.cost) continue;
+        visited[key] = node.cost;
 
         std::vector<int> successors =
             get_possible_actions_idx(node.state, true);

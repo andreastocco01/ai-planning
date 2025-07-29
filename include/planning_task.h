@@ -126,7 +126,7 @@ class PlanningTask {
     void print_solution();
     bool check_integrity();
     int solve(int seed, int heuristic, bool debug, int time_limit);
-    int dfs(int max_depth);
+    int dfs(int max_cost);
 
    private:
     std::unordered_map<Fact, std::vector<int>, FactHasher> map_precond_actions;

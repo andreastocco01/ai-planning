@@ -239,11 +239,17 @@ int main(int argc, char** argv) {
         solving_sub = true;
         sub = create_subproblem(pt, start, end);
 
+        int section_cost = 0;
+        for (int i = start; i < end; i++) {
+            section_cost += pt.solution[i].action.cost;
+        }
+        std::cout << "Original subproblem cost: " << section_cost << std::endl;
+
         int res_sub;
         if (alg == 7)
             res_sub = sub.solve(seed, 4, debug, time_limit);
         else
-            res_sub = sub.dfs(end - start);
+            res_sub = sub.dfs(section_cost);
 
         if (!res_sub) {
             std::cout << std::endl
