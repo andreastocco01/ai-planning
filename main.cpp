@@ -81,10 +81,15 @@ PlanningTask create_subproblem(PlanningTask& orig, int start, int end) {
         compute_next_state(sub, idx, current_state);
     }
 
-    // new goal_state = state up to end
-    for (int k = 0; k < current_state.size(); k++) {
-        if (current_state[k] != sub.initial_state[k]) {
-            sub.goal_state.push_back({k, current_state[k]});
+    // new goal_state = goal state facts up to end + preconditions of following
+    // actions
+    for (int k = 0; k < orig.goal_state.size(); k++) {
+        sub.goal_state.push_back(
+            {orig.goal_state[k].var_idx, current_state[k]});
+    }
+    for (; i < orig.solution.size(); i++) {
+        for (Fact pre : orig.solution[i].action.preconds) {
+            sub.goal_state.push_back({pre.var_idx, pre.var_val});
         }
     }
     sub.n_goals = sub.goal_state.size();
@@ -106,6 +111,7 @@ void signal_handler(int signum) {
 
 int main(int argc, char** argv) {
     signal(SIGTERM, signal_handler);
+    signal(SIGKILL, signal_handler);
     if (argc < 9) {
         print_usage(argv[0]);
         return 1;
@@ -249,7 +255,7 @@ int main(int argc, char** argv) {
         if (alg == 7)
             res_sub = sub.solve(seed, 4, debug, time_limit);
         else
-            res_sub = sub.dfs(section_cost);
+            res_sub = sub.ucs();
 
         if (!res_sub) {
             std::cout << std::endl
@@ -282,6 +288,13 @@ int main(int argc, char** argv) {
                 else
                     std::cout << "Integrity check NOT passed!" << std::endl;
             }
+        } else {
+            std::cout << "UCS: too many nodes. Returning original solution"
+                      << std::endl;
+            std::cout << std::endl
+                      << "############### Solution ###############"
+                      << std::endl;
+            pt.print_solution();
         }
     }
     return 0;

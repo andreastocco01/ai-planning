@@ -92,6 +92,13 @@ class DfsNode {
     int cost;
 };
 
+class UcsNode {
+   public:
+    std::string state;
+    std::vector<int> path;
+    int cost;
+};
+
 class PlanningTask {
    public:
     int metric;  // 0 no action costs, 1 action costs
@@ -127,6 +134,7 @@ class PlanningTask {
     bool check_integrity();
     int solve(int seed, int heuristic, bool debug, int time_limit);
     int dfs(int max_cost);
+    int ucs();
 
    private:
     std::unordered_map<Fact, std::vector<int>, FactHasher> map_precond_actions;

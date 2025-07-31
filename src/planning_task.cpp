@@ -15,6 +15,7 @@
 #include <sstream>
 #include <stack>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -660,11 +661,26 @@ bool PlanningTask::check_integrity() {
 }
 
 std::string encode(const std::vector<int> &state) {
-    std::string key;
-    for (int v : state) {
-        key += std::to_string(v) + ",";
+    if (state.empty()) return "";
+
+    std::string key = std::to_string(state[0]);
+    for (size_t i = 1; i < state.size(); ++i) {
+        key += "," + std::to_string(state[i]);
     }
     return key;
+}
+
+std::vector<int> decode(const std::string &s) {
+    if (s.empty()) return {};
+
+    std::vector<int> result;
+    std::string token;
+    std::istringstream ss(s);
+
+    while (std::getline(ss, token, ',')) {
+        result.push_back(std::stoi(token));
+    }
+    return result;
 }
 
 int PlanningTask::dfs(int max_cost) {
@@ -724,4 +740,70 @@ int PlanningTask::dfs(int max_cost) {
     }
 
     return 0;
+}
+
+int PlanningTask::ucs() {
+    const int MAX_STATES = 100000;
+    PriorityQueue<int> frontier(MAX_STATES);  // arbitrary size of the queue
+    std::vector<UcsNode> states;              // get state from index
+    std::unordered_map<std::string, int> map_state_idx;  // get index from state
+    std::unordered_set<int> visited;                     // expanded states
+
+    int next_state_to_add_idx = 0;
+    std::string enc_init_state = encode(this->initial_state);
+    map_state_idx[enc_init_state] = next_state_to_add_idx++;
+    states.push_back({enc_init_state, {}, 0});
+    frontier.push(map_state_idx[enc_init_state], 0);
+
+    while (!frontier.isEmpty()) {
+        int state_idx = frontier.top();
+        frontier.pop();
+
+        std::vector<int> current_state = decode(states[state_idx].state);
+        if (goal_reached(current_state)) {
+            std::vector<int> path = states[state_idx].path;
+            for (int a_idx : path) {
+                this->solution.push_back({a_idx, this->actions[a_idx]});
+            }
+            this->solution_cost = states[state_idx].cost;
+            return 0;
+        }
+
+        if (visited.count(state_idx))
+            continue;  // do not expand a node already expanded
+
+        visited.insert(state_idx);
+
+        std::vector<int> successors =
+            get_possible_actions_idx(current_state, true);
+
+        for (int a_idx : successors) {
+            std::vector<int> new_state = current_state;
+            compute_next_state(a_idx, new_state);
+
+            std::string enc_state = encode(new_state);
+            int cost = (this->metric == 1)
+                           ? states[state_idx].cost + this->actions[a_idx].cost
+                           : states[state_idx].cost + 1;
+            std::vector<int> path = states[state_idx].path;
+            path.push_back(a_idx);
+
+            if (!map_state_idx.count(enc_state)) {
+                if (next_state_to_add_idx >= MAX_STATES)
+                    return -1;  // out of capacity
+                map_state_idx[enc_state] = next_state_to_add_idx++;
+                states.push_back({enc_state, path, cost});
+                frontier.push(map_state_idx[enc_state], cost);
+            } else if (!visited.count(map_state_idx[enc_state]) &&
+                       cost < states[map_state_idx[enc_state]].cost) {
+                // overwrite old entry with lower cost
+                int idx = map_state_idx[enc_state];
+                states[idx].path = path;
+                states[idx].cost = cost;
+                frontier.change(idx,
+                                cost);  // the state is already in the frontier
+            }
+        }
+    }
+    return 1;  // no solution
 }
