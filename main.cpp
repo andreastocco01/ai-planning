@@ -84,8 +84,8 @@ PlanningTask create_subproblem(PlanningTask& orig, int start, int end) {
     // new goal_state = goal state facts up to end + preconditions of following
     // actions
     for (int k = 0; k < orig.goal_state.size(); k++) {
-        sub.goal_state.push_back(
-            {orig.goal_state[k].var_idx, current_state[k]});
+        sub.goal_state.push_back({orig.goal_state[k].var_idx,
+                                  current_state[orig.goal_state[k].var_idx]});
     }
     for (; i < orig.solution.size(); i++) {
         for (Fact pre : orig.solution[i].action.preconds) {
@@ -288,7 +288,8 @@ int main(int argc, char** argv) {
                 else
                     std::cout << "Integrity check NOT passed!" << std::endl;
             }
-        } else {
+        }
+        if (res_sub && alg == 8) {
             std::cout << "UCS: too many nodes. Returning original solution"
                       << std::endl;
             std::cout << std::endl
