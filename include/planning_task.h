@@ -95,7 +95,8 @@ class DfsNode {
 class UcsNode {
    public:
     std::string state;
-    std::vector<int> path;
+    int parent_idx;
+    int action_idx;
     int cost;
 };
 
