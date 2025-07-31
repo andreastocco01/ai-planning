@@ -752,7 +752,7 @@ int PlanningTask::ucs() {
     int next_state_to_add_idx = 0;
     std::string enc_init_state = encode(this->initial_state);
     map_state_idx[enc_init_state] = next_state_to_add_idx++;
-    states.push_back({enc_init_state, {}, 0});
+    states.push_back({enc_init_state, -1, -1, 0});
     frontier.push(map_state_idx[enc_init_state], 0);
 
     while (!frontier.isEmpty()) {
@@ -761,11 +761,14 @@ int PlanningTask::ucs() {
 
         std::vector<int> current_state = decode(states[state_idx].state);
         if (goal_reached(current_state)) {
-            std::vector<int> path = states[state_idx].path;
-            for (int a_idx : path) {
-                this->solution.push_back({a_idx, this->actions[a_idx]});
-            }
             this->solution_cost = states[state_idx].cost;
+            while (state_idx != -1) {
+                int a_idx = states[state_idx].action_idx;
+                if (a_idx != -1)
+                    this->solution.push_back({a_idx, this->actions[a_idx]});
+                state_idx = states[state_idx].parent_idx;
+            }
+            std::reverse(this->solution.begin(), this->solution.end());
             return 0;
         }
 
@@ -785,21 +788,18 @@ int PlanningTask::ucs() {
             int cost = (this->metric == 1)
                            ? states[state_idx].cost + this->actions[a_idx].cost
                            : states[state_idx].cost + 1;
-            std::vector<int> path = states[state_idx].path;
-            path.push_back(a_idx);
 
             if (!map_state_idx.count(enc_state)) {
                 if (next_state_to_add_idx >= MAX_STATES)
                     return -1;  // out of capacity
                 map_state_idx[enc_state] = next_state_to_add_idx++;
-                states.push_back({enc_state, path, cost});
+                states.push_back({enc_state, state_idx, a_idx, cost});
                 frontier.push(map_state_idx[enc_state], cost);
             } else if (!visited.count(map_state_idx[enc_state]) &&
                        cost < states[map_state_idx[enc_state]].cost) {
                 // overwrite old entry with lower cost
                 int idx = map_state_idx[enc_state];
-                states[idx].path = path;
-                states[idx].cost = cost;
+                states[idx] = {enc_state, state_idx, a_idx, cost};
                 frontier.change(idx,
                                 cost);  // the state is already in the frontier
             }
