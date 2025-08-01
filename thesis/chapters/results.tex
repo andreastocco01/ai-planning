@@ -94,7 +94,7 @@ solved by all of them.
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=\textwidth]{images/algs234_solved_all.png}
-	\caption{Cumulative distribution plot for Greedy + Pruning, Max Heuristic + Lookaheado, and Shortest Path strategies,
+	\caption{Cumulative distribution plot for Greedy + Pruning, Max Heuristic + Lookahead, and Shortest Path strategies,
 		considering only the instances solved by all of them.}
 	\label{fig:algs234_solved_all}
 \end{figure}
@@ -105,7 +105,7 @@ This allows us to assess only the quality of the generated plans. From this comp
 is the best-performing algorithm overall—both in terms of solution quality and the number of problems it can solve.
 Additionally, the performance of hmax + lookahead, which surpasses that of greedy + pruning, confirms that pruning combined
 with max heuristic can be an effective strategy when paired with a lookahead mechanism.
-Although Lookahead remains a slow algorithm, these results suggest that the revised version of the max heuristic|enhanced
+Although lookahead remains a slow algorithm, these results suggest that the revised version of the max heuristic|enhanced
 with a pruning mechanism|has the potential to produce high-quality solutions if used within a more powerful search strategy
 like \verb|A*|.
 
