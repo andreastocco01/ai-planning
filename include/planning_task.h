@@ -84,14 +84,6 @@ class IndexAction {
     Action action;
 };
 
-class DfsNode {
-   public:
-    int action_idx;
-    std::vector<int> state;
-    std::vector<int> path;
-    int cost;
-};
-
 class UcsNode {
    public:
     std::string state;
@@ -134,7 +126,6 @@ class PlanningTask {
     void print_solution();
     bool check_integrity();
     int solve(int seed, int heuristic, bool debug, int time_limit);
-    int dfs(int max_cost);
     int ucs();
 
    private:

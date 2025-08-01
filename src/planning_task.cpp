@@ -683,65 +683,6 @@ std::vector<int> decode(const std::string &s) {
     return result;
 }
 
-int PlanningTask::dfs(int max_cost) {
-    std::stack<DfsNode> stack;
-    std::vector<int> best_path;
-    int best_path_cost = std::numeric_limits<int>::max();
-    std::unordered_map<std::string, int> visited;
-
-    for (int action_idx : get_possible_actions_idx(this->initial_state, true)) {
-        std::vector<int> new_state = this->initial_state;
-        compute_next_state(action_idx, new_state);
-        stack.push({action_idx,
-                    new_state,
-                    {action_idx},
-                    (this->metric == 1) ? this->actions[action_idx].cost : 1});
-    }
-
-    while (!stack.empty()) {
-        DfsNode node = stack.top();
-        stack.pop();
-
-        if (goal_reached(node.state)) {
-            if (node.cost < best_path_cost) {
-                best_path_cost = node.cost;
-                std::cout << "New cost found: " << best_path_cost << std::endl;
-                best_path = node.path;
-            }
-            continue;
-        }
-
-        if (node.cost > max_cost) continue;
-
-        std::string key = encode(node.state);
-        if (visited.count(key) && visited[key] <= node.cost) continue;
-        visited[key] = node.cost;
-
-        std::vector<int> successors =
-            get_possible_actions_idx(node.state, true);
-        for (int action_idx : successors) {
-            std::vector<int> new_state = node.state;
-            compute_next_state(action_idx, new_state);
-
-            std::vector<int> new_path = node.path;
-            new_path.push_back(action_idx);
-
-            int new_cost =
-                node.cost +
-                ((this->metric == 1) ? this->actions[action_idx].cost : 1);
-
-            stack.push({action_idx, new_state, new_path, new_cost});
-        }
-    }
-
-    this->solution_cost = best_path_cost;
-    for (int idx : best_path) {
-        this->solution.push_back({idx, this->actions[idx]});
-    }
-
-    return 0;
-}
-
 int PlanningTask::ucs() {
     const int MAX_STATES = 100000;
     PriorityQueue<int> frontier(MAX_STATES);  // arbitrary size of the queue
