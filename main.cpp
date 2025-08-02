@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <csignal>
 #include <iostream>
 #include <string>
@@ -89,7 +90,9 @@ PlanningTask create_subproblem(PlanningTask& orig, int start, int end) {
     }
     for (; i < orig.solution.size(); i++) {
         for (Fact pre : orig.solution[i].action.preconds) {
-            sub.goal_state.push_back({pre.var_idx, pre.var_val});
+            if (std::find(sub.goal_state.begin(), sub.goal_state.end(), pre) !=
+                sub.goal_state.end())
+                sub.goal_state.push_back({pre.var_idx, pre.var_val});
         }
     }
     sub.n_goals = sub.goal_state.size();
