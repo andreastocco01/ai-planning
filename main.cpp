@@ -84,17 +84,22 @@ PlanningTask create_subproblem(PlanningTask& orig, int start, int end) {
 
     // new goal_state = goal state facts up to end + preconditions of following
     // actions
-    for (int k = 0; k < orig.goal_state.size(); k++) {
-        sub.goal_state.push_back({orig.goal_state[k].var_idx,
-                                  current_state[orig.goal_state[k].var_idx]});
-    }
-    for (; i < orig.solution.size(); i++) {
-        for (Fact pre : orig.solution[i].action.preconds) {
-            if (std::find(sub.goal_state.begin(), sub.goal_state.end(), pre) !=
-                sub.goal_state.end())
-                sub.goal_state.push_back({pre.var_idx, pre.var_val});
+    std::unordered_set<int> required_vars;
+    for (int j = end; j < orig.solution.size(); ++j) {
+        for (const Fact& pre : orig.solution[j].action.preconds) {
+            required_vars.insert(pre.var_idx);
         }
     }
+    for (const Fact& goal_fact : orig.goal_state) {
+        required_vars.insert(goal_fact.var_idx);
+    }
+
+    for (int k = 0; k < current_state.size(); ++k)
+        if (sub.initial_state[k] != current_state[k] &&
+            required_vars.count(k))  // add only facts that are not already
+                                     // present in the initial state
+            sub.goal_state.push_back({k, current_state[k]});
+
     sub.n_goals = sub.goal_state.size();
     return sub;
 }
