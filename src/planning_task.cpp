@@ -684,7 +684,7 @@ std::vector<int> decode(const std::string &s) {
 }
 
 int PlanningTask::ucs() {
-    const int MAX_STATES = 100000;
+    const int MAX_STATES = 500000;
     PriorityQueue<int> frontier(MAX_STATES);  // arbitrary size of the queue
     std::vector<UcsNode> states;              // get state from index
     std::unordered_map<std::string, int> map_state_idx;  // get index from state

@@ -119,7 +119,7 @@ void signal_handler(int signum) {
 
 int main(int argc, char** argv) {
     signal(SIGTERM, signal_handler);
-    signal(SIGKILL, signal_handler);
+    signal(SIGINT, signal_handler);
     if (argc < 9) {
         print_usage(argv[0]);
         return 1;
@@ -216,7 +216,7 @@ int main(int argc, char** argv) {
             std::cout << "reapply backward cost propagation (min)" << std::endl;
             break;
         case 8:
-            std::cout << "backward cost propagation (min) + dfs" << std::endl;
+            std::cout << "backward cost propagation (min) + ucs" << std::endl;
             break;
     }
 
