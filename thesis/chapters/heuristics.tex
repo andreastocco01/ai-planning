@@ -191,22 +191,22 @@ When selecting the next action to apply, any action with an infinite cost will b
 and the one with the lowest heuristic cost among the remaining options will be chosen.
 Figures \ref{fig:hmax_scheme} and \ref{fig:hmax_pruning_scheme} can help visualize the concept.
 
-\begin{figure}[htbp]
+\begin{figure}
 	\centering
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{images/hmax.png}
-		\caption{Caption for left figure}
-		\label{fig:hmax_scheme}
-	\end{minipage}
-	\hspace{0.05\textwidth}
-	\begin{minipage}{0.45\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{images/hmax_pruning.png}
-		\caption{Caption for right figure}
-		\label{fig:hmax_pruning_scheme}
-	\end{minipage}
+	\def\svgwidth{0.75\linewidth}
+	\input{images/hmax.pdf_tex}
+	\caption{TODO}
+	\label{fig:hmax_scheme}
 \end{figure}
+
+\begin{figure}
+	\centering
+	\def\svgwidth{0.75\linewidth}
+	\input{images/hmax_pruning.pdf_tex}
+	\caption{TODO}
+	\label{fig:hmax_pruning_scheme}
+\end{figure}
+
 
 As previously mentioned, any action that can be applied from
 the current state will always have a heuristic cost equal to its actual cost.
