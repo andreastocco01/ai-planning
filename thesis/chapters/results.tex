@@ -16,7 +16,7 @@ Additionally, since some algorithms are more efficient than others, not all the 
 were solved by every algorithm. Table \ref{tab:timelimit} shows, for each algorithm,
 the number of instances it was able to solve within the time limit.
 
-\begin{table}[h!]
+\begin{table}[ht]
 	\centering
 	\begin{tabular}{|l|r|}
 		\hline
@@ -46,7 +46,7 @@ slightly slower but employs a strategy with the potential to yield higher-qualit
 solves the highest number of instances. The next step is to evaluate the quality of the solutions produced by each strategy.
 Figure \ref{fig:rgps} presents the cumulative distribution plot for the evaluated algorithms.
 
-\begin{figure}[h!]
+\begin{figure}[ht]
 	\centering
 	\includegraphics[width=\textwidth]{images/algs0124.png}
 	\caption{Cumulative distribution plot for Random, Greedy, Greedy + Pruning, and Shortest Path strategies.}
@@ -77,7 +77,7 @@ The lookahead process is computationally expensive; as a result, the algorithm f
 one-third of the instances. Figure \ref{fig:algs23} presents the cumulative distribution plot comparing the performance
 of these two algorithms.
 
-\begin{figure}[h!]
+\begin{figure}[ht]
 	\centering
 	\includegraphics[width=\textwidth]{images/algs23.png}
 	\caption{Cumulative distribution plot for Greedy + Pruning, and Max Heuristic + Lookahead strategies.}
@@ -91,7 +91,7 @@ There is no guarantee that the plans found by greedy + pruning are of higher qua
 Figure \ref{fig:algs234_solved_all} shows a comparison between the algorithms, considering only the instances that were successfully
 solved by all of them.
 
-\begin{figure}[h!]
+\begin{figure}[ht]
 	\centering
 	\includegraphics[width=\textwidth]{images/algs234_solved_all.png}
 	\caption{Cumulative distribution plot for Greedy + Pruning, Max Heuristic + Lookahead, and Shortest Path strategies,
@@ -117,7 +117,7 @@ With minimal modification, alternative strategies can be explored, such as propa
 \textit{sum of all effect costs} to preceding actions. These variations are evaluated in Figure \ref{fig:backprop} to determine which
 propagation strategy yields better results.
 
-\begin{figure}[h!]
+\begin{figure}[ht]
 	\centering
 	\includegraphics[width=\textwidth]{images/algs456.png}
 	\caption{Cumulative distribution plot for different backpropagation strategies}
@@ -139,7 +139,7 @@ each algorithm was executed on every instance using 10 different random seeds. V
 behavior only in cases where multiple actions share the same heuristic cost, influencing which action is selected among them.
 Figure \ref{fig:rand_rand} presents the analysis of the impact of randomization on the random strategy.
 
-\begin{figure}[h!]
+\begin{figure}[ht]
 	\centering
 	\includegraphics[width=\textwidth]{images/randomization_random.png}
 	\caption{Effect of random seed on the outcome variability of the Random approach.}
@@ -154,7 +154,7 @@ cost of around 10 and a maximum close to 1000, indicating a fluctuation of two o
 Selecting the next action at random is highly dependent on the chosen random seed.
 Figure \ref{fig:rand_greedy} shows the same plot for the greedy approach.
 
-\begin{figure}[h!]
+\begin{figure}[ht]
 	\centering
 	\includegraphics[width=\textwidth]{images/randomization_greedy.png}
 	\caption{Effect of random seed on the outcome variability of the Greedy approach.}
@@ -167,14 +167,14 @@ differences are slightly reduced.
 The overall trend emerging from this analysis is that the more informative the heuristic, the more stable its results become.
 This behavior is particularly evident in Figures~\ref{fig:rand_pruning} and~\ref{fig:rand_sp}.
 
-\begin{figure}[h!]
+\begin{figure}[ht]
 	\centering
 	\includegraphics[width=\textwidth]{images/randomization_pruning.png}
 	\caption{Effect of random seed on the outcome variability of the Greedy + Pruning approach.}
 	\label{fig:rand_pruning}
 \end{figure}
 
-\begin{figure}[h!]
+\begin{figure}[ht]
 	\centering
 	\includegraphics[width=\textwidth]{images/randomization_sp.png}
 	\caption{Effect of random seed on the outcome variability of the Shortest Path approach.}
@@ -205,9 +205,9 @@ If the new cost is better than the initial one, the new solution is returned; ot
 Figure \ref{fig:reapply} compares the cumulative distribution of the original shortest path
 strategy with the three variants where the algorithm was reapplied to different segments of the plan.
 
-\begin{figure}[h!]
+\begin{figure}[ht]
 	\centering
-	\includegraphics[width=\textwidth]{images/sp_full.png}
+	\includegraphics[width=\textwidth]{images/reapply_full.png}
 	\caption{Comparison of cumulative distributions for Shortest Path reapplied to different plan segments.}
 	\label{fig:reapply}
 \end{figure}
@@ -215,3 +215,52 @@ strategy with the three variants where the algorithm was reapplied to different 
 Unfortunately, the four curves overlap almost perfectly, indicating that this strategy does not provide any improvement.
 In every case, the new plan has the same cost as the initial one. Therefore, reapplying the heuristic to a subproblem does not appear
 to be a promising approach.
+
+\section{Iterative Refinement via Uniform Cost Search}
+In the previous section, an analysis was conducted on refining the solution provided by the shortest path heuristic by reapplying the same method
+to different segments of the original plan.
+Now, a different approach is explored by using \textit{Uniform Cost Search (UCS)} \cite{felner2011position} as the refinement algorithm.
+\verb|UCS| is an exact algorithm that always finds the optimal path from a starting node to a goal node in a graph.
+It maintains a priority queue to track the frontier of nodes that have not yet been expanded. A node is considered expanded once all of its
+neighbors have been discovered.
+At each iteration, the node with the lowest cost—defined as the actual cost incurred to reach it from the starting node—is extracted from the queue.
+By always expanding the node with the minimum cost, \verb|UCS| guarantees that the solution returned is optimal.
+Algorithm \ref{alg:ucs} presents the pseudocode for this strategy.
+
+\begin{algorithm}
+	\caption{Uniform Cost Search}
+	\label{alg:ucs}
+	\hspace*{0.5em} \textbf{Output}: optimal plan
+	\begin{algorithmic}[1]
+		\Procedure{ucs}{$planningTask$}
+		\State $stateCosts \gets \{+\infty, \dots, +\infty\}$ \Comment{Initialize states' cost to $+\infty$}
+		\State $pq \gets \{\}$ \Comment{Empty priority queue}
+		\State $visited \gets \{\}$ \Comment{Empty visited set}
+		\State $stateCosts[planningTask.initialState] \gets 0$
+		\State $\Call{push}{pq, planningTask.initialState, 0}$ \Comment{Push the initial state with cost 0}
+		\While {$!\Call{empty}{pq}$}
+		\State $state \gets \Call{pop}{pq}$ \Comment{Get the state having minimum cost}
+		\If {$planningTask.goalState \subseteq state$}
+		\State \textbf{return} \Call{extractPlan}{state}
+		\EndIf
+		\If {$state \in visited$}
+		\State $continue$ \Comment{Skip already expanded states}
+		\EndIf
+		\State $visited \gets visited \cup \{state\}$
+		\State $successors \gets \{a \in A \mid pre(a) \subseteq state\}$
+		\ForAll {$action \in successors$}
+		\State $nextState \gets \Call{apply}{state, action}$
+		\State $newCost \gets action.cost + stateCosts[state]$
+		\If {$newState \notin visited \textbf{ and } newCost < stateCosts[newState]$}
+		\State $stateCosts[newState] \gets newCost$
+		\If {$\Call{has}{pq, newState}$}
+		\State $\Call{change}{pq, newState, newCost}$
+		\Else
+		\State $\Call{push}{pq, newState, newCost}$
+		\EndIf
+		\EndIf
+		\EndFor
+		\EndWhile
+		\EndProcedure
+	\end{algorithmic}
+\end{algorithm}

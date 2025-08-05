@@ -45,7 +45,7 @@ Algorithm \ref{alg:random} shows the pseudocode for it.
 		\Procedure{random}{$planningTask$}
 		\State $currentState \gets planningTask.initialState$
 		\State $solution \gets [\ ]$ \Comment{Initialize empty solution}
-		\While {$currentState \not\subseteq planningTask.goalState$}
+		\While {$planningTask.goalState \not\subseteq currentState$}
 		\State $possibleActions \gets \{a \in A \mid pre(a) \subseteq currentState\}$
 		\If {$\Call{empty}{possibleActions}$}
 		\State \textbf{return} $failure$ \Comment{Infeasible problem}
