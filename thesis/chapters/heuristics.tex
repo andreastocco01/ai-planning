@@ -129,8 +129,8 @@ its own cost, since all its preconditions are satisfied|regardless of whether th
 actually useful for reaching the goal state or not.
 The implemented version performs a technique called \textit{pruning}, which consists of assigning
 an infinite cost to useless actions|indicating that these actions are not helpful in finding a good plan.
-When selecting a new action to apply, the useless actions are assigned an infinite cost (and are therefore discarded),
-while the remaining actions retain their correct heuristic cost.
+As a result, such actions are effectively excluded from consideration when selecting the next action to apply,
+while the remaining ones retain their correct heuristic cost.
 The pseudocode for this algorithm is presented in Algorithm \ref{alg:hmax} and \ref{alg:greedyhmax}.
 
 \begin{algorithm}
@@ -167,6 +167,9 @@ The pseudocode for this algorithm is presented in Algorithm \ref{alg:hmax} and \
 	\begin{algorithmic}[1]
 		\Procedure{greedyHmax}{$planningTask$}
 		\State \dots
+		\ForAll {$a \in A$}
+		\State $a.hCost \gets \infty$ \Comment{Initialize actions' heuristic cost}
+		\EndFor
 		\State $estimatedCost \gets 0$
 		\ForAll {$goal \in planningTask.goalState$}
 		\State $estimatedCost \gets \Call{max}{estimatedCost, \Call{hmax}{currentState, goal}}$
@@ -186,6 +189,25 @@ In this way, all useless actions are implicitly ignored and retain their origina
 which remains set to $+\infty$.
 When selecting the next action to apply, any action with an infinite cost will be ignored,
 and the one with the lowest heuristic cost among the remaining options will be chosen.
+Figures \ref{fig:hmax_scheme} and \ref{fig:hmax_pruning_scheme} can help visualize the concept.
+
+\begin{figure}[htbp]
+	\centering
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{images/hmax.png}
+		\caption{Caption for left figure}
+		\label{fig:hmax_scheme}
+	\end{minipage}
+	\hspace{0.05\textwidth}
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{images/hmax_pruning.png}
+		\caption{Caption for right figure}
+		\label{fig:hmax_pruning_scheme}
+	\end{minipage}
+\end{figure}
+
 As previously mentioned, any action that can be applied from
 the current state will always have a heuristic cost equal to its actual cost.
 Therefore, this algorithm can be seen as a greedy + pruning approach: it selects the next action based on the action's cost,
