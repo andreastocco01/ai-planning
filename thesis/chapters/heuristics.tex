@@ -168,7 +168,7 @@ The pseudocode for this algorithm is presented in Algorithm \ref{alg:hmax} and \
 		\Procedure{greedyHmax}{$planningTask$}
 		\State \dots
 		\ForAll {$a \in A$}
-		\State $a.hCost \gets \infty$ \Comment{Initialize actions' heuristic cost}
+		\State $a.hCost \gets +\infty$ \Comment{Initialize actions' heuristic cost}
 		\EndFor
 		\State $estimatedCost \gets 0$
 		\ForAll {$goal \in planningTask.goalState$}

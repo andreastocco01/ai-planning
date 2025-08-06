@@ -189,7 +189,7 @@ In conclusion, the shortest path heuristic proves to be the most effective in al
 yields the best performance in cumulative distribution plots, and demonstrates the highest stability with respect to random seed variation.
 
 \section{Iterative Refinement via Shortest Path Reapplication}
-In the context of Mixed Integer Programming (MIP), there is a technique known as local branching \cite{fischetti2003local},
+In the context of Mixed Integer Programming (MIP), there is a technique known as \textit{local branching} \cite{fischetti2003local},
 which involves first finding a feasible solution using a fast heuristic or metaheuristic approach, and then refining this solution by solving,
 to optimality, a subproblem of the original MIP using a solver as a ``black box''.
 This approach could also be applied to planning. However, at the time of writing, the most well-known optimal planner, Fast Downward,
@@ -212,9 +212,10 @@ strategy with the three variants where the algorithm was reapplied to different 
 	\label{fig:reapply}
 \end{figure}
 
-Unfortunately, the four curves overlap almost perfectly, indicating that this strategy does not provide any improvement.
-In every case, the new plan has the same cost as the initial one. Therefore, reapplying the heuristic to a subproblem does not appear
-to be a promising approach.
+Unfortunately, the four curves overlap almost entirely, indicating that this strategy yields only minimal refinement over the initial solution.
+While the cost of the refined plans may occasionally differ from the original, the improvements are generally negligible.
+This suggests that reapplying the heuristic to subproblems does not significantly enhance solution quality and may not be an effective
+refinement approach in practice.
 
 \section{Iterative Refinement via Uniform Cost Search}
 In the previous section, an analysis was conducted on refining the solution provided by the shortest path heuristic by reapplying the same method
