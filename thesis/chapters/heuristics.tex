@@ -184,29 +184,40 @@ The pseudocode for this algorithm is presented in Algorithm \ref{alg:hmax} and \
 	\end{algorithmic}
 \end{algorithm}
 
-Starting from each fact in the goal state, \verb|HMAX| is called to perform a backward cost propagation.
-In this way, all useless actions are implicitly ignored and retain their original cost,
-which remains set to $+\infty$.
-When selecting the next action to apply, any action with an infinite cost will be ignored,
-and the one with the lowest heuristic cost among the remaining options will be chosen.
-Figures \ref{fig:hmax_scheme} and \ref{fig:hmax_pruning_scheme} can help visualize the concept.
+Starting from each fact in the goal state, \verb|HMAX| is invoked to perform backward cost propagation.
+Through this process, actions that do not contribute to achieving the goal will implicitly retain their initial cost of $+\infty$,
+effectively marking them as useless. When selecting the next action to apply, any action with infinite cost is ignored,
+and the one with the lowest heuristic cost among the remaining options is chosen.\\
+Figure \ref{fig:hmax_scheme} illustrates the behaviour of the max heuristic without the pruning technique.
+Each circle represents a state in the planning task, with $s_i$ as initial state (in blue) and $s_g$ as goal state (in green).
+Edges denote actions, each labeled with its heuristic cost. Although the edges in the figure are undirected, each action conceptually connects
+a state that must be satisfied as a precondition to a resulting state that becomes true as an effect. For example, action $a_2$ is applicable in
+$s_i$, and its effect is to reach $s_2$.  For simplicity, all actions have a uniform actual cost of 1.
+When the heuristic is applied from the initial state, the actions $a_1$, $a_2$, and $a_3$ are all deemed applicable and assigned heuristic costs
+equal to their actual cost. However, since multiple actions have the same cost, the tie-breaking mechanism (e.g., random choice) may lead the planner
+to select a suboptimal branch|such as choosing $a_1$ or $a_3$| which does not contribute toward reaching the goal efficiently.
 
-\begin{figure}
+\begin{figure}[ht]
 	\centering
 	\def\svgwidth{0.75\linewidth}
 	\input{images/hmax.pdf_tex}
-	\caption{TODO}
+	\caption{Behaviour of the max heuristic without pruning}
 	\label{fig:hmax_scheme}
 \end{figure}
 
-\begin{figure}
+Figure \ref{fig:hmax_pruning_scheme} shows the same planning instance, but this time using the max heuristic augmented with the pruning technique.
+Here, actions that do not contribute to achieving the goal are implicitly assigned a heuristic cost of $+\infty$. As a result, the planner deterministically
+selects $a_2$ from the initial state, as it is the only action with a finite cost.
+The heuristic is recomputed after each action, updating costs based on the new state. This guided progression ensures that only goal-relevant actions are
+considered. For this instance, the pruning-enhanced heuristic always leads to the optimal plan: $a_2$, $a_6$, $a_{11}$, $a_{14}$.
+
+\begin{figure}[ht]
 	\centering
 	\def\svgwidth{0.75\linewidth}
 	\input{images/hmax_pruning.pdf_tex}
-	\caption{TODO}
+	\caption{Behaviour of the max heuristic with pruning}
 	\label{fig:hmax_pruning_scheme}
 \end{figure}
-
 
 As previously mentioned, any action that can be applied from
 the current state will always have a heuristic cost equal to its actual cost.
