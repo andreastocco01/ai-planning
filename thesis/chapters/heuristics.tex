@@ -315,6 +315,21 @@ This espression estimates the cost of achieving a fact in the goal state $s_*$ b
 action \textit{a}. The heuristic cost of an action is defined as its own cost plus the minimum estimated cost among its effects.
 In this way, each action is assigned a heuristic cost corresponding to the cost of the shortest path to reach
 a fact in the goal state.
+Figure \ref{fig:sp_scheme} illustrates the same example introduced in Section \ref{sec:hmax}, but evaluated with the newly presented heuristic.
+
+\begin{figure}[ht]
+	\centering
+	\def\svgwidth{0.75\linewidth}
+	\input{images/shortest_path.pdf_tex}
+	\caption{Behaviour of the shortest path heuristic}
+	\label{fig:sp_scheme}
+\end{figure}
+
+In this case, the heuristic cost of each action corresponds to the length of the shortest path required to reach a fact in the goal state.
+For example, if the current state is $s_6$, reached by sequentially applying actions $a_2$ and $a_6$, then the next selected action will be $a_{11}$,
+as it lies on the shortest path to the goal.
+As with the previous method, a pruning strategy is applied: any action that does not contribute to reaching the goal state $s_g$ is
+assigned a cost of $+\infty$ and is thus excluded from consideration.
 The actual implementation of this algorithm uses a \textit{priority queue} to ensure an
 efficient and iterative computation. The pseudocode is presented in Algorithm \ref{alg:sp}.
 
