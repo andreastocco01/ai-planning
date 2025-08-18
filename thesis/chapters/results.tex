@@ -265,3 +265,46 @@ Algorithm \ref{alg:ucs} presents the pseudocode for this strategy.
 		\EndProcedure
 	\end{algorithmic}
 \end{algorithm}
+
+The experiments were conducted in a similar manner to those of the previous section. In the first run, a high-granularity approach was adopted:
+the solution provided by the shortest-path heuristic was refined by reapplying \verb|UCS| to consecutive portions of the plan, each covering 10\% of its length.
+Specifically, \verb|UCS| was applied to the intervals $[0,0.1]$, $[0.1,0.2]$, $[0.2,0.3]$, and so on, up to the end of the plan. In this way, each run replaced
+10\% of the original solution with the \verb|UCS| refinement. Figure \ref{fig:ucs_first5} shows the cumulative distributions for the first five intervals,
+corresponding to the initial portions of the plan, while Figure \ref{fig:ucs_last5} presents the results for the last five intervals,
+corresponding to the final portions.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\textwidth]{images/ucs_first5_intervals.png}
+	\caption{Cumulative distributions for UCS refinement applied to different 10\% segments of the initial solution (first five intervals)}
+	\label{fig:ucs_first5}
+\end{figure}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\textwidth]{images/ucs_last5_intervals.png}
+	\caption{Cumulative distributions for UCS refinement applied to different 10\% segments of the initial solution (last five intervals)}
+	\label{fig:ucs_last5}
+\end{figure}
+
+In all cases, attempting to refine the solution does not appear to be a profitable approach: the curves almost completely overlap, and
+where differences exist, the gaps are minimal. To better understand whether this behavior is due to the ineffectiveness of \verb|UCS| itself or
+to the choice of interval size, another experiment was conducted. This time, larger segments of the plan were considered: the first 30\%,
+the middle 40\%, and the last 30\%.
+Figure \ref{fig:ucs_3intervals} shows the results of this experiment.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\textwidth]{images/ucs_3_intervals.png}
+	\caption{Cumulative distributions for UCS refinement applied to larger plan segments: first 30\%, middle 40\%, and last 30\% of the initial solution}
+	\label{fig:ucs_3intervals}
+\end{figure}
+
+Refining the last segment of the initial solution appears to be the most effective approach. This is likely due to the way the subproblem is derived from
+the original one. Taking, for instance, 30\% from a central portion of the solution may not be a good idea: in order for the final solution to remain
+consistent, the final state of the subproblem must include all the preconditions required by the subsequent actions that are not being modified.
+As a result, the final state carries more constraints than the initial problem provided, leaving \verb|USC| with little flexibility. By contrast,
+focusing on the last 30\% of the solution avoids this issue, because once the final state is reached, there are no further actions that need to be satisfied.
+In any case, attempting to refine the initial solution obtained via the shortest path does not seem particularly useful. Even when focusing on refining
+the last 30\% of the initial solution, the improvement over the shortest path is minimal. Using a larger window may be even less efficient,
+as the computation time for \verb|UCS| increases exponentially with the number of nodes in the graph.
