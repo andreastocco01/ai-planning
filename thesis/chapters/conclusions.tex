@@ -1,1 +1,21 @@
 \chapter{Conclusions}
+This thesis investigated heuristic approaches for solving delete-free planning problems, a simplified yet challenging fragment of classical planning.
+By removing negative effects, delete-free planning yields a monotonic state space, which simplifies reasoning about reachability while preserving
+much of the inherent difficulty of plan generation.
+
+The study first revisited several well-known heuristics and implemented them within a common experimental framework. Building on these foundations,
+a novel heuristic was proposed, designed to exploit structural properties of delete-free tasks more effectively. The performance of all algorithms
+was systematically evaluated across a suite of benchmark instances, with a focus on both computational efficiency and the quality of the resulting plans.
+
+The results highlight that the proposed heuristic achieves competitive and superior performance compared to established approaches,
+confirming the potential of structural exploitation in delete-free domains. The analysis of randomization further revealed that the stability of solution
+quality strongly depends on the informativeness of the heuristic: more informative heuristics consistently led to more stable outcomes across different
+random seeds, while less informative ones exhibited greater variability. Finally, refinement strategies, whether based on re-solving subproblems with
+Uniform Cost Search or on reapplying the heuristic itself to subproblems, did not yield substantial improvements. In both cases,
+the refined plans largely overlapped in cost with the originals, indicating that such post-processing techniques are not particularly effective in this setting.
+
+At the same time, the work opens several avenues for further investigation. A natural next step would be to explore local branching using an external
+solver as a black box, which could allow richer refinements of partial solutions than the UCS-based approach adopted here.
+Similarly, the pruning-enhanced variant of the max heuristic developed in this thesis could be integrated into A* search, enabling an optimal procedure
+to benefit from early elimination of unhelpful actions. These directions point to practical ways of extending the contributions of this work,
+while reinforcing the broader insight that delete-free planning offers a valuable testbed for designing and evaluating new heuristic strategies.
