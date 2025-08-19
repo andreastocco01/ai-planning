@@ -106,10 +106,12 @@ PlanningTask create_subproblem(PlanningTask& orig, int start, int end) {
 
 PlanningTask pt, sub;
 bool solving_sub = false;
+bool solved_main = false;
 
 void signal_handler(int signum) {
     std::cout << "Timelimit reached" << std::endl;
-    if (solving_sub) {  // a solution for the original problem was found
+    if (solving_sub ||
+        solved_main) {  // a solution for the original problem was found
         std::cout << std::endl
                   << "############### Solution ###############" << std::endl;
         pt.print_solution();
@@ -224,6 +226,7 @@ int main(int argc, char** argv) {
     int res = (alg == 7 || alg == 8) ? pt.solve(seed, 4, debug, time_limit)
                                      : pt.solve(seed, alg, debug, time_limit);
     if (!res) {
+        solved_main = true;
         std::cout << "Solution found!" << std::endl;
         if (alg < 7) {
             std::cout << std::endl
