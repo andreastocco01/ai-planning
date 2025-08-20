@@ -209,7 +209,8 @@ Figure \ref{fig:hmax_pruning_scheme} shows the same planning instance, but this 
 Here, actions that do not contribute to achieving the goal are implicitly assigned a heuristic cost of $+\infty$. As a result, the planner deterministically
 selects $a_2$ from the initial state, as it is the only action with a finite cost.
 The heuristic is recomputed after each action, updating costs based on the new state. This guided progression ensures that only goal-relevant actions are
-considered. For this instance, the pruning-enhanced heuristic always leads to the optimal plan: $a_2$, $a_6$, $a_{11}$, $a_{14}$.
+considered. For this instance, the only suboptimal plan that the pruning-enhanced heuristic might produce is $\langle a_2, a_6, a_{10}, a_{13}, a_{15}\rangle$.
+This occurs because, from state $s_6$, both $a_{10}$ and $a_{11}$ have the same heuristic cost of one, so the decision between them is made randomly.
 
 \begin{figure}[ht]
 	\centering
@@ -328,6 +329,7 @@ Figure \ref{fig:sp_scheme} illustrates the same example introduced in Section \r
 In this case, the heuristic cost of each action corresponds to the length of the shortest path required to reach a fact in the goal state.
 For example, if the current state is $s_6$, reached by sequentially applying actions $a_2$ and $a_6$, then the next selected action will be $a_{11}$,
 as it lies on the shortest path to the goal.
+In this case, the resulting plan is always the optimal one: $\langle a_2, a_6, a_{11}, a_{14}\rangle$.
 As with the previous method, a pruning strategy is applied: any action that does not contribute to reaching the goal state $s_g$ is
 assigned a cost of $+\infty$ and is thus excluded from consideration.
 The actual implementation of this algorithm uses a \textit{priority queue} to ensure an
