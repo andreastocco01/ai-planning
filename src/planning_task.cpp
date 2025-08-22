@@ -582,7 +582,7 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
         int action_to_apply_idx;
         int n_applied_effects = 0;
 
-        while (!n_applied_effects) {
+        while (!n_applied_effects && !possible_actions_idx.empty()) {
             int idx;
             if (heuristic == 0) {
                 idx = PlanningTaskUtils::get_random_number(
