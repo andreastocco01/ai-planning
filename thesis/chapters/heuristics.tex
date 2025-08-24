@@ -99,9 +99,9 @@ one of them is selected at random.
 
 \section{Revised Max Heuristic}
 \label{sec:hmax}
-The max heuristic is one of the most well-known delete-relaxation heuristics in the literature.
+The Max Heuristic is one of the most well-known delete-relaxation heuristics in the literature.
 It is an \textit{admissible} heuristic, meaning that it never overestimates the cost of reaching the goal.
-It assigns an heuristic cost to each action based on Equation \ref{eq:hmax} and \ref{eq:cost}
+We denote it as \textsc{Hmax} and define it formally in Equations \ref{eq:hmax} and \ref{eq:cost}.
 
 \begin{equation}
 	\label{eq:hmax}
@@ -184,7 +184,7 @@ The pseudocode for this algorithm is presented in Algorithm \ref{alg:hmax} and \
 	\end{algorithmic}
 \end{algorithm}
 
-Starting from each fact in the goal state, \verb|HMAX| is invoked to perform backward cost propagation.
+Starting from each fact in the goal state, \textsc{Hmax} is invoked to perform backward cost propagation.
 Through this process, actions that do not contribute to achieving the goal will implicitly retain their initial cost of $+\infty$,
 effectively marking them as useless. When selecting the next action to apply, any action with infinite cost is ignored,
 and the one with the lowest heuristic cost among the remaining options is chosen.\\
@@ -222,22 +222,22 @@ This occurs because, from state $s_6$, both $a_{10}$ and $a_{11}$ have the same 
 
 As previously mentioned, any action that can be applied from
 the current state will always have a heuristic cost equal to its actual cost.
-Therefore, this algorithm can be seen as a greedy + pruning approach: it selects the next action based on the action's cost,
+Therefore, this algorithm can be seen as a Greedy + Pruning approach: it selects the next action based on the action's cost,
 while discarding useless actions.
-To observe the true behavior of the proposed algorithm, it should ideally be used within the context of the \verb|A*| algorithm,
+To observe the true behavior of the proposed algorithm, it should ideally be used within the context of the \textsc{A*} algorithm,
 a well-known search strategy that combines actual cost from the start with a heuristic estimate to the goal.
-Specifically, \verb|A*| selects actions by minimizing the function $f(n) = g(n) + h(n)$, where $g(n)$ is the cost
+Specifically, \textsc{A*} selects actions by minimizing the function $f(n) = g(n) + h(n)$, where $g(n)$ is the cost
 required to reach node $n$, and $h(n)$ is the estimated cost to reach the goal state from $n$.
-\verb|A*| selects actions based on the sum of these two values, leading to optimal solutions when an admissible heuristic, such as \verb|HMAX|, is used.
-However, since \verb|A*| was not implemented in this thesis, an alternative approach was used to evaluate the algorithm's actual performance.
+\textsc{A*} selects actions based on the sum of these two values, leading to optimal solutions when an admissible heuristic, such as \textsc{Hmax}, is used.
+However, since \textsc{A*} was not implemented in this thesis, an alternative approach was used to evaluate the algorithm's actual performance.
 
 \section{Max Heuristic + Lookahead}
-As mentioned in the previous section, the presented algorithm can be considered a greedy + pruning approach,
+As mentioned in the previous section, the presented algorithm can be considered a Greedy + Pruning approach,
 since the full potential of the heuristic cannot be exploited|the heuristic cost of the applicable actions is always equal
 to the actions' actual cost.
 To evaluate its performance, a new version of the heuristic is proposed.
 Instead of selecting the action with the minimum cost, the algorithm tries each possible action,
-recomputes the \verb|HMAX| value for each resulting state, and finally applies the action that leads to the state with the lowest
+recomputes the \textsc{Hmax} value for each resulting state, and finally applies the action that leads to the state with the lowest
 new heuristic value.
 The pseudocode for this approach is shown in Algorithm \ref{alg:lookahead} and \ref{alg:hmaxlookahead}.
 
@@ -288,7 +288,7 @@ and then applies only the action that appears to be the most convenient.
 \section{Novel Heuristic}
 \label{sec:shortestpath}
 In this section, a completely new approach is introduced. As discussed in Section \ref{sec:hmax},
-the modified version of the max heuristic ultimately behaves like a greedy + pruning algorithm, limiting its effectiveness.
+the modified version of the max heuristic ultimately behaves like a Greedy + Pruning algorithm, limiting its effectiveness.
 Here, we aim to use the same backward propagation mechanism, but with a different heuristic cost assigned to each action.
 The core idea is to assign each action a cost that estimates its actual distance to the goal.
 Specifically, the cost assigned to an action corresponds to the cost of the \textit{shortest path} to reach a fact in the goal state.

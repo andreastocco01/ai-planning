@@ -40,8 +40,8 @@ solving the highest number of instances.
 
 \section{Random vs Greedy vs Greedy + Pruning vs Shortest Path}
 This section presents an evaluation of four planning strategies, ranging from uninformed to increasingly informed approaches:
-random, greedy, greedy + pruning, and shortest path.
-Random and greedy exhibit similar efficiency, as both are able to solve a large number of instances. Greedy + pruning is
+Random, Greedy, Greedy + Pruning, and Shortest Path.
+Random and Greedy exhibit similar efficiency, as both are able to solve a large number of instances. Greedy + Pruning is
 slightly slower but employs a strategy with the potential to yield higher-quality solutions. Ultimately, the shortest path approach
 solves the highest number of instances. The next step is to evaluate the quality of the solutions produced by each strategy.
 Figure \ref{fig:rgps} presents the cumulative distribution plot for the evaluated algorithms.
@@ -70,7 +70,7 @@ informed and effective selection of actions to include in the plan.
 \section{Greedy + Pruning vs Hmax + Lookahead}
 As shown in the previous section, pruning proves to be an effective strategy.
 The initial idea was to combine pruning with the max heuristic. However, due to the nature of the heuristic’s definition,
-this approach effectively reduces to a greedy + pruning strategy. To better evaluate its potential,
+this approach effectively reduces to a Greedy + Pruning strategy. To better evaluate its potential,
 a lookahead mechanism was implemented to assess whether combining pruning with the max heuristic could lead
 to a more promising solution. This section presents an evaluation of the performance of these two algorithms.
 The lookahead process is computationally expensive; as a result, the algorithm fails to find a plan for approximately
@@ -85,9 +85,9 @@ of these two algorithms.
 \end{figure}
 
 Unfortunately, this plot alone cannot definitively answer which of the two algorithms produces better-quality plans.
-The high number of unsolved instances by the hmax + lookahead algorithm can skew the results: greedy + pruning may
+The high number of unsolved instances by the Hmax + Lookahead algorithm can skew the results: Greedy + Pruning may
 appear superior simply because it solves more instances, not necessarily because it generates better plans.
-There is no guarantee that the plans found by greedy + pruning are of higher quality than those returned by hmax + lookahead.
+There is no guarantee that the plans found by Greedy + Pruning are of higher quality than those returned by Hmax + Lookahead.
 Figure \ref{fig:algs234_solved_all} shows a comparison between the algorithms, considering only the instances that were successfully
 solved by all of them.
 
@@ -99,15 +99,15 @@ solved by all of them.
 	\label{fig:algs234_solved_all}
 \end{figure}
 
-The curve for shortest path is included as a reference. Focusing only on the instances solved by all the presented algorithms
+The curve for Shortest Path is included as a reference. Focusing only on the instances solved by all the presented algorithms
 is particularly valuable: in this case, the curves are not skewed by instances that some strategies failed to solve.
 This allows us to assess only the quality of the generated plans. From this comparison, it is evident that shortest path
 is the best-performing algorithm overall—both in terms of solution quality and the number of problems it can solve.
-Additionally, the performance of hmax + lookahead, which surpasses that of greedy + pruning, confirms that pruning combined
+Additionally, the performance of Hmax + Lookahead, which surpasses that of Greedy + Pruning, confirms that pruning combined
 with max heuristic can be an effective strategy when paired with a lookahead mechanism.
 Although lookahead remains a slow algorithm, these results suggest that the revised version of the max heuristic|enhanced
 with a pruning mechanism|has the potential to produce high-quality solutions if used within a more powerful search strategy
-like \verb|A*|.
+like \textsc{A*}.
 
 \section{Different Versions of Backward Propagation}
 As explained in Section \ref{sec:shortestpath}, the core idea behind the algorithm is to back-propagate the estimated cost
@@ -161,7 +161,7 @@ Figure \ref{fig:rand_greedy} shows the same plot for the greedy approach.
 	\label{fig:rand_greedy}
 \end{figure}
 
-In this case, the variability in the algorithm's output is more stable than in the previous one. While the greedy strategy still
+In this case, the variability in the algorithm's output is more stable than in the previous one. While the Greedy strategy still
 exhibits instances with large discrepancies between minimum and maximum costs, both the frequency and the magnitude of these
 differences are slightly reduced.
 The overall trend emerging from this analysis is that the more informative the heuristic, the more stable its results become.
@@ -181,7 +181,7 @@ This behavior is particularly evident in Figures~\ref{fig:rand_pruning} and~\ref
 	\label{fig:rand_sp}
 \end{figure}
 
-The improvement is especially noticeable in the plot for the shortest path heuristic. Most points lie close to the red line,
+The improvement is especially noticeable in the plot for the Shortest Path heuristic. Most points lie close to the red line,
 which represents the ideal case where the minimum and maximum plan costs are equal. This indicates a high degree of consistency
 across different random seeds. The shortest path approach stands out as the most informative among the heuristics presented,
 combining a pruning mechanism with an action-level estimate of the distance to the goal state.\\
@@ -218,14 +218,14 @@ This suggests that reapplying the heuristic to subproblems does not significantl
 refinement approach in practice.
 
 \section{Iterative Refinement via Uniform Cost Search}
-In the previous section, an analysis was conducted on refining the solution provided by the shortest path heuristic by reapplying the same method
+In the previous section, an analysis was conducted on refining the solution provided by the Shortest Path heuristic by reapplying the same method
 to different segments of the original plan.
 Now, a different approach is explored by using \textit{Uniform Cost Search (UCS)} \cite{felner2011position} as the refinement algorithm.
-\verb|UCS| is an exact algorithm that always finds the optimal path from a starting node to a goal node in a graph.
+\textsc{UCS} is an exact algorithm that always finds the optimal path from a starting node to a goal node in a graph.
 It maintains a priority queue to track the frontier of nodes that have not yet been expanded. A node is considered expanded once all of its
 neighbors have been discovered.
 At each iteration, the node with the lowest cost—defined as the actual cost incurred to reach it from the starting node—is extracted from the queue.
-By always expanding the node with the minimum cost, \verb|UCS| guarantees that the solution returned is optimal.
+By always expanding the node with the minimum cost, \textsc{UCS} guarantees that the solution returned is optimal.
 Algorithm \ref{alg:ucs} presents the pseudocode for this strategy.
 
 \begin{algorithm}
@@ -267,9 +267,9 @@ Algorithm \ref{alg:ucs} presents the pseudocode for this strategy.
 \end{algorithm}
 
 The experiments were conducted in a similar manner to those of the previous section. In the first run, a high-granularity approach was adopted:
-the solution provided by the shortest-path heuristic was refined by reapplying \verb|UCS| to consecutive portions of the plan, each covering 10\% of its length.
-Specifically, \verb|UCS| was applied to the intervals $[0,0.1]$, $[0.1,0.2]$, $[0.2,0.3]$, and so on, up to the end of the plan. In this way, each run replaced
-10\% of the original solution with the \verb|UCS| refinement. Figure \ref{fig:ucs_first5} shows the cumulative distributions for the first five intervals,
+the solution provided by the shortest-path heuristic was refined by reapplying \textsc{UCS} to consecutive portions of the plan, each covering 10\% of its length.
+Specifically, \textsc{UCS} was applied to the intervals $[0,0.1]$, $[0.1,0.2]$, $[0.2,0.3]$, and so on, up to the end of the plan. In this way, each run replaced
+10\% of the original solution with the \textsc{UCS} refinement. Figure \ref{fig:ucs_first5} shows the cumulative distributions for the first five intervals,
 corresponding to the initial portions of the plan, while Figure \ref{fig:ucs_last5} presents the results for the last five intervals,
 corresponding to the final portions.
 
@@ -288,7 +288,7 @@ corresponding to the final portions.
 \end{figure}
 
 In all cases, attempting to refine the solution does not appear to be a profitable approach: the curves almost completely overlap, and
-where differences exist, the gaps are minimal. To better understand whether this behavior is due to the ineffectiveness of \verb|UCS| itself or
+where differences exist, the gaps are minimal. To better understand whether this behavior is due to the ineffectiveness of \textsc{UCS} itself or
 to the choice of interval size, another experiment was conducted. This time, larger segments of the plan were considered: the first 30\%,
 the middle 40\%, and the last 30\%.
 Figure \ref{fig:ucs_3intervals} shows the results of this experiment.
@@ -303,8 +303,8 @@ Figure \ref{fig:ucs_3intervals} shows the results of this experiment.
 Refining the last segment of the initial solution appears to be the most effective approach. This is likely due to the way the subproblem is derived from
 the original one. Taking, for instance, 30\% from a central portion of the solution may not be a good idea: in order for the final solution to remain
 consistent, the final state of the subproblem must include all the preconditions required by the subsequent actions that are not being modified.
-As a result, the final state carries more constraints than the initial problem provided, leaving \verb|USC| with little flexibility. By contrast,
+As a result, the final state carries more constraints than the initial problem provided, leaving \textsc{USC} with little flexibility. By contrast,
 focusing on the last 30\% of the solution avoids this issue, because once the final state is reached, there are no further actions that need to be satisfied.
 In any case, attempting to refine the initial solution obtained via the shortest path does not seem particularly useful. Even when focusing on refining
 the last 30\% of the initial solution, the improvement over the shortest path is minimal. Using a larger window may be even less efficient,
-as the computation time for \verb|UCS| increases exponentially with the number of nodes in the graph.
+as the computation time for \textsc{UCS} increases exponentially with the number of nodes in the graph.
