@@ -61,7 +61,7 @@ Conversely, the shortest path strategy found the best known solution (i.e., a pr
 Now that the plot has been properly explained, it is possible to identify the most effective heuristic.
 The curve that remains above all the others represents the best-performing strategy, as it indicates that the corresponding
 algorithm consistently found solutions within the primal gap thresholds for a larger number of instances.
-As expected, random and greedy stategies typically do not produce high-quality plans. Pruning the useless actions appears to be
+As expected, random and greedy strategies typically do not produce high-quality plans. Pruning the useless actions appears to be
 an effective strategy, as it allows the planner to discard actions that are known to be unhelpful whenever multiple
 options with the same cost are available.
 Shortest Path builds on pruning by also estimating the distance to the goal for each action, resulting in a more

@@ -59,7 +59,7 @@ Algorithm \ref{alg:random} shows the pseudocode for it.
 	\end{algorithmic}
 \end{algorithm}
 
-It is important to notice that if \textit{posissibleActions} is empty, then
+It is important to notice that if \textit{possibleActions} is empty, then
 a solution to the planning task cannot exist. As said in Chapter \ref{ch:intro},
 the problems are Delete-Free|once a fact becomes true in the current state, it remains
 true until the end.
@@ -312,7 +312,7 @@ defined as follows:
 	h_a\left(a;s_*\right) \coloneqq cost(a) + \text{min}_{q \in \textit{eff}\left(a\right)} \left[h_{sp}\left(q;s_*\right)\right]
 \end{equation}
 
-This espression estimates the cost of achieving a fact in the goal state $s_*$ by applying
+This expression estimates the cost of achieving a fact in the goal state $s_*$ by applying
 action \textit{a}. The heuristic cost of an action is defined as its own cost plus the minimum estimated cost among its effects.
 In this way, each action is assigned a heuristic cost corresponding to the cost of the shortest path to reach
 a fact in the goal state.
