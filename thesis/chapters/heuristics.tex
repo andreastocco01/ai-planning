@@ -7,9 +7,9 @@ the optimal one.
 While there is no assurance regarding the optimality of the provided solution, it may still be considered
 acceptable in some instances.
 This chapter focuses on explaining the algorithms developed, while the following one presents their evaluation.\\
-Before diving into the topic, it is important to understand some of the functions used by all the algorithms.
-An action, in order to be eligible for application, must have all its preconditions satisfied in the current state.
-Additionally, applying an action means adding its effects to the current state.
+Before presenting the algorithms, it is useful to introduce a fundamental function used by all of them.
+An action is applicable only if all its preconditions are satisfied in the current state.
+When applied, it produces a new state by adding its effects to the current one.
 The pseudocode for this function is shown in Algorithm \ref{alg:apply}.
 
 \begin{algorithm}
@@ -100,7 +100,7 @@ one of them is selected at random.
 \label{sec:hmax}
 The Max Heuristic is one of the most well-known delete-relaxation heuristics in the literature.
 It is an \textit{admissible} heuristic, meaning that it never overestimates the cost of reaching the goal.
-We denote it as \textsc{Hmax} and define it formally in Equations \ref{eq:hmax} and \ref{eq:cost}.
+We denote it as \textsc{hmax} and define it formally in Equations \ref{eq:hmax} and \ref{eq:cost}.
 
 \begin{equation}
 	\label{eq:hmax}
@@ -119,10 +119,10 @@ the current state \textit{s}, $O\left(p\right)$ is the set of actions $\{a \in A
 \end{equation}
 
 stands for the cost of achieving the preconditions of an action \textit{a} and applying it.\\
-The idea behind the use of this heuristic is similar to that of the greedy approach.
-While in the greedy approach the action with the minimum actual cost is chosen, in this case,
+The idea behind the use of this heuristic is similar to that of the Greedy approach.
+While in the Greedy approach the action with the minimum actual cost is chosen, in this case,
 the action with the minimum heuristic cost is selected at each iteration.
-This thesis presents an implementation of the max heuristic that goes a step further.
+This thesis presents an implementation of the Max Heuristic that goes a step further.
 By definition, any action applicable in the current state has a heuristic cost equal to
 its own cost, since all its preconditions are satisfied|regardless of whether the action is
 actually useful for reaching the goal state or not.
@@ -183,7 +183,7 @@ The pseudocode for this algorithm is presented in Algorithm \ref{alg:hmax} and \
 	\end{algorithmic}
 \end{algorithm}
 
-Starting from each fact in the goal state, \textsc{Hmax} is invoked to perform backward cost propagation.
+Starting from each fact in the goal state, \textsc{hmax} is invoked to perform backward cost propagation.
 Through this process, actions that do not contribute to achieving the goal will implicitly retain their initial cost of $+\infty$,
 effectively marking them as useless. When selecting the next action to apply, any action with infinite cost is ignored,
 and the one with the lowest heuristic cost among the remaining options is chosen.\\
@@ -215,7 +215,7 @@ This occurs because, from state $s_6$, both $a_{10}$ and $a_{11}$ have the same 
 	\centering
 	\def\svgwidth{0.75\linewidth}
 	\input{images/hmax_pruning.pdf_tex}
-	\caption{Behaviour of the max heuristic with pruning}
+	\caption{Behaviour of the Max Heuristic with pruning}
 	\label{fig:hmax_pruning_scheme}
 \end{figure}
 
@@ -227,7 +227,7 @@ To observe the true behavior of the proposed algorithm, it should ideally be use
 a well-known search strategy that combines actual cost from the start with a heuristic estimate to the goal.
 Specifically, \textsc{A*} selects actions by minimizing the function $f(n) = g(n) + h(n)$, where $g(n)$ is the cost
 required to reach node $n$, and $h(n)$ is the estimated cost to reach the goal state from $n$.
-\textsc{A*} selects actions based on the sum of these two values, leading to optimal solutions when an admissible heuristic, such as \textsc{Hmax}, is used.
+\textsc{A*} selects actions based on the sum of these two values, leading to optimal solutions when an admissible heuristic, such as \textsc{hmax}, is used.
 However, since \textsc{A*} was not implemented in this thesis, an alternative approach was used to evaluate the algorithm's actual performance.
 
 \section{Max Heuristic + Lookahead}
@@ -236,7 +236,7 @@ since the full potential of the heuristic cannot be exploited|the heuristic cost
 to the actions' actual cost.
 To evaluate its performance, a new version of the heuristic is proposed.
 Instead of selecting the action with the minimum cost, the algorithm tries each possible action,
-recomputes the \textsc{Hmax} value for each resulting state, and finally applies the action that leads to the state with the lowest
+recomputes the \textsc{hmax} value for each resulting state, and finally applies the action that leads to the state with the lowest
 new heuristic value.
 The pseudocode for this approach is shown in Algorithm \ref{alg:lookahead} and \ref{alg:hmaxlookahead}.
 
@@ -321,7 +321,7 @@ Figure \ref{fig:sp_scheme} illustrates the same example introduced in Section \r
 	\centering
 	\def\svgwidth{0.75\linewidth}
 	\input{images/shortest_path.pdf_tex}
-	\caption{Behaviour of the shortest path heuristic}
+	\caption{Behaviour of the Shortest Path heuristic}
 	\label{fig:sp_scheme}
 \end{figure}
 

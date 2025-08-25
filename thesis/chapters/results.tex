@@ -20,13 +20,13 @@ the number of instances it was able to solve within the time limit.
 	\centering
 	\begin{tabular}{|l|r|}
 		\hline
-		\textbf{Heuristic}        & \textbf{Not found per timelimit} \\
+		\textbf{Heuristic} & \textbf{Not found per timelimit} \\
 		\hline
-		Random                    & 1123                             \\
-		Greedy                    & 1076                             \\
-		Greedy + Pruning          & 1714                             \\
-		Max Heuristic + Lookahead & 9199                             \\
-		Shortest Path             & 851                              \\
+		Random             & 1123                             \\
+		Greedy             & 1076                             \\
+		Greedy + Pruning   & 1714                             \\
+		Hmax + Lookahead   & 9199                             \\
+		Shortest Path      & 851                              \\
 		\hline
 	\end{tabular}
 	\caption{Number of instances not solved within the time limit (out of 31,040 total instances).}
@@ -35,14 +35,14 @@ the number of instances it was able to solve within the time limit.
 
 By simply examining this table, we can identify the most effective algorithms.
 The lookahead process is computationally expensive, resulting in approximately one-third of the instances not being solved.
-In contrast, the efficient implementation of the shortest path heuristic appears to be the most capable,
+In contrast, the efficient implementation of the Shortest Path heuristic appears to be the most capable,
 solving the highest number of instances.
 
 \section{Random vs Greedy vs Greedy + Pruning vs Shortest Path}
 This section presents an evaluation of four planning strategies, ranging from uninformed to increasingly informed approaches:
 Random, Greedy, Greedy + Pruning, and Shortest Path.
 Random and Greedy exhibit similar efficiency, as both are able to solve a large number of instances. Greedy + Pruning is
-slightly slower but employs a strategy with the potential to yield higher-quality solutions. Ultimately, the shortest path approach
+slightly slower but employs a strategy with the potential to yield higher-quality solutions. Ultimately, the Shortest Path approach
 solves the highest number of instances. The next step is to evaluate the quality of the solutions produced by each strategy.
 Figure \ref{fig:rgps} presents the cumulative distribution plot for the evaluated algorithms.
 
@@ -53,15 +53,15 @@ Figure \ref{fig:rgps} presents the cumulative distribution plot for the evaluate
 	\label{fig:rgps}
 \end{figure}
 
-For instance, to better interpret the plot, consider the greedy strategy: the point on its curve corresponding to
+For instance, to better interpret the plot, consider the Greedy strategy: the point on its curve corresponding to
 a primal gap threshold of 60\% is close to 20\%. This indicates that it achieves a solution with a primal gap less than
 or equal to 60\% in approximately 20\% of the problem instances.
-Conversely, the shortest path strategy found the best known solution (i.e., a primal gap of 0\%) in approximately
+Conversely, the Shortest Path strategy found the best known solution (i.e., a primal gap of 0\%) in approximately
 25\% of the instances.
 Now that the plot has been properly explained, it is possible to identify the most effective heuristic.
 The curve that remains above all the others represents the best-performing strategy, as it indicates that the corresponding
 algorithm consistently found solutions within the primal gap thresholds for a larger number of instances.
-As expected, random and greedy strategies typically do not produce high-quality plans. Pruning the useless actions appears to be
+As expected, Random and Greedy strategies typically do not produce high-quality plans. Pruning the useless actions appears to be
 an effective strategy, as it allows the planner to discard actions that are known to be unhelpful whenever multiple
 options with the same cost are available.
 Shortest Path builds on pruning by also estimating the distance to the goal for each action, resulting in a more
@@ -69,9 +69,9 @@ informed and effective selection of actions to include in the plan.
 
 \section{Greedy + Pruning vs Hmax + Lookahead}
 As shown in the previous section, pruning proves to be an effective strategy.
-The initial idea was to combine pruning with the max heuristic. However, due to the nature of the heuristic’s definition,
+The initial idea was to combine pruning with the Max Heuristic. However, due to the nature of the heuristic’s definition,
 this approach effectively reduces to a Greedy + Pruning strategy. To better evaluate its potential,
-a lookahead mechanism was implemented to assess whether combining pruning with the max heuristic could lead
+a lookahead mechanism was implemented to assess whether combining pruning with the Max Heuristic could lead
 to a more promising solution. This section presents an evaluation of the performance of these two algorithms.
 The lookahead process is computationally expensive; as a result, the algorithm fails to find a plan for approximately
 one-third of the instances. Figure \ref{fig:algs23} presents the cumulative distribution plot comparing the performance
@@ -80,7 +80,7 @@ of these two algorithms.
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=\textwidth]{images/algs23.png}
-	\caption{Cumulative distribution plot for Greedy + Pruning, and Max Heuristic + Lookahead strategies.}
+	\caption{Cumulative distribution plot for Greedy + Pruning, and Hmax + Lookahead strategies.}
 	\label{fig:algs23}
 \end{figure}
 
@@ -94,18 +94,18 @@ solved by all of them.
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=\textwidth]{images/algs234_solved_all.png}
-	\caption{Cumulative distribution plot for Greedy + Pruning, Max Heuristic + Lookahead, and Shortest Path strategies,
+	\caption{Cumulative distribution plot for Greedy + Pruning, Hmax + Lookahead, and Shortest Path strategies,
 		considering only the instances solved by all of them.}
 	\label{fig:algs234_solved_all}
 \end{figure}
 
 The curve for Shortest Path is included as a reference. Focusing only on the instances solved by all the presented algorithms
 is particularly valuable: in this case, the curves are not skewed by instances that some strategies failed to solve.
-This allows us to assess only the quality of the generated plans. From this comparison, it is evident that shortest path
+This allows us to assess only the quality of the generated plans. From this comparison, it is evident that Shortest Path
 is the best-performing algorithm overall—both in terms of solution quality and the number of problems it can solve.
 Additionally, the performance of Hmax + Lookahead, which surpasses that of Greedy + Pruning, confirms that pruning combined
-with max heuristic can be an effective strategy when paired with a lookahead mechanism.
-Although lookahead remains a slow algorithm, these results suggest that the revised version of the max heuristic|enhanced
+with Max Heuristic can be an effective strategy when paired with a lookahead mechanism.
+Although lookahead remains a slow algorithm, these results suggest that the revised version of the Max Heuristic|enhanced
 with a pruning mechanism|has the potential to produce high-quality solutions if used within a more powerful search strategy
 like \textsc{A*}.
 
@@ -137,7 +137,7 @@ the next action is selected at random among them.
 This section analyzes the impact of random tie-breaking on the quality of the returned plans. As mentioned earlier,
 each algorithm was executed on every instance using 10 different random seeds. Varying the seed affects the algorithm’s
 behavior only in cases where multiple actions share the same heuristic cost, influencing which action is selected among them.
-Figure \ref{fig:rand_rand} presents the analysis of the impact of randomization on the random strategy.
+Figure \ref{fig:rand_rand} presents the analysis of the impact of randomization on the Random strategy.
 
 \begin{figure}[ht]
 	\centering
@@ -152,7 +152,7 @@ by the algorithm across different random seeds.
 Some instances exhibit a large discrepancy between the minimum and maximum plan costs. In fact, certain points show a minimum
 cost of around 10 and a maximum close to 1000, indicating a fluctuation of two orders of magnitude.
 Selecting the next action at random is highly dependent on the chosen random seed.
-Figure \ref{fig:rand_greedy} shows the same plot for the greedy approach.
+Figure \ref{fig:rand_greedy} shows the same plot for the Greedy approach.
 
 \begin{figure}[ht]
 	\centering
@@ -183,9 +183,9 @@ This behavior is particularly evident in Figures~\ref{fig:rand_pruning} and~\ref
 
 The improvement is especially noticeable in the plot for the Shortest Path heuristic. Most points lie close to the red line,
 which represents the ideal case where the minimum and maximum plan costs are equal. This indicates a high degree of consistency
-across different random seeds. The shortest path approach stands out as the most informative among the heuristics presented,
+across different random seeds. The Shortest Path approach stands out as the most informative among the heuristics presented,
 combining a pruning mechanism with an action-level estimate of the distance to the goal state.\\
-In conclusion, the shortest path heuristic proves to be the most effective in all aspects: it solves the largest number of instances,
+In conclusion, the Shortest Path heuristic proves to be the most effective in all aspects: it solves the largest number of instances,
 yields the best performance in cumulative distribution plots, and demonstrates the highest stability with respect to random seed variation.
 
 \section{Iterative Refinement via Shortest Path Reapplication}
@@ -193,16 +193,16 @@ In the context of Mixed Integer Programming (MIP), there is a technique known as
 which involves first finding a feasible solution using a fast heuristic or metaheuristic approach, and then refining this solution by solving,
 to optimality, a subproblem of the original MIP using a solver as a ``black box''.
 This approach could also be applied to planning. However, at the time of writing, the most well-known optimal planner, Fast Downward,
-does not provide an API that would allow it to be used as a black-box component. To refine the solution found by the shortest path heuristic,
+does not provide an API that would allow it to be used as a black-box component. To refine the solution found by the Shortest Path heuristic,
 the proposed idea is to reapply the algorithm to a subproblem and then replace the corresponding segment of the original solution with the new one.
 The hope is that solving a smaller, focused subproblem may yield a higher-quality solution than addressing the full problem in its entirety.
 Given an initial plan, the initial and goal states for the subproblem are derived from intermediate states along the original plan.
 In the experiment, these subproblem boundaries were positioned at different segments of the original solution.
-For each instance, the shortest path algorithm was reapplied to three different segments of the original plan: the first 30\% of actions,
+For each instance, the Shortest Path algorithm was reapplied to three different segments of the original plan: the first 30\% of actions,
 the central 40\%, and the final 30\%.
 The original segments of the solution were replaced with the newly generated ones, and the total plan cost was then recomputed.
 If the new cost is better than the initial one, the new solution is returned; otherwise, the initial solution is retained as the final plan.
-Figure \ref{fig:reapply} compares the cumulative distribution of the original shortest path
+Figure \ref{fig:reapply} compares the cumulative distribution of the original Shortest Path
 strategy with the three variants where the algorithm was reapplied to different segments of the plan.
 
 \begin{figure}[ht]
@@ -305,6 +305,6 @@ the original one. Taking, for instance, 30\% from a central portion of the solut
 consistent, the final state of the subproblem must include all the preconditions required by the subsequent actions that are not being modified.
 As a result, the final state carries more constraints than the initial problem provided, leaving \textsc{USC} with little flexibility. By contrast,
 focusing on the last 30\% of the solution avoids this issue, because once the final state is reached, there are no further actions that need to be satisfied.
-In any case, attempting to refine the initial solution obtained via the shortest path does not seem particularly useful. Even when focusing on refining
-the last 30\% of the initial solution, the improvement over the shortest path is minimal. Using a larger window may be even less efficient,
+In any case, attempting to refine the initial solution obtained via the Shortest Path does not seem particularly useful. Even when focusing on refining
+the last 30\% of the initial solution, the improvement over the Shortest Path is minimal. Using a larger window may be even less efficient,
 as the computation time for \textsc{UCS} increases exponentially with the number of nodes in the graph.
