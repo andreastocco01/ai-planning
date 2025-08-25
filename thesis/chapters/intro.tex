@@ -2,8 +2,9 @@
 \label{ch:intro}
 \textit{Automated Planning} (or AI Planning) is a core subfield of Artificial Intelligence.
 It enables intelligent agents to reason about actions and outcomes to
-achieve long-term objectives. It is crucial in applications ranging from robotics and autonomous
-systems to logistics and game AI. These real-world scenarios demand algorithms that can generate
+achieve long-term objectives. It plays a vital role in applications such as robotics,
+autonomous systems, logistics, and game AI, where efficient generation of high-quality plans is essential.
+These real-world scenarios demand algorithms that can generate
 high-quality plans efficiently under various constraints.\\
 A planning problem, in general terms, can be defined as the task of finding a sequence
 of actions that leads from a given initial state to a desired goal state.
@@ -12,7 +13,7 @@ adopts the \textit{$SAS^+$ formalism} defined in Definition \ref{def:sas+}
 
 \begin{definition}[$\text{SAS}^+$ Planning Task]
 	\label{def:sas+}
-	A $\text{SAS}^+$ planning task is a 5-tuple $\Pi = \langle V, s_0, s_*, A \rangle$ with
+	A $\text{SAS}^+$ planning task is a 4-tuple $\Pi = \langle V, s_0, s_*, A \rangle$ with
 	the following components:
 	\begin{itemize}
 		\item \(V\): finite set of state variables \(v\),
@@ -51,6 +52,7 @@ Optimal planners, such as \textit{Fast Downward}, are guaranteed to find the bes
 computationally expensive. This thesis instead focuses on \textit{heuristic} algorithms, which aim to find high-quality solutions more efficiently,
 even though they do not guarantee optimality.
 Designing efficient heuristics for such domains is a key area of study, especially when exact solutions become impractical due to problem complexity.\\
-The thesis begins by presenting several well-known heuristic algorithms for delete-free planning, alongside the implementation of a novel approach.
+After outlining the experimental methodology, the thesis presents several well-known heuristic algorithms for delete-free planning,
+together with the implementation of a novel approach.
 All algorithms are evaluated in terms of solution quality across a range of benchmark instances. In addition, the study explores the impact of
 randomization on performance and investigates refinement strategies aimed at improving initial solutions.
