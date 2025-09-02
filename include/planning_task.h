@@ -135,30 +135,37 @@ class PlanningTask {
     std::unordered_map<Fact, int, FactHasher> fact_to_index;
     std::vector<int> actions_no_preconds;
 
-    bool goal_reached(std::vector<int> &current_state);
-    void apply_axioms(std::vector<int> &current_state);
-    bool check_axiom_cond(Axiom axiom, std::vector<int> &current_state);
-    bool check_mutex_groups(int var_to_update, int new_value,
-                            std::vector<int> &current_state);
+    bool goal_reached(std::vector<std::unordered_set<int>> &current_state);
+    void apply_axioms(std::vector<std::unordered_set<int>> &current_state);
+    bool check_axiom_cond(Axiom axiom,
+                          std::vector<std::unordered_set<int>> &current_state);
+    bool check_mutex_groups(
+        int var_to_update, int new_value,
+        std::vector<std::unordered_set<int>> &current_state);
     int get_max_axiom_layer();
-    std::vector<int> get_possible_actions_idx(std::vector<int> &current_state,
-                                              bool check_usage);
-    int apply_action(int idx, std::vector<int> &current_state);
-    int h_max(std::vector<int> &current_state, Fact &fact,
+    std::vector<int> get_possible_actions_idx(
+        std::vector<std::unordered_set<int>> &current_state, bool check_usage);
+    int apply_action(int idx,
+                     std::vector<std::unordered_set<int>> &current_state);
+    int h_max(std::vector<std::unordered_set<int>> &current_state, Fact &fact,
               std::unordered_set<int> &visited,
               std::unordered_map<int, int> &cache);
-    int compute_heuristic(std::vector<int> &current_state, int heuristic);
-    void remove_satisfied_actions(std::vector<int> &current_state,
-                                  std::vector<int> &possible_actions_idx);
+    int compute_heuristic(std::vector<std::unordered_set<int>> &current_state,
+                          int heuristic);
+    void remove_satisfied_actions(
+        std::vector<std::unordered_set<int>> &current_state,
+        std::vector<int> &possible_actions_idx);
     void print_action_h_costs(std::vector<int> &actions_idx);
     void create_structs();
     void reset_actions_metadata();
-    void backward_cost_propagation(std::vector<int> &current_state,
-                                   int heuristic);
-    int apply_pending_effects(std::vector<int> &current_state);
-    void look_ahead(std::vector<int> &current_state,
+    void backward_cost_propagation(
+        std::vector<std::unordered_set<int>> &current_state, int heuristic);
+    int apply_pending_effects(
+        std::vector<std::unordered_set<int>> &current_state);
+    void look_ahead(std::vector<std::unordered_set<int>> &current_state,
                     std::vector<int> &possible_actions_idx, int heuristic);
-    int compute_next_state(int idx, std::vector<int> &current_state);
+    int compute_next_state(int idx,
+                           std::vector<std::unordered_set<int>> &current_state);
 };
 
 #endif

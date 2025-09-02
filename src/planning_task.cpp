@@ -65,10 +65,12 @@ PlanningTask::PlanningTask(const PlanningTask &other) {
 /*
     check if the current state is a goal state
 */
-bool PlanningTask::goal_reached(std::vector<int> &current_state) {
+bool PlanningTask::goal_reached(
+    std::vector<std::unordered_set<int>> &current_state) {
     for (int i = 0; i < this->n_goals; i++) {
         int idx = this->goal_state[i].var_idx;
-        if (this->goal_state[i].var_val != current_state[idx]) return false;
+        if (!current_state[idx].count(this->goal_state[i].var_val))
+            return false;
     }
     return true;
 }
@@ -80,8 +82,9 @@ bool PlanningTask::goal_reached(std::vector<int> &current_state) {
     if a mutex already have a true fact, then we cannot apply any update to that
    mutex
 */
-bool PlanningTask::check_mutex_groups(int var_to_update, int new_value,
-                                      std::vector<int> &current_state) {
+bool PlanningTask::check_mutex_groups(
+    int var_to_update, int new_value,
+    std::vector<std::unordered_set<int>> &current_state) {
     for (int i = 0; i < this->n_mutex; i++) {
         MutexGroup mutex = this->mutexes[i];
         bool mutex_fact_in_solution = false;
@@ -89,7 +92,7 @@ bool PlanningTask::check_mutex_groups(int var_to_update, int new_value,
         for (int j = 0; j < mutex.n_facts; j++) {
             int fact_var = mutex.facts[j].var_idx;
             int fact_value = mutex.facts[j].var_val;
-            if (current_state[fact_var] == fact_value)
+            if (current_state[fact_var].count(fact_value))
                 mutex_fact_in_solution = true;
             if (fact_var == var_to_update && fact_value == new_value)
                 update_in_mutex = true;
@@ -106,27 +109,30 @@ int PlanningTask::get_max_axiom_layer() {
     return max;
 }
 
-bool PlanningTask::check_axiom_cond(Axiom axiom,
-                                    std::vector<int> &current_state) {
+bool PlanningTask::check_axiom_cond(
+    Axiom axiom, std::vector<std::unordered_set<int>> &current_state) {
     for (int i = 0; i < axiom.n_conds; i++) {
-        if (current_state[axiom.conds[i].var_idx] != axiom.conds[i].var_val)
+        if (!current_state[axiom.conds[i].var_idx].count(
+                axiom.conds[i].var_val))
             return false;
     }
     return true;
 }
 
-void PlanningTask::apply_axioms(std::vector<int> &current_state) {
+void PlanningTask::apply_axioms(
+    std::vector<std::unordered_set<int>> &current_state) {
     int max_axiom_layer = get_max_axiom_layer();
     for (int axiom_layer = 0; axiom_layer <= max_axiom_layer; axiom_layer++) {
         for (int i = 0; i < this->n_axioms; i++) {
             Axiom axiom = this->axioms[i];
             if (this->vars[axiom.affected_var].axiom_layer == axiom_layer &&
                 check_axiom_cond(axiom, current_state)) {
-                if ((current_state[axiom.affected_var] == axiom.from_value ||
+                if ((current_state[axiom.affected_var].count(
+                         axiom.from_value) ||
                      axiom.from_value == -1) &&
                     check_mutex_groups(axiom.affected_var, axiom.to_value,
                                        current_state)) {
-                    current_state[axiom.affected_var] = axiom.to_value;
+                    current_state[axiom.affected_var].insert(axiom.to_value);
                 }
             }
         }
@@ -134,7 +140,7 @@ void PlanningTask::apply_axioms(std::vector<int> &current_state) {
 }
 
 std::vector<int> PlanningTask::get_possible_actions_idx(
-    std::vector<int> &current_state, bool check_usage) {
+    std::vector<std::unordered_set<int>> &current_state, bool check_usage) {
     std::vector<int> actions_idx;
     for (int i = 0; i < this->n_actions; i++) {
         Action action = this->actions[i];
@@ -142,8 +148,8 @@ std::vector<int> PlanningTask::get_possible_actions_idx(
             continue;  // skip actions already used
         int j;
         for (j = 0; j < action.n_preconds; j++)
-            if (current_state[action.preconds[j].var_idx] !=
-                action.preconds[j].var_val)
+            if (!current_state[action.preconds[j].var_idx].count(
+                    action.preconds[j].var_val))
                 break;
         if (j == action.n_preconds) {
             actions_idx.push_back(i);
@@ -156,14 +162,16 @@ std::vector<int> PlanningTask::get_possible_actions_idx(
     return actions_idx;
 }
 
-int PlanningTask::compute_next_state(int idx, std::vector<int> &current_state) {
+int PlanningTask::compute_next_state(
+    int idx, std::vector<std::unordered_set<int>> &current_state) {
     int n_applied_effects = 0;  // count applied effects during this iteration
     for (int i = 0; i < this->actions[idx].n_effects; i++) {
         Effect effect = this->actions[idx].effects[i];
         int j;
         for (j = 0; j < effect.n_effect_conds; j++) {
             Fact effect_cond = effect.effect_conds[j];
-            if (current_state[effect_cond.var_idx] != effect_cond.var_val &&
+            if (!current_state[effect_cond.var_idx].count(
+                    effect_cond.var_val) &&
                 effect_cond.var_val != -1)
                 break;
         }
@@ -172,10 +180,10 @@ int PlanningTask::compute_next_state(int idx, std::vector<int> &current_state) {
             continue;
         }
         int var = effect.var_affected;
-        if ((current_state[var] == effect.from_value ||
+        if ((current_state[var].count(effect.from_value) ||
              effect.from_value == -1) &&
             check_mutex_groups(var, effect.to_value, current_state)) {
-            current_state[var] = effect.to_value;
+            current_state[var].insert(effect.to_value);
             n_applied_effects++;
         } else {
             this->pending_effects.push_back(effect);
@@ -184,7 +192,8 @@ int PlanningTask::compute_next_state(int idx, std::vector<int> &current_state) {
     return n_applied_effects;
 }
 
-int PlanningTask::apply_action(int idx, std::vector<int> &current_state) {
+int PlanningTask::apply_action(
+    int idx, std::vector<std::unordered_set<int>> &current_state) {
     int n_applied_effects = compute_next_state(idx, current_state);
     if (n_applied_effects) {  // at least one effect was
                               // applied
@@ -267,13 +276,15 @@ void PlanningTask::create_structs() {
 }
 
 void PlanningTask::remove_satisfied_actions(
-    std::vector<int> &current_state, std::vector<int> &possible_actions_idx) {
+    std::vector<std::unordered_set<int>> &current_state,
+    std::vector<int> &possible_actions_idx) {
     for (int i = possible_actions_idx.size() - 1; i >= 0; i--) {
         int idx = possible_actions_idx[i];
         std::vector<Effect> effects = this->actions[idx].effects;
         int count = 0;
         for (int j = 0; j < effects.size(); j++) {
-            if (current_state[effects[j].var_affected] == effects[j].to_value)
+            if (current_state[effects[j].var_affected].count(
+                    effects[j].to_value))
                 count++;
         }
         if (count == effects.size()) {
@@ -284,8 +295,8 @@ void PlanningTask::remove_satisfied_actions(
     }
 }
 
-int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact,
-                        std::unordered_set<int> &visited,
+int PlanningTask::h_max(std::vector<std::unordered_set<int>> &current_state,
+                        Fact &fact, std::unordered_set<int> &visited,
                         std::unordered_map<int, int> &cache) {
     int fact_idx = FIND_FACT_INDEX(fact);
 
@@ -294,7 +305,7 @@ int PlanningTask::h_max(std::vector<int> &current_state, Fact &fact,
         return cache[fact_idx];  // Return stored result
     }
 
-    if (current_state[fact.var_idx] == fact.var_val ||
+    if (current_state[fact.var_idx].count(fact.var_val) ||
         visited.find(fact_idx) != visited.end()) {
         return 0;  // Base case
     }
@@ -338,8 +349,8 @@ void PlanningTask::reset_actions_metadata() {
     }
 }
 
-int PlanningTask::compute_heuristic(std::vector<int> &current_state,
-                                    int heuristic) {
+int PlanningTask::compute_heuristic(
+    std::vector<std::unordered_set<int>> &current_state, int heuristic) {
     int total = 0;
     std::unordered_map<int, int> cache;  // Cache to store heuristic values
 
@@ -354,8 +365,8 @@ int PlanningTask::compute_heuristic(std::vector<int> &current_state,
     return total;
 }
 
-void PlanningTask::backward_cost_propagation(std::vector<int> &current_state,
-                                             int heuristic) {
+void PlanningTask::backward_cost_propagation(
+    std::vector<std::unordered_set<int>> &current_state, int heuristic) {
     PriorityQueue<int> pq(this->facts.size());
     int inf = std::numeric_limits<int>::max();
     std::vector<int> fact_costs(this->facts.size(), inf);
@@ -372,7 +383,7 @@ void PlanningTask::backward_cost_propagation(std::vector<int> &current_state,
         pq.pop();
         Fact f = this->facts[fact_idx];
 
-        if (current_state[f.var_idx] == f.var_val) continue;
+        if (current_state[f.var_idx].count(f.var_val)) continue;
         std::vector<int> actions = this->map_effect_actions[f];
 
         for (int i = 0; i < actions.size(); i++) {
@@ -425,24 +436,26 @@ void PlanningTask::backward_cost_propagation(std::vector<int> &current_state,
     }
 }
 
-int PlanningTask::apply_pending_effects(std::vector<int> &current_state) {
+int PlanningTask::apply_pending_effects(
+    std::vector<std::unordered_set<int>> &current_state) {
     int n_applied_effects = 0;
     for (int i = this->pending_effects.size() - 1; i >= 0; i--) {
         Effect effect = this->pending_effects[i];
         int j;
         for (j = 0; j < effect.n_effect_conds; j++) {
             Fact effect_cond = effect.effect_conds[j];
-            if (current_state[effect_cond.var_idx] != effect_cond.var_val &&
+            if (!current_state[effect_cond.var_idx].count(
+                    effect_cond.var_val) &&
                 effect_cond.var_val != -1)
                 break;
         }
         if (j < effect.n_effect_conds)  // the effect cannot be applied
             continue;
         int var = effect.var_affected;
-        if ((current_state[var] == effect.from_value ||
+        if ((current_state[var].count(effect.from_value) ||
              effect.from_value == -1) &&
             check_mutex_groups(var, effect.to_value, current_state)) {
-            current_state[var] = effect.to_value;
+            current_state[var].insert(effect.to_value);
             this->pending_effects.erase(this->pending_effects.begin() + i);
             n_applied_effects++;
         }
@@ -453,33 +466,34 @@ int PlanningTask::apply_pending_effects(std::vector<int> &current_state) {
 // apply each possible action
 // re-compute hmax
 // add to h_cost the result of hmax
-void PlanningTask::look_ahead(std::vector<int> &current_state,
-                              std::vector<int> &possible_actions_idx,
-                              int heuristic) {
+void PlanningTask::look_ahead(
+    std::vector<std::unordered_set<int>> &current_state,
+    std::vector<int> &possible_actions_idx, int heuristic) {
     std::vector<int> costs;
     for (int i = 0; i < possible_actions_idx.size(); i++)
         costs.push_back(this->actions[possible_actions_idx[i]].h_cost);
 
     // simulate action application
     for (int k = 0; k < possible_actions_idx.size(); k++) {
-        std::vector<int> new_state = current_state;
+        std::vector<std::unordered_set<int>> new_state = current_state;
         int idx = possible_actions_idx[k];
         for (int i = 0; i < this->actions[idx].n_effects; i++) {
             Effect effect = this->actions[idx].effects[i];
             int j;
             for (j = 0; j < effect.n_effect_conds; j++) {
                 Fact effect_cond = effect.effect_conds[j];
-                if (new_state[effect_cond.var_idx] != effect_cond.var_val &&
+                if (!new_state[effect_cond.var_idx].count(
+                        effect_cond.var_val) &&
                     effect_cond.var_val != -1)
                     break;
             }
             if (j < effect.n_effect_conds)  // the effect cannot be applied
                 continue;
             int var = effect.var_affected;
-            if ((new_state[var] == effect.from_value ||
+            if ((new_state[var].count(effect.from_value) ||
                  effect.from_value == -1) &&
                 check_mutex_groups(var, effect.to_value, new_state)) {
-                new_state[var] = effect.to_value;
+                new_state[var].insert(effect.to_value);
             }
         }
 
@@ -510,7 +524,11 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
 
     // parent process
     srand(seed);
-    std::vector<int> current_state = this->initial_state;
+    std::vector<std::unordered_set<int>> current_state(
+        this->initial_state.size());
+    for (int i = 0; i < this->initial_state.size(); i++) {
+        current_state[i].insert(this->initial_state[i]);
+    }
     int estimated_cost = std::numeric_limits<int>::max();
 
     // h_cost = cost in greedy
@@ -623,7 +641,11 @@ int PlanningTask::solve(int seed, int heuristic, bool debug, int time_limit) {
 }
 
 bool PlanningTask::check_integrity() {
-    std::vector<int> current_state = this->initial_state;
+    std::vector<std::unordered_set<int>> current_state(
+        this->initial_state.size());
+    for (int i = 0; i < this->initial_state.size(); i++) {
+        current_state[i].insert(this->initial_state[i]);
+    }
     int cost = 0;
     for (int k = 0; k < this->solution.size(); k++) {
         IndexAction indexAction = this->solution[k];
@@ -640,18 +662,18 @@ bool PlanningTask::check_integrity() {
             int j;
             for (j = 0; j < effect.n_effect_conds; j++) {
                 std::vector<Fact> effect_conds = effect.effect_conds;
-                if (current_state[effect_conds[j].var_idx] !=
-                        effect_conds[j].var_val &&
+                if (!current_state[effect_conds[j].var_idx].count(
+                        effect_conds[j].var_val) &&
                     effect_conds[j].var_val != -1)
                     break;
             }
             if (j < effect.n_effect_conds)  // the effect cannot be applied
                 continue;
             int var = effect.var_affected;
-            if ((current_state[var] == effect.from_value ||
+            if ((current_state[var].count(effect.from_value) ||
                  effect.from_value == -1) &&
                 check_mutex_groups(var, effect.to_value, current_state)) {
-                current_state[var] = effect.to_value;
+                current_state[var].insert(effect.to_value);
             }
         }
         cost += this->actions[indexAction.idx].cost;
@@ -660,27 +682,42 @@ bool PlanningTask::check_integrity() {
     return false;
 }
 
-std::string encode(const std::vector<int> &state) {
+// Encode a delete-free state (vector of sets)
+std::string encode(const std::vector<std::unordered_set<int>> &state) {
     if (state.empty()) return "";
 
-    std::string key = std::to_string(state[0]);
-    for (size_t i = 1; i < state.size(); ++i) {
-        key += "," + std::to_string(state[i]);
+    std::string key;
+    for (size_t i = 0; i < state.size(); ++i) {
+        std::vector<int> vals(state[i].begin(), state[i].end());
+        std::sort(vals.begin(), vals.end());  // deterministic order
+        std::string var_str;
+        for (size_t j = 0; j < vals.size(); ++j) {
+            if (j > 0) var_str += ",";
+            var_str += std::to_string(vals[j]);
+        }
+        if (i > 0) key += "|";  // separator between variables
+        key += var_str;
     }
     return key;
 }
 
-std::vector<int> decode(const std::string &s) {
-    if (s.empty()) return {};
+// Decode string into a vector of sets
+std::vector<std::unordered_set<int>> decode(const std::string &s) {
+    std::vector<std::unordered_set<int>> state;
+    if (s.empty()) return state;
 
-    std::vector<int> result;
-    std::string token;
     std::istringstream ss(s);
-
-    while (std::getline(ss, token, ',')) {
-        result.push_back(std::stoi(token));
+    std::string var_str;
+    while (std::getline(ss, var_str, '|')) {
+        std::unordered_set<int> var_set;
+        std::istringstream vs(var_str);
+        std::string val;
+        while (std::getline(vs, val, ',')) {
+            if (!val.empty()) var_set.insert(std::stoi(val));
+        }
+        state.push_back(var_set);
     }
-    return result;
+    return state;
 }
 
 int PlanningTask::ucs() {
@@ -691,7 +728,13 @@ int PlanningTask::ucs() {
     std::unordered_set<int> visited;                     // expanded states
 
     int next_state_to_add_idx = 0;
-    std::string enc_init_state = encode(this->initial_state);
+    std::vector<std::unordered_set<int>> init_state(this->initial_state.size());
+    for (size_t i = 0; i < this->initial_state.size(); ++i) {
+        init_state[i].insert(this->initial_state[i]);
+    }
+
+    // Encode the multi-valued initial state
+    std::string enc_init_state = encode(init_state);
     map_state_idx[enc_init_state] = next_state_to_add_idx++;
     states.push_back({enc_init_state, -1, -1, 0});
     frontier.push(map_state_idx[enc_init_state], 0);
@@ -700,7 +743,8 @@ int PlanningTask::ucs() {
         int state_idx = frontier.top();
         frontier.pop();
 
-        std::vector<int> current_state = decode(states[state_idx].state);
+        std::vector<std::unordered_set<int>> current_state =
+            decode(states[state_idx].state);
         if (goal_reached(current_state)) {
             this->solution_cost = states[state_idx].cost;
             while (state_idx != -1) {
@@ -722,7 +766,7 @@ int PlanningTask::ucs() {
             get_possible_actions_idx(current_state, true);
 
         for (int a_idx : successors) {
-            std::vector<int> new_state = current_state;
+            std::vector<std::unordered_set<int>> new_state = current_state;
             compute_next_state(a_idx, new_state);
 
             std::string enc_state = encode(new_state);
