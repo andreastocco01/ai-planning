@@ -29,6 +29,31 @@ The pseudocode for this function is shown in Algorithm \ref{alg:apply}.
 	\end{algorithmic}
 \end{algorithm}
 
+To illustrate the behavior of the heuristics, a simple planning instance is introduced
+as a running example throughout this chapter.
+
+\begin{definition}[Running Example]
+	The instance consists of an initial state $s_i$, a goal state $s_g$, a set of intermediate states $s_1, \dots, s_{13}$,
+	and a set of actions $a_1, \dots, a_{15}$, each with uniform cost 1.
+	Each state can take only two values, true or false, and each action has exactly one precondition and one effect.
+	An action can be applied only if its precondition state is true; once applied, its effect state becomes true as well.
+\end{definition}
+
+The structure of the instance is shown in Figure~\ref{fig:running_example}.
+It is represented as a graph, where each circle denotes a state and each edge corresponds to an action.
+Although the edges are drawn as undirected, each action conceptually represents a transition from its precondition to its effect.
+For example, action $a_2$ is applicable in $s_i$, and its effect is to reach $s_2$.
+Subsequent figures reuse this example to highlight the differences among heuristics,
+with each edge labeled by the corresponding heuristic cost.
+
+\begin{figure}[ht]
+	\centering
+	\def\svgwidth{0.75\linewidth}
+	\input{images/graph.pdf_tex}
+	\caption{Running Example}
+	\label{fig:running_example}
+\end{figure}
+
 \section{Random}
 This is the simplest algorithm implemented, and it is used as a baseline for the evaluation.
 At each iteration, it applies a random action from the applicable ones.
@@ -188,10 +213,6 @@ Through this process, actions that do not contribute to achieving the goal will 
 effectively marking them as useless. When selecting the next action to apply, any action with infinite cost is ignored,
 and the one with the lowest heuristic cost among the remaining options is chosen.\\
 Figure \ref{fig:hmax_scheme} illustrates the behaviour of the max heuristic without the pruning technique.
-Each circle represents a state in the planning task, with $s_i$ as initial state (in blue) and $s_g$ as goal state (in green).
-Edges denote actions, each labeled with its heuristic cost. Although the edges in the figure are undirected, each action conceptually connects
-a state that must be satisfied as a precondition to a resulting state that becomes true as an effect. For example, action $a_2$ is applicable in
-$s_i$, and its effect is to reach $s_2$.  For simplicity, all actions have a uniform actual cost of 1.
 When the heuristic is applied from the initial state, the actions $a_1$, $a_2$, and $a_3$ are all deemed applicable and assigned heuristic costs
 equal to their actual cost. However, since multiple actions have the same cost, the tie-breaking mechanism (e.g., random choice) may lead the planner
 to select a suboptimal branch|such as choosing $a_1$ or $a_3$| which does not contribute toward reaching the goal efficiently.
@@ -315,7 +336,7 @@ This expression estimates the cost of achieving a fact in the goal state $s_*$ b
 action \textit{a}. The heuristic cost of an action is defined as its own cost plus the minimum estimated cost among its effects.
 In this way, each action is assigned a heuristic cost corresponding to the cost of the shortest path to reach
 a fact in the goal state.
-Figure \ref{fig:sp_scheme} illustrates the same example introduced in Section \ref{sec:hmax}, but evaluated with the newly presented heuristic.
+Figure \ref{fig:sp_scheme} illustrates the same example introduced at the beginning of this chapter, but evaluated with the newly presented heuristic.
 
 \begin{figure}[ht]
 	\centering
