@@ -22,11 +22,11 @@ the number of instances it was able to solve within the time limit.
 		\hline
 		\textbf{Heuristic} & \textbf{Not found per timelimit} \\
 		\hline
-		Random             & 1123                             \\
-		Greedy             & 1076                             \\
-		Greedy + Pruning   & 1714                             \\
-		Hmax + Lookahead   & 9199                             \\
-		Shortest Path      & 851                              \\
+		Random             & 1363                             \\
+		Greedy             & 1328                             \\
+		Greedy + Pruning   & 1993                             \\
+		Hmax + Lookahead   & 9903                             \\
+		Shortest Path      & 1042                             \\
 		\hline
 	\end{tabular}
 	\caption{Number of instances not solved within the time limit (out of 31,040 total instances).}
@@ -54,10 +54,10 @@ Figure \ref{fig:rgps} presents the cumulative distribution plot for the evaluate
 \end{figure}
 
 For instance, to better interpret the plot, consider the Greedy strategy: the point on its curve corresponding to
-a primal gap threshold of 60\% is close to 20\%. This indicates that it achieves a solution with a primal gap less than
-or equal to 60\% in approximately 20\% of the problem instances.
+a primal gap threshold of 80\% is close to 20\%. This indicates that it achieves a solution with a primal gap less than
+or equal to 80\% in approximately 20\% of the problem instances.
 Conversely, the Shortest Path strategy found the best known solution (i.e., a primal gap of 0\%) in approximately
-25\% of the instances.
+22\% of the instances.
 Now that the plot has been properly explained, it is possible to identify the most effective heuristic.
 The curve that remains above all the others represents the best-performing strategy, as it indicates that the corresponding
 algorithm consistently found solutions within the primal gap thresholds for a larger number of instances.
@@ -106,8 +106,7 @@ is the best-performing algorithm overall—both in terms of solution quality and
 Additionally, the performance of Hmax + Lookahead, which surpasses that of Greedy + Pruning, confirms that pruning combined
 with Max Heuristic can be an effective strategy when paired with a lookahead mechanism.
 Although lookahead remains a slow algorithm, these results suggest that the revised version of the Max Heuristic|enhanced
-with a pruning mechanism|has the potential to produce high-quality solutions if used within a more powerful search strategy
-like \textsc{A*}.
+with a pruning mechanism|has the potential to produce high-quality solutions.
 
 \section{Different Versions of Backward Propagation}
 As explained in Section \ref{sec:shortestpath}, the core idea behind the algorithm is to back-propagate the estimated cost
