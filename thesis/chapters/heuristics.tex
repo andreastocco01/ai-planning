@@ -85,7 +85,7 @@ Algorithm \ref{alg:random} shows the pseudocode for it.
 
 It is important to notice that if \textit{possibleActions} is empty, then
 a solution to the planning task cannot exist. As said in Chapter \ref{ch:intro},
-the problems are Delete-Free|once a fact becomes true in the current state, it remains
+the problems are delete-free|once a fact becomes true in the current state, it remains
 true until the end.
 Therefore, if there are no actions to apply, it does not mean that the algorithm has reached
 a dead end that could be avoided by applying different actions in a different order.
@@ -121,33 +121,33 @@ Instead of randomly choosing the next action to apply, here the action with mini
 For this and all subsequent algorithms, if multiple eligible actions share the same minimum (heuristic) cost,
 one of them is selected at random.
 
-\section{Revised Max Heuristic}
+\section{Revised $h^{\max}$ Heuristic}
 \label{sec:hmax}
-The Max Heuristic is one of the most well-known delete-relaxation heuristics in the literature.
+The $h^{\max}$ heuristic is one of the most well-known delete-relaxation heuristics in the literature.
 It is an \textit{admissible} heuristic, meaning that it never overestimates the cost of reaching the goal.
-We denote it as \textsc{hmax} and define it formally in Equations \ref{eq:hmax} and \ref{eq:cost}.
+A formal definition is given in Equations \ref{eq:hmax} and \ref{eq:cost}.
 
 \begin{equation}
 	\label{eq:hmax}
-	h_{max}\left(p;s\right) \coloneqq \begin{cases}
+	h^{\max}\left(p;s\right) \coloneqq \begin{cases}
 		0                                                                & \text{if $p \in s$} \\
 		\text{min}_{a \in O\left(p\right)}\left[h\left(a;s\right)\right] & \text{otherwise}
 	\end{cases}
 \end{equation}
 
-where $h_{max}\left(p;s\right)$ stands for an estimate of the cost of achieving the fact \textit{p} from
+where $h^{\max}\left(p;s\right)$ stands for an estimate of the cost of achieving the fact \textit{p} from
 the current state \textit{s}, $O\left(p\right)$ is the set of actions $\{a \in A \mid p \in \textit{eff(a)}\}$, and
 
 \begin{equation}
 	\label{eq:cost}
-	h\left(a;s\right) \coloneqq cost(a) + \text{max}_{q \in pre\left(a\right)} \left[h(q, s)\right]
+	h\left(a;s\right) \coloneqq cost(a) + \text{max}_{q \in pre\left(a\right)} \left[h^{\max}(q, s)\right]
 \end{equation}
 
 stands for the cost of achieving the preconditions of an action \textit{a} and applying it.\\
 The idea behind the use of this heuristic is similar to that of the Greedy approach.
 While in the Greedy approach the action with the minimum actual cost is chosen, in this case,
 the action with the minimum heuristic cost is selected at each iteration.
-This thesis presents an implementation of the Max Heuristic that goes a step further.
+This thesis presents an implementation of the $h^{\max}$ heuristic that goes a step further.
 By definition, any action applicable in the current state has a heuristic cost equal to
 its own cost, since all its preconditions are satisfied|regardless of whether the action is
 actually useful for reaching the goal state or not.
@@ -158,7 +158,7 @@ while the remaining ones retain their correct heuristic cost.
 The pseudocode for this algorithm is presented in Algorithm \ref{alg:hmax} and \ref{alg:greedyhmax}.
 
 \begin{algorithm}
-	\caption{Max Heuristic}
+	\caption{$h^{\max}$ heuristic}
 	\label{alg:hmax}
 	\hspace*{0.5em} \textbf{Output}: $minHcost$
 	\begin{algorithmic}[1]
@@ -185,7 +185,7 @@ The pseudocode for this algorithm is presented in Algorithm \ref{alg:hmax} and \
 \end{algorithm}
 
 \begin{algorithm}
-	\caption{Greedy Search with Max Heuristic}
+	\caption{Greedy search with $h^{\max}$ heuristic}
 	\label{alg:greedyhmax}
 	\hspace*{0.5em} \textbf{Output}: $solution$
 	\begin{algorithmic}[1]
@@ -212,7 +212,7 @@ Starting from each fact in the goal state, \textsc{hmax} is invoked to perform b
 Through this process, actions that do not contribute to achieving the goal will implicitly retain their initial cost of $+\infty$,
 effectively marking them as useless. When selecting the next action to apply, any action with infinite cost is ignored,
 and the one with the lowest heuristic cost among the remaining options is chosen.\\
-Figure \ref{fig:hmax_scheme} illustrates the behaviour of the max heuristic without the pruning technique.
+Figure \ref{fig:hmax_scheme} illustrates the behaviour of the $h^{\max}$ heuristic without the pruning technique.
 When the heuristic is applied from the initial state, the actions $a_1$, $a_2$, and $a_3$ are all deemed applicable and assigned heuristic costs
 equal to their actual cost. However, since multiple actions have the same cost, the tie-breaking mechanism (e.g., random choice) may lead the planner
 to select a suboptimal branch|such as choosing $a_1$ or $a_3$| which does not contribute toward reaching the goal efficiently.
@@ -221,11 +221,11 @@ to select a suboptimal branch|such as choosing $a_1$ or $a_3$| which does not co
 	\centering
 	\def\svgwidth{0.75\linewidth}
 	\input{images/hmax.pdf_tex}
-	\caption{Behaviour of the max heuristic without pruning}
+	\caption{Behaviour of the $h^{\max}$ heuristic without pruning}
 	\label{fig:hmax_scheme}
 \end{figure}
 
-Figure \ref{fig:hmax_pruning_scheme} shows the same planning instance, but this time using the max heuristic augmented with the pruning technique.
+Figure \ref{fig:hmax_pruning_scheme} shows the same planning instance, but this time using the $h^{\max}$ heuristic augmented with the pruning technique.
 Here, actions that do not contribute to achieving the goal are implicitly assigned a heuristic cost of $+\infty$. As a result, the planner deterministically
 selects $a_2$ from the initial state, as it is the only action with a finite cost.
 The heuristic is recomputed after each action, updating costs based on the new state. This guided progression ensures that only goal-relevant actions are
@@ -236,7 +236,7 @@ This occurs because, from state $s_6$, both $a_{10}$ and $a_{11}$ have the same 
 	\centering
 	\def\svgwidth{0.75\linewidth}
 	\input{images/hmax_pruning.pdf_tex}
-	\caption{Behaviour of the Max Heuristic with pruning}
+	\caption{Behaviour of the $h^{\max}$ heuristic with pruning}
 	\label{fig:hmax_pruning_scheme}
 \end{figure}
 
@@ -245,7 +245,7 @@ the current state will always have a heuristic cost equal to its actual cost.
 Therefore, this algorithm can be seen as a Greedy + Pruning approach: it selects the next action based on the action's cost,
 while discarding useless actions.
 
-\section{Max Heuristic + Lookahead}
+\section{$h^{\max}$ Heuristic + Lookahead}
 As mentioned in the previous section, the presented algorithm can be considered a Greedy + Pruning approach,
 since the full potential of the heuristic cannot be exploited|the heuristic cost of the applicable actions is always equal
 to the actions' actual cost.
@@ -276,7 +276,7 @@ The pseudocode for this approach is shown in Algorithm \ref{alg:lookahead} and \
 \end{algorithm}
 
 \begin{algorithm}
-	\caption{Max Heuristic with Lookahead}
+	\caption{$h^{\max}$ heuristic with lookahead}
 	\label{alg:hmaxlookahead}
 	\hspace*{0.5em} \textbf{Output}: $solution$
 	\begin{algorithmic}[1]
@@ -302,7 +302,7 @@ and then applies only the action that appears to be the most convenient.
 \section{Novel Heuristic}
 \label{sec:shortestpath}
 In this section, a completely new approach is introduced. As discussed in Section \ref{sec:hmax},
-the modified version of the max heuristic ultimately behaves like a Greedy + Pruning algorithm, limiting its effectiveness.
+the modified version of the $h^{\max}$ heuristic ultimately behaves like a Greedy + Pruning algorithm, limiting its effectiveness.
 Here, we aim to use the same backward propagation mechanism, but with a different heuristic cost assigned to each action.
 The core idea is to assign each action a cost that estimates its actual distance to the goal.
 Specifically, the cost assigned to an action corresponds to the cost of the \textit{shortest path} to reach a fact in the goal state.
@@ -336,7 +336,7 @@ Figure \ref{fig:sp_scheme} illustrates the same example introduced at the beginn
 	\centering
 	\def\svgwidth{0.75\linewidth}
 	\input{images/shortest_path.pdf_tex}
-	\caption{Behaviour of the Shortest Path heuristic}
+	\caption{Behaviour of the shortest path heuristic}
 	\label{fig:sp_scheme}
 \end{figure}
 
@@ -350,7 +350,7 @@ The actual implementation of this algorithm uses a \textit{priority queue} to en
 efficient and iterative computation. The pseudocode is presented in Algorithm \ref{alg:sp}.
 
 \begin{algorithm}
-	\caption{Shortest Path Heuristic}
+	\caption{Shortest path heuristic}
 	\label{alg:sp}
 	\hspace*{0.5em} \textbf{Output}:
 	\begin{algorithmic}[1]
