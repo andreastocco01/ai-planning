@@ -33,11 +33,9 @@ adopts the \textit{$SAS^+$ formalism} defined in Definition \ref{def:sas+}
 For an action $a \in A$ to be applicable, all of its preconditions
 \textit{pre(a)} must be satisfied in the current state. Once applied, its effects
 \textit{eff(a)} are used to update the current state accordingly.
-In the simplified class of problems considered in this thesis|referred to as \textit{Delete-Free}|actions do not have any negative effects.
-This assumption makes the state space monotonic: once a fact becomes true, it remains true throughout the plan.
-As a result, reasoning about goal reachability becomes simpler, and the complexity introduced by the potential removal of facts is avoided.
-This structural property enables more efficient exploration of the search space and facilitates the analysis of action dependencies.
-Despite this relaxation, delete-free planning preserves many of the essential characteristics of the original problem.\\
+In this context, a \textit{fact} is defined as the assignment of a value to a state variable,
+i.e., an expression of the form $v = d$ with $v \in V$ and $d \in dom(v)$.
+Thus, a state can be regarded as the set of facts that are satisfied simultaneously.
 The solutions to planning problems are called \textit{plans}, and they are formally defined in Definition \ref{def:plan}
 
 \begin{definition}[Plan]
@@ -48,6 +46,18 @@ The solutions to planning problems are called \textit{plans}, and they are forma
 	A plan is optimal if it has minimal cost.
 \end{definition}
 
+The class of problems considered in this thesis is a relaxation of the general $\text{SAS}^+$ model,
+referred to as \textit{delete-free} planning.
+In the standard formalism, applying an action may overwrite existing facts:
+for instance, if a variable $v$ currently satisfies $v = d$, an effect setting $v = d'$
+implicitly deletes the previous assignment.
+In contrast, in the delete-free setting, actions never remove facts.
+Once a fact becomes true, it remains true for the rest of the plan, even if the same variable
+is later assigned a different value.
+As a consequence, states are monotonic and may contain multiple values for the same variable,
+distinguishing them from those of the original planning problem.
+This structural property simplifies reasoning about reachability and reduces the complexity of
+exploring the search space, while still retaining much of the problem's inherent difficulty.\\
 Optimal planners, such as \textit{Fast Downward}, are guaranteed to find the best possible solution to a planning task, but they can be
 computationally expensive. This thesis instead focuses on \textit{heuristic} algorithms, which aim to find high-quality solutions more efficiently,
 even though they do not guarantee optimality.
