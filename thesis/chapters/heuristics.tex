@@ -244,12 +244,6 @@ As previously mentioned, any action that can be applied from
 the current state will always have a heuristic cost equal to its actual cost.
 Therefore, this algorithm can be seen as a Greedy + Pruning approach: it selects the next action based on the action's cost,
 while discarding useless actions.
-To observe the true behavior of the proposed algorithm, it should ideally be used within the context of the \textsc{A*} algorithm,
-a well-known search strategy that combines actual cost from the start with a heuristic estimate to the goal.
-Specifically, \textsc{A*} selects actions by minimizing the function $f(n) = g(n) + h(n)$, where $g(n)$ is the cost
-required to reach node $n$, and $h(n)$ is the estimated cost to reach the goal state from $n$.
-\textsc{A*} selects actions based on the sum of these two values, leading to optimal solutions when an admissible heuristic, such as \textsc{hmax}, is used.
-However, since \textsc{A*} was not implemented in this thesis, an alternative approach was used to evaluate the algorithm's actual performance.
 
 \section{Max Heuristic + Lookahead}
 As mentioned in the previous section, the presented algorithm can be considered a Greedy + Pruning approach,
@@ -322,8 +316,8 @@ The mathematical formalism is presented in Equations \ref{eq:sp} and \ref{eq:spc
 	\end{cases}
 \end{equation}
 
-Here, $h_{sp}\left(p;s_*\right)$ denotes the estimated cost of achieving a fact in the goal state $s_*$, starting from
-fact \textit{p}. The set $O\left(p\right)$ represents the actions that produce \textit{p} as an effect,
+Here, $h_{sp}\left(p;s_*\right)$ denotes the estimated cost of achieving the fact \textit{p} from the goal state $s_*$.
+The set $O\left(p\right)$ represents the actions that produce \textit{p} as an effect,
 that is, $O\left(p\right) = \{a \in A \mid p \in \textit{eff(a)}\}$. The function $h_a\left(a;s_*\right)$ is
 defined as follows:
 
