@@ -20,13 +20,13 @@ the number of instances it was able to solve within the time limit.
 	\centering
 	\begin{tabular}{|l|r|}
 		\hline
-		\textbf{Heuristic}     & \textbf{Not found per timelimit} \\
+		\textbf{Algorithm}     & \textbf{Unsolved within time limit} \\
 		\hline
-		Random                 & 1363                             \\
-		Greedy                 & 1328                             \\
-		Greedy + Pruning       & 1993                             \\
-		$h^{\max}$ + Lookahead & 9903                             \\
-		Shortest Path          & 1042                             \\
+		Random                 & 1363                                \\
+		Greedy                 & 1328                                \\
+		Greedy + Pruning       & 1993                                \\
+		$h^{\max}$ + Lookahead & 9903                                \\
+		Shortest Path          & 1042                                \\
 		\hline
 	\end{tabular}
 	\caption{Number of instances not solved within the time limit (out of 31,040 total instances).}
@@ -104,7 +104,7 @@ is particularly valuable: in this case, the curves are not skewed by instances t
 This allows us to assess only the quality of the generated plans. From this comparison, it is evident that Shortest Path
 is the best-performing algorithm overall—both in terms of solution quality and the number of problems it can solve.
 Additionally, the performance of $h^{\max}$ + Lookahead, which surpasses that of Greedy + Pruning, confirms that pruning combined
-with $h^{\max}$ Heuristic can be an effective strategy when paired with a lookahead mechanism.
+with $h^{\max}$ heuristic can be an effective strategy when paired with a lookahead mechanism.
 Although lookahead remains a slow algorithm, these results suggest that the revised version of the $h^{\max}$ heuristic|enhanced
 with a pruning mechanism|has the potential to produce high-quality solutions.
 
@@ -127,10 +127,11 @@ Back-propagating the maximum cost among an action’s effects can be interpreted
 the worst-case path to the goal state. Conversely, back-propagating the sum of the effects' costs reflects a perspective
 where all possible outcomes of the action contribute to estimating the distance to the goal. Each approach offers a different
 trade-off between pessimism and comprehensiveness in cost estimation.
-The Shortest Path heuristic continues to deliver the best performance overall. In contrast, both the max-cost and sum-cost
+The Shortest Path continues to deliver the best performance overall. In contrast, both the max-cost and sum-cost
 backpropagation strategies exhibit similar behavior, with only marginal differences between them.
 
 \section{Randomization Analysis}
+\label{sec:randomization}
 All the presented algorithms share a common trait: when multiple actions have the same minimum heuristic cost,
 the next action is selected at random among them.
 This section analyzes the impact of random tie-breaking on the quality of the returned plans. As mentioned earlier,
@@ -180,11 +181,11 @@ This behavior is particularly evident in Figures~\ref{fig:rand_pruning} and~\ref
 	\label{fig:rand_sp}
 \end{figure}
 
-The improvement is especially noticeable in the plot for the Shortest Path heuristic. Most points lie close to the red line,
+The improvement is especially noticeable in the plot for the Shortest Path. Most points lie close to the red line,
 which represents the ideal case where the minimum and maximum plan costs are equal. This indicates a high degree of consistency
 across different random seeds. The Shortest Path approach stands out as the most informative among the heuristics presented,
 combining a pruning mechanism with an action-level estimate of the distance to the goal state.\\
-In conclusion, the Shortest Path heuristic proves to be the most effective in all aspects: it solves the largest number of instances,
+In conclusion, the Shortest Path proves to be the most effective in all aspects: it solves the largest number of instances,
 yields the best performance in cumulative distribution plots, and demonstrates the highest stability with respect to random seed variation.
 
 \section{Iterative Refinement via Shortest Path Reapplication}
@@ -192,9 +193,12 @@ In the context of Mixed Integer Programming (MIP), there is a technique known as
 which involves first finding a feasible solution using a fast heuristic or metaheuristic approach, and then refining this solution by solving,
 to optimality, a subproblem of the original MIP using a solver as a ``black box''.
 This approach could also be applied to planning. However, at the time of writing, the most well-known optimal planner, Fast Downward,
-does not provide an API that would allow it to be used as a black-box component. To refine the solution found by the Shortest Path heuristic,
+does not provide an API that would allow it to be used as a black-box component. To refine the solution found by the Shortest Path,
 the proposed idea is to reapply the algorithm to a subproblem and then replace the corresponding segment of the original solution with the new one.
 The hope is that solving a smaller, focused subproblem may yield a higher-quality solution than addressing the full problem in its entirety.
+Unlike the experiments in the previous sections, the refinement experiments were conducted using a single random seed.
+As shown in Section~\ref{sec:randomization}, the Shortest Path heuristic exhibits stable performance with respect to random seed variation.
+Therefore, repeating each run with multiple seeds is unnecessary in this context.
 Given an initial plan, the initial and goal states for the subproblem are derived from intermediate states along the original plan.
 In the experiment, these subproblem boundaries were positioned at different segments of the original solution.
 For each instance, the Shortest Path algorithm was reapplied to three different segments of the original plan: the first 30\% of actions,
@@ -217,7 +221,7 @@ This suggests that reapplying the heuristic to subproblems does not significantl
 refinement approach in practice.
 
 \section{Iterative Refinement via Uniform Cost Search}
-In the previous section, an analysis was conducted on refining the solution provided by the Shortest Path heuristic by reapplying the same method
+In the previous section, an analysis was conducted on refining the solution provided by the Shortest Path by reapplying the same method
 to different segments of the original plan.
 Now, a different approach is explored by using \textit{Uniform Cost Search (UCS)} \cite{felner2011position} as the refinement algorithm.
 \textsc{UCS} is an exact algorithm that always finds the optimal path from a starting node to a goal node in a graph.
@@ -266,7 +270,7 @@ Algorithm \ref{alg:ucs} presents the pseudocode for this strategy.
 \end{algorithm}
 
 The experiments were conducted in a similar manner to those of the previous section. In the first run, a high-granularity approach was adopted:
-the solution provided by the shortest-path heuristic was refined by reapplying \textsc{UCS} to consecutive portions of the plan, each covering 10\% of its length.
+the solution provided by the Shortest Path was refined by reapplying \textsc{UCS} to consecutive portions of the plan, each covering 10\% of its length.
 Specifically, \textsc{UCS} was applied to the intervals $[0,0.1]$, $[0.1,0.2]$, $[0.2,0.3]$, and so on, up to the end of the plan. In this way, each run replaced
 10\% of the original solution with the \textsc{UCS} refinement. Figure \ref{fig:ucs_first5} shows the cumulative distributions for the first five intervals,
 corresponding to the initial portions of the plan, while Figure \ref{fig:ucs_last5} presents the results for the last five intervals,
@@ -275,14 +279,14 @@ corresponding to the final portions.
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=\textwidth]{images/ucs_first5_intervals.png}
-	\caption{Cumulative distributions for UCS refinement applied to different 10\% segments of the initial solution (first five intervals)}
+	\caption{Cumulative distributions for \textsc{UCS} refinement applied to different 10\% segments of the initial solution (first five intervals)}
 	\label{fig:ucs_first5}
 \end{figure}
 
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=\textwidth]{images/ucs_last5_intervals.png}
-	\caption{Cumulative distributions for UCS refinement applied to different 10\% segments of the initial solution (last five intervals)}
+	\caption{Cumulative distributions for \textsc{UCS} refinement applied to different 10\% segments of the initial solution (last five intervals)}
 	\label{fig:ucs_last5}
 \end{figure}
 
@@ -295,7 +299,7 @@ Figure \ref{fig:ucs_3intervals} shows the results of this experiment.
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=\textwidth]{images/ucs_3_intervals.png}
-	\caption{Cumulative distributions for UCS refinement applied to larger plan segments: first 30\%, middle 40\%, and last 30\% of the initial solution}
+	\caption{Cumulative distributions for \textsc{UCS} refinement applied to larger plan segments: first 30\%, middle 40\%, and last 30\% of the initial solution}
 	\label{fig:ucs_3intervals}
 \end{figure}
 
