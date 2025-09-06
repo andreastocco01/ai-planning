@@ -221,7 +221,7 @@ to select a suboptimal branch|such as choosing $a_1$ or $a_3$| which does not co
 	\centering
 	\def\svgwidth{0.75\linewidth}
 	\input{images/hmax.pdf_tex}
-	\caption{Behaviour of the $h^{\max}$ heuristic without pruning}
+	\caption{Running example evaluated with the $h^{\max}$ heuristic (without pruning)}
 	\label{fig:hmax_scheme}
 \end{figure}
 
@@ -236,7 +236,7 @@ This occurs because, from state $s_6$, both $a_{10}$ and $a_{11}$ have the same 
 	\centering
 	\def\svgwidth{0.75\linewidth}
 	\input{images/hmax_pruning.pdf_tex}
-	\caption{Behaviour of the $h^{\max}$ heuristic with pruning}
+	\caption{Running example evaluated with the $h^{\max}$ heuristic with pruning}
 	\label{fig:hmax_pruning_scheme}
 \end{figure}
 
@@ -299,7 +299,7 @@ The pseudocode for this approach is shown in Algorithm \ref{alg:lookahead} and \
 The algorithm "looks ahead" at the heuristic cost of the state resulting from each possible action,
 and then applies only the action that appears to be the most convenient.
 
-\section{Novel Heuristic}
+\section{Shortest Path Heuristic}
 \label{sec:shortestpath}
 In this section, a completely new approach is introduced. As discussed in Section \ref{sec:hmax},
 the modified version of the $h^{\max}$ heuristic ultimately behaves like a Greedy + Pruning algorithm, limiting its effectiveness.
@@ -310,7 +310,7 @@ The mathematical formalism is presented in Equations \ref{eq:sp} and \ref{eq:spc
 
 \begin{equation}
 	\label{eq:sp}
-	h_{sp}\left(p;s_*\right) \coloneqq \begin{cases}
+	h^{sp}\left(p;s_*\right) \coloneqq \begin{cases}
 		0                                                                    & \text{if $p \in s_*$} \\
 		\text{min}_{a \in O\left(p\right)}\left[h_a\left(a;s_*\right)\right] & \text{otherwise}
 	\end{cases}
@@ -323,7 +323,7 @@ defined as follows:
 
 \begin{equation}
 	\label{eq:spcost}
-	h_a\left(a;s_*\right) \coloneqq cost(a) + \text{min}_{q \in \textit{eff}\left(a\right)} \left[h_{sp}\left(q;s_*\right)\right]
+	h_a\left(a;s_*\right) \coloneqq cost(a) + \text{min}_{q \in \textit{eff}\left(a\right)} \left[h^{sp}\left(q;s_*\right)\right]
 \end{equation}
 
 This expression estimates the cost of achieving a fact in the goal state $s_*$ by applying
@@ -336,7 +336,7 @@ Figure \ref{fig:sp_scheme} illustrates the same example introduced at the beginn
 	\centering
 	\def\svgwidth{0.75\linewidth}
 	\input{images/shortest_path.pdf_tex}
-	\caption{Behaviour of the shortest path heuristic}
+	\caption{Running example evaluated with the Shortest Path heuristic}
 	\label{fig:sp_scheme}
 \end{figure}
 
@@ -350,7 +350,7 @@ The actual implementation of this algorithm uses a \textit{priority queue} to en
 efficient and iterative computation. The pseudocode is presented in Algorithm \ref{alg:sp}.
 
 \begin{algorithm}
-	\caption{Shortest path heuristic}
+	\caption{Shortest Path heuristic}
 	\label{alg:sp}
 	\hspace*{0.5em} \textbf{Output}:
 	\begin{algorithmic}[1]
