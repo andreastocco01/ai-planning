@@ -59,10 +59,23 @@ distinguishing them from those of the original planning problem.
 This structural property simplifies reasoning about reachability and reduces the complexity of
 exploring the search space, while still retaining much of the problem's inherent difficulty.\\
 Optimal planners, such as \textit{Fast Downward}, are guaranteed to find the best possible solution to a planning task, but they can be
-computationally expensive. This thesis instead focuses on \textit{heuristic} algorithms, which aim to find high-quality solutions more efficiently,
-even though they do not guarantee optimality.
-Designing efficient heuristics for such domains is a key area of study, especially when exact solutions become impractical due to problem complexity.\\
-After outlining the experimental methodology, the thesis presents several well-known heuristic algorithms for delete-free planning,
+computationally expensive. Such planners rely on a core search algorithm named \textsc{A*}.
+Specifically, \textsc{A*} selects actions by minimizing the function
+
+\begin{equation*}
+	f(n) = g(n) + h(n)
+\end{equation*}
+
+where $g(n)$ is the cost required to reach node $n$, and $h(n)$ is a \textit{heuristic function} that estimates the cost to reach the goal state from $n$.
+A heuristic is called \textit{admissible} if it never overestimates the true cost to reach the goal.
+By expanding nodes in order of increasing $f(n)$, \textsc{A*} always explores the most promising states first,
+and when an admissible heuristic is used, it is guaranteed to return an optimal solution.\\
+While heuristic functions serve as estimators within search algorithms like \textsc{A*},
+this thesis instead focuses on \textit{primal heuristics}|constructive strategies that directly generate feasible plans.
+These methods aim to efficiently produce solutions of good quality, even though they do not guarantee optimality.
+Designing effective primal heuristics for delete-free domains is a key area of study, especially when exact methods become
+impractical due to problem complexity.\\
+After outlining the experimental methodology, the thesis presents several well-known primal heuristics for delete-free planning,
 together with the implementation of a novel approach.
 All algorithms are evaluated in terms of solution quality across a range of benchmark instances. In addition, the study explores the impact of
 randomization on performance and investigates refinement strategies aimed at improving initial solutions.
