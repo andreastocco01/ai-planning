@@ -103,10 +103,10 @@ The curve for Shortest Path is included as a reference. Focusing only on the ins
 is particularly valuable: in this case, the curves are not skewed by instances that some strategies failed to solve.
 This allows us to assess only the quality of the generated plans. From this comparison, it is evident that Shortest Path
 is the best-performing algorithm overall—both in terms of solution quality and the number of problems it can solve.
-Additionally, the performance of $h^{\max}$ + Lookahead, which surpasses that of Greedy + Pruning, confirms that pruning combined
-with $h^{\max}$ heuristic can be an effective strategy when paired with a lookahead mechanism.
-Although lookahead remains a slow algorithm, these results suggest that the revised version of the $h^{\max}$ heuristic|enhanced
-with a pruning mechanism|has the potential to produce high-quality solutions.
+Additionally, the performance of $h^{\max}$ + Lookahead, which surpasses that of Greedy + Pruning, confirms that combining pruning
+with the $h^{\max}$ heuristic can be an effective strategy when paired with a lookahead mechanism.
+Although $h^{\max}$ + Lookahead remains computationally slow, these results indicate that the pruning-enhanced
+$h^{\max}$ heuristic has the potential to yield high-quality solutions if embedded within a more powerful search algorithm.
 
 \section{Different Versions of Backward Propagation}
 As explained in Section \ref{sec:shortestpath}, the core idea behind the algorithm is to back-propagate the estimated cost

@@ -316,7 +316,7 @@ The mathematical formalism is presented in Equations \ref{eq:sp} and \ref{eq:spc
 	\end{cases}
 \end{equation}
 
-Here, $h_{sp}\left(p;s_*\right)$ denotes the estimated cost of achieving the fact \textit{p} from the goal state $s_*$.
+Here, $h^{sp}\left(p;s_*\right)$ denotes the estimated cost of achieving the fact \textit{p} from the goal state $s_*$.
 The set $O\left(p\right)$ represents the actions that produce \textit{p} as an effect,
 that is, $O\left(p\right) = \{a \in A \mid p \in \textit{eff(a)}\}$. The function $h\left(a;s_*\right)$ is
 defined as follows:
@@ -350,7 +350,7 @@ The actual implementation of this algorithm uses a \textit{priority queue} to en
 efficient and iterative computation. The pseudocode is presented in Algorithm \ref{alg:sp}.
 
 \begin{algorithm}
-	\caption{Shortest Path heuristic}
+	\caption{Shortest Path}
 	\label{alg:sp}
 	\hspace*{0.5em} \textbf{Output}:
 	\begin{algorithmic}[1]
