@@ -6,6 +6,7 @@ def extract_instance_costs(file_list, directory):
     instance_costs = []
     for filename in file_list:
         with open(directory + filename, 'r') as file:
+            print(filename)
             content = file.read()
             if "Solution found!" in content:
                 file.seek(0)
@@ -13,6 +14,7 @@ def extract_instance_costs(file_list, directory):
                 try:
                     instance_costs.append(int(lines[-1].split(' ')[1]))
                 except:
+                    instance_costs.append(-1)
                     print(directory + filename)
             elif "Solution does not exist!" in content:
                 instance_costs.append(0)
@@ -21,7 +23,7 @@ def extract_instance_costs(file_list, directory):
     return instance_costs
 
 # Define directories
-output_base_dir = '../out/'
+output_base_dir = '../out_set_var/'
 alg1_dir = output_base_dir + 'random/'
 alg2_dir = output_base_dir + 'greedy/'
 alg3_dir = output_base_dir + 'pruning/'
@@ -29,13 +31,15 @@ alg4_dir = output_base_dir + 'lookahead/'
 alg5_dir = output_base_dir + 'backprop_min/'
 alg6_dir = output_base_dir + 'backprop_max/'
 alg7_dir = output_base_dir + 'backprop_sum/'
+alg8_dir = output_base_dir + 're-apply_backprop_min/'
+alg9_dir = output_base_dir + 'backprop_min_ucs/'
 
 # Collect test instances
 test_instances = [
     filename for filename in listdir('../DeletefreeSAS')
 ]
 
-f = open("best_known.txt", "w")
+f = open("best_known_set_var.txt", "w")
 n_iter = 1
 
 for instance in test_instances:
@@ -49,6 +53,8 @@ for instance in test_instances:
     alg5_files = [file for file in listdir(alg5_dir) if re.search(instance_base_name, file)]
     alg6_files = [file for file in listdir(alg6_dir) if re.search(instance_base_name, file)]
     alg7_files = [file for file in listdir(alg7_dir) if re.search(instance_base_name, file)]
+    alg8_files = [file for file in listdir(alg8_dir) if re.search(instance_base_name, file)]
+    alg9_files = [file for file in listdir(alg9_dir) if re.search(instance_base_name, file)]
 
     # Extract costs
     instance_costs = [
@@ -59,6 +65,8 @@ for instance in test_instances:
         extract_instance_costs(alg5_files, alg5_dir),
         extract_instance_costs(alg6_files, alg6_dir),
         extract_instance_costs(alg7_files, alg7_dir),
+        extract_instance_costs(alg8_files, alg8_dir),
+        extract_instance_costs(alg9_files, alg9_dir),
     ]
 
     # Find best known cost (excluding -1 values)

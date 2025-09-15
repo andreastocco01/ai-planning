@@ -21,8 +21,8 @@ def extract_instance_costs(file_list, directory):
                 instance_costs.append(-1)
     return instance_costs
 
-output_base_dir = '../out/'
-alg_dir = output_base_dir + 'random/'
+output_base_dir = '../out_set_var/'
+alg_dir = output_base_dir + 'backprop_min/'
 
 test_instances = [
     filename for filename in listdir('../DeletefreeSAS')
@@ -31,6 +31,7 @@ test_instances = [
 n_iter = 1
 min_points = []
 avg_points = []
+max_points = []
 for instance in test_instances:
     instance_base_name = instance.split('.')[0]  # Remove .sas extension
 
@@ -44,17 +45,21 @@ for instance in test_instances:
     valid_costs = [cost for cost in instance_costs if cost != -1]
     if valid_costs:
         best_known = min(valid_costs)
-        avg = sum(valid_costs) / len(valid_costs)
+        avg_cost = sum(valid_costs) / len(valid_costs)
+        max_cost = max(valid_costs)
 
         min_points.append(best_known)
-        avg_points.append(avg)
+        avg_points.append(avg_cost)
+        max_points.append(max_cost)
 
     if n_iter % 100 == 0:
         print(f'{n_iter}/{len(test_instances)}')
     n_iter += 1
 
 print("min_points = ", min_points)
-print("avg_points = ", avg_points)
+#print("avg_points = ", avg_points)
+print("max_points = ", max_points)
+
 
 plt.figure(figsize=(10, 6))
 plt.scatter(min_points, avg_points, alpha=0.2)
