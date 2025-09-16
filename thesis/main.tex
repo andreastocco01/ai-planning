@@ -25,6 +25,7 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{import}
+\usepackage{watermark}
 \graphicspath{{images/}}
 \MakeRobust{\Call} % to use nested \Call
 
@@ -42,8 +43,16 @@
 % questi valori vengono usati nella composizione del frontespizio
 \title{Design and Evaluation of a Novel Heuristic for Delete-Free AI Planning}
 \author{Andrea Stocco}
-\date{GG/MM/AAAA}
+\date{07/10/2025}
 \newcommand{\supervisor}{Prof. Domenico Salvagnin}
+
+% set watermark
+\thiswatermark{
+    \centering
+    \put(-394,-770) {
+        \includegraphics[width=1.4\linewidth]{unipdbg.pdf}
+    }
+}
 
 \usepackage{amsthm}
 \theoremstyle{definition}
