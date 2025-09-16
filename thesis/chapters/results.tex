@@ -14,7 +14,7 @@ come from different domains; some are very large in terms of number of actions, 
 relatively small.
 Additionally, since some algorithms are more efficient than others, not all the instances
 were solved by every algorithm. Table \ref{tab:timelimit} shows, for each algorithm,
-the number of instances it was able to solve within the time limit.
+the number of runs it was able to solve within the time limit.
 
 \begin{table}[ht]
 	\centering
@@ -29,7 +29,7 @@ the number of instances it was able to solve within the time limit.
 		Shortest Path          & 1042                                \\
 		\hline
 	\end{tabular}
-	\caption{Number of instances not solved within the time limit (out of 31,040 total instances).}
+	\caption{Number of unsolved runs within the time limit (out of 31,040 total runs).}
 	\label{tab:timelimit}
 \end{table}
 
@@ -41,9 +41,9 @@ solving the highest number of instances.
 \section{Random vs Greedy vs Greedy + Pruning vs Shortest Path}
 This section presents an evaluation of four planning strategies, ranging from uninformed to increasingly informed approaches:
 Random, Greedy, Greedy + Pruning, and Shortest Path.
-Random and Greedy exhibit similar efficiency, as both are able to solve a large number of instances. Greedy + Pruning is
-slightly slower but employs a strategy with the potential to yield higher-quality solutions. Ultimately, the Shortest Path approach
-solves the highest number of instances. The next step is to evaluate the quality of the solutions produced by each strategy.
+As shown in Table \ref{tab:timelimit}, Random and Greedy exhibit similar efficiency, as both are able to solve a large number of runs. Greedy + Pruning is
+slightly slower but employs a strategy with the potential to yield higher-quality solutions. Ultimately, the Shortest Path approach achieves the best performance,
+solving the highest number of runs overall. The next step is to evaluate the quality of the solutions produced by each strategy.
 Figure \ref{fig:rgps} presents the cumulative distribution plot for the evaluated algorithms.
 
 \begin{figure}[ht]
@@ -109,7 +109,7 @@ Although $h^{\max}$ + Lookahead remains computationally slow, these results indi
 $h^{\max}$ heuristic has the potential to yield high-quality solutions if embedded within a more powerful search algorithm.
 
 \section{Different Versions of Backward Propagation}
-As explained in Section \ref{sec:shortestpath}, the core idea behind the algorithm is to back-propagate the estimated cost
+As explained in Section \ref{sec:shortestpath}, the core idea behind the algorithm is to back-propagate the heuristic cost
 of reaching the goal state from its constituent facts to those in the current state. Previously, an algorithm was introduced
 that propagates the minimum cost among an action's effects—effectively computing the shortest path to the goal.
 With minimal modification, alternative strategies can be explored, such as propagating the \textit{maximum effect cost} or the
@@ -190,7 +190,7 @@ yields the best performance in cumulative distribution plots, and demonstrates t
 
 \section{Iterative Refinement via Shortest Path Reapplication}
 In the context of Mixed Integer Programming (MIP), there is a technique known as \textit{local branching} \cite{fischetti2003local},
-which involves first finding a feasible solution using a fast heuristic or metaheuristic approach, and then refining this solution by solving,
+which involves first finding a feasible solution using a fast constructive heuristic (or, in some applications, a metaheuristic), and then refining this solution by solving,
 to optimality, a subproblem of the original MIP using a solver as a ``black box''.
 This approach could also be applied to planning. However, at the time of writing, the most well-known optimal planner, Fast Downward,
 does not provide an API that would allow it to be used as a black-box component. To refine the solution found by the Shortest Path,
@@ -234,7 +234,7 @@ Algorithm \ref{alg:ucs} presents the pseudocode for this strategy.
 \begin{algorithm}
 	\caption{Uniform Cost Search}
 	\label{alg:ucs}
-	\hspace*{0.5em} \textbf{Output}: optimal plan
+	\hspace*{0.5em} \textbf{Output}:
 	\begin{algorithmic}[1]
 		\Procedure{ucs}{$planningTask$}
 		\State $stateCosts \gets \{+\infty, \dots, +\infty\}$ \Comment{Initialize states' cost to $+\infty$}
