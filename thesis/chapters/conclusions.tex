@@ -7,7 +7,7 @@ The study first revisited several well-known heuristics and implemented them wit
 a novel heuristic was proposed, designed to exploit the structural properties of delete-free tasks more effectively. The performance of all algorithms
 was systematically evaluated across a suite of benchmark instances, with a focus on both computational efficiency and the quality of the resulting plans.
 
-The results highlight that the proposed heuristic achieves competitive and superior performance compared to established approaches,
+The results highlight that the proposed heuristic achieves superior performance compared to established approaches,
 confirming the potential of structural exploitation in delete-free domains. The analysis of randomization further revealed that the stability of solution
 quality strongly depends on the informativeness of the heuristic: more informative heuristics consistently led to more stable outcomes across different
 random seeds, while less informative ones exhibited greater variability. Finally, refinement strategies, whether based on solving subproblems with
@@ -15,7 +15,7 @@ Uniform Cost Search or on reapplying the heuristic itself to subproblems, did no
 the refined plans largely overlapped in cost with the originals, indicating that such post-processing techniques are not particularly effective in this setting.
 
 At the same time, this work opens several avenues for further investigation. A natural next step would be to explore local branching using an external
-solver as a black box, which could allow richer refinements of partial solutions than the \textsc{UCS}-based approach adopted here.
+solver as a ``black box'', which could allow richer refinements of partial solutions than the \textsc{UCS}-based approach adopted here.
 Similarly, the pruning-enhanced variant of the $h^{\max}$ heuristic developed in this thesis could be integrated into \textsc{A*} search, enabling an optimal procedure
 to benefit from early elimination of unhelpful actions. These directions suggest practical ways to extend the contributions of this work,
 while reinforcing the broader insight that delete-free planning offers a valuable framework for designing and evaluating new heuristic strategies.
