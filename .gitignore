@@ -52,7 +52,10 @@ main-blx.bib
 *.lot
 *.out
 main.run.xml
-main.toc
+*.toc
 pdfa.xmpi
-main.pdf
+*.pdf
 *.loa
+*.nav
+*.snm
+*.vrb
