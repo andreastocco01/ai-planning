@@ -167,36 +167,21 @@
 
 \begin{frame}{Refinement Strategies}
 	\begin{itemize}
-		\item In the context of Mixed Integer Programming (MIP), there is a technique known as \textit{local branching} \cite{fischetti2003local}
+		\item In the context of Mixed Integer Programming (MIP), there is a technique known as \textit{local branching}
 		\item Goal: improve plans produced by heuristics
 		\item Attempted approaches:
 		      \begin{itemize}
-			      \item Shortest Path reapplication
-			      \item Uniform Cost Search (\textsc{UCS}) refinement \cite{felner2011position}
+			      \item \textbf{Shortest Path reapplication}
+			            \begin{itemize}
+				            \item Result: minimal gains
+			            \end{itemize}
+			      \item \textbf{Uniform Cost Search refinement}
+			            \begin{itemize}
+				            \item Result: costly, no improvements
+			            \end{itemize}
+
 		      \end{itemize}
 	\end{itemize}
-\end{frame}
-
-%------------------------------------------------
-
-\begin{frame}{Iterative Refinement Via Shortest Path Reapplication}
-	\begin{figure}[ht]
-		\centering
-		\includegraphics[width=0.75\textwidth]{../thesis/images/reapply_full.png}
-		\caption{Comparison of cumulative distributions for Shortest Path reapplied to different plan segments.}
-		\label{fig:reapply}
-	\end{figure}
-\end{frame}
-
-%------------------------------------------------
-
-\begin{frame}{Iterative Refinement Via Uniform Cost Search}
-	\begin{figure}[ht]
-		\centering
-		\includegraphics[width=0.75\textwidth]{../thesis/images/ucs_3_intervals.png}
-		\caption{Cumulative distributions for \textsc{UCS} refinement applied to different plan segments.}
-		\label{fig:ucs_3intervals}
-	\end{figure}
 \end{frame}
 
 %------------------------------------------------
@@ -217,20 +202,6 @@
 	\begin{itemize}
 		\item Explore local branching with optimal external solvers
 	\end{itemize}
-\end{frame}
-
-%------------------------------------------------
-
-\begin{frame}{Thank you!}
-	\Huge{\centerline{\textbf{Questions?}}}
-\end{frame}
-
-%----------------------------------------------------------------------------------------
-
-\begin{frame}{References}
-	\footnotesize
-	\bibliography{../thesis/bibliography.bib}
-	\bibliographystyle{apalike}
 \end{frame}
 
 %------------------------------------------------
