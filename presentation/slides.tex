@@ -32,10 +32,16 @@
 
 \begin{document}
 
+{
+\usebackgroundtemplate{
+	\rule{0pt}{\paperheight}%
+	\makebox[0pt][c]{\includegraphics[width=0.56\paperwidth]{../thesis/images/unipdbg.pdf}}
+}
 \begin{frame}
 	% Print the title page as the first slide
 	\titlepage
 \end{frame}
+}
 
 \begin{frame}{Overview}
 	% Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
